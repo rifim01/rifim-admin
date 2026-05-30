@@ -1,0 +1,771 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Sistem Admin Rifim v4 — PT. Rifim International Gemilang</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@latest/tabler-icons.min.css">
+  <style>
+    ::-webkit-scrollbar { width:6px; height:6px; }
+    ::-webkit-scrollbar-track { background:#f1f5f9; }
+    ::-webkit-scrollbar-thumb { background:#cbd5e1; border-radius:4px; }
+    ::-webkit-scrollbar-thumb:hover { background:#94a3b8; }
+    .fade-in { animation: fadeIn 0.3s ease-out; }
+    @keyframes fadeIn { from { opacity:0; transform:translateY(4px); } to { opacity:1; transform:translateY(0); } }
+  </style>
+</head>
+<body class="bg-slate-50 text-slate-800 antialiased min-h-screen">
+<div id="root"></div>
+<script src="https://cdn.jsdelivr.net/npm/react@18/umd/react.production.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/react-dom@18/umd/react-dom.production.min.js"></script>
+<script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+<script type="text/babel">
+const { useState, useEffect, useMemo, useCallback } = React;
+
+const CAB = [
+  "ID Rifim Airport Batam",
+  "ID Rifim Batam",
+  "ID Rifim Airport Jambi",
+  "ID Rifim Pekanbaru",
+  "ID Rifim Airport Balikpapan",
+  "ID Rifim Airport Manado"
+];
+
+const ADM = ["Govind","Tasya","Abel"];
+
+const TASKS = [
+  { id:"saldo",  lbl:"Isi Saldo Driver" },
+  { id:"dpot",   lbl:"Total Driver Potong" },
+  { id:"pord",   lbl:"Potong Order" },
+  { id:"tpot",   lbl:"Total Potongan" },
+  { id:"nom",    lbl:"Nominal Potongan" },
+  { id:"upot",   lbl:"Update Potongan Daily" },
+  { id:"dlua",   lbl:"Update DB Driver Luar" },
+  { id:"feel",   lbl:"Update Fee Saldo Luar" },
+  { id:"abs",    lbl:"Update Master Absensi" },
+  { id:"tgt",    lbl:"Update Form Target Kota" },
+  { id:"hpku",   lbl:"Update Hutang PKU" },
+  { id:"sub",    lbl:"Submit Laporan" }
+];
+
+const FILES = [
+  { id:1,  nm:"Sistem Saldo Driver Otomatis",   u:"Govind/Tasya",  lnk:"https://docs.google.com/spreadsheets/d/1_ebsUJnclTRWUUs6Iuj2OMsM-xutQx0N06G6PE1wYCc/edit" },
+  { id:2,  nm:"Database Staff",                  u:"Abel",           lnk:"https://docs.google.com/spreadsheets/d/1wfMbfjlCMy_Cknig6ymk81HO8XPg56_7P8VOVRWrpGs/edit" },
+  { id:3,  nm:"Form ASK PT Syafiq",              u:"Mba Lia/Nia",   lnk:"https://docs.google.com/spreadsheets/d/1CC_sXIcuV0dPUcyOZXZX0En_jGrsMfK8PnuopP-DBzY/edit" },
+  { id:4,  nm:"Database Driver Luar",            u:"Govind/Tasya",  lnk:"https://docs.google.com/spreadsheets/d/1gUe-Fb78fTZKPHMyIHTjuNLvLPSdrE2bqQitjbnw1JU/edit" },
+  { id:5,  nm:"Perhitungan Gaji Staff",          u:"Abel/Nabilla",  lnk:"https://docs.google.com/spreadsheets/d/1YdAEw3sF1FFKQvVZG43D1eRjVmbzRieq8erdkSYhVq8/edit" },
+  { id:6,  nm:"Potongan Daily",                  u:"Govind/Tasya",  lnk:"https://docs.google.com/spreadsheets/d/1SUCsDp_Khuk-RqUGETkbl9zsPnpOBjlLzXkPAtUCD-Q/edit" },
+  { id:7,  nm:"File Pendapatan",                 u:"Abel",           lnk:"https://docs.google.com/spreadsheets/d/1NsAl4e3lHmnfRP34yOuWCEeZSEa2XyZJGej0OSkQVNk/edit" },
+  { id:8,  nm:"Master Absensi Karyawan",         u:"Govind/Tasya",  lnk:"https://docs.google.com/spreadsheets/d/1YlqQyQUnM5B7ZMEB3uRQwr8-AE6J1vT-c_WXVIK8J_c/edit" },
+  { id:9,  nm:"Pengeluaran & Pemasukan",         u:"Mba Lia/Bobby", lnk:"https://docs.google.com/spreadsheets/d/1AgpEqhpDU4BUxcN_i_jaF8Ccw6RwptV2TOJjyTCVPSo/edit" },
+  { id:10, nm:"Rincian Fee Saldo Luar",          u:"Govind/Tasya",  lnk:"https://docs.google.com/spreadsheets/d/1datTe77hpUiCDTzBQOcDok23IZ1FS_Zo30eupGJRCb8/edit" },
+  { id:11, nm:"System Rifim (Master Data All)",  u:"Semua Admin",   lnk:"https://docs.google.com/spreadsheets/d/1KHOZOBg0NNVIqQO3E9yBVt-lCDcDsTM4s4jQbzSdF9c/edit" }
+];
+
+function rp(n) { return "Rp " + (Number(n)||0).toLocaleString("id-ID"); }
+function today() { return new Date().toISOString().slice(0,10); }
+function genId(p) { return p+"-"+Date.now().toString(36).toUpperCase()+Math.random().toString(36).slice(2,4).toUpperCase(); }
+
+// Storage engine: IndexedDB (primary) + localStorage (fallback)
+// Data persists across page refresh & browser restarts on Vercel
+const appStorage = (() => {
+  const DB_NAME = "rifim_v4_db";
+  const STORE   = "kv";
+  let _db = null;
+
+  function openDB() {
+    return new Promise((res, rej) => {
+      if (_db) return res(_db);
+      const req = indexedDB.open(DB_NAME, 1);
+      req.onupgradeneeded = e => e.target.result.createObjectStore(STORE);
+      req.onsuccess = e => { _db = e.target.result; res(_db); };
+      req.onerror   = () => rej(req.error);
+    });
+  }
+
+  async function idbGet(k) {
+    try {
+      const db = await openDB();
+      return new Promise((res, rej) => {
+        const tx  = db.transaction(STORE, "readonly");
+        const req = tx.objectStore(STORE).get(k);
+        req.onsuccess = () => res(req.result ?? null);
+        req.onerror   = () => rej(req.error);
+      });
+    } catch { return null; }
+  }
+
+  async function idbSet(k, v) {
+    try {
+      const db = await openDB();
+      return new Promise((res, rej) => {
+        const tx  = db.transaction(STORE, "readwrite");
+        const req = tx.objectStore(STORE).put(v, k);
+        req.onsuccess = () => res();
+        req.onerror   = () => rej(req.error);
+      });
+    } catch {}
+  }
+
+  return {
+    listeners: [],
+    subscribe(l) { this.listeners.push(l); return () => { this.listeners = this.listeners.filter(x => x !== l); }; },
+    notify(k, v) { this.listeners.forEach(l => { try { l(k, v); } catch(e) {} }); },
+    async get(k) {
+      try {
+        // Try IndexedDB first
+        const v = await idbGet(k);
+        if (v !== null) return v;
+        // Fallback: localStorage
+        const ls = localStorage.getItem(k);
+        return ls ? JSON.parse(ls) : null;
+      } catch { return null; }
+    },
+    async set(k, d) {
+      try {
+        await idbSet(k, d);
+        try { localStorage.setItem(k, JSON.stringify(d)); } catch {}
+        this.notify(k, d);
+      } catch(e) {
+        try { localStorage.setItem(k, JSON.stringify(d)); this.notify(k, d); } catch {}
+      }
+    }
+  };
+})();
+
+async function callClaude(prompt, sys="") {
+  const payload = {
+    model: "claude-sonnet-4-20250514",
+    max_tokens: 1000,
+    messages: [{ role:"user", content: prompt }]
+  };
+  if(sys) payload.system = sys;
+  const r = await fetch("https://api.anthropic.com/v1/messages",{
+    method:"POST", headers:{"Content-Type":"application/json"}, body:JSON.stringify(payload)
+  });
+  if(!r.ok) throw new Error("Claude API "+r.status);
+  const d = await r.json();
+  const t = d.content?.find(b=>b.type==="text")?.text;
+  if(!t) throw new Error("Respons kosong");
+  return t;
+}
+
+function renderMD(text){
+  if(!text) return null;
+  return text.split("\n").map((line,i)=>{
+    let c=line.replace(/\*\*(.*?)\*\*/g,'<strong class="font-bold text-slate-200">$1</strong>').replace(/\*(.*?)\*/g,'<em>$1</em>');
+    if(line.trim().startsWith("* ")||line.trim().startsWith("- "))
+      return <li key={i} className="ml-4 list-disc pl-1 mb-1 text-slate-300 text-sm" dangerouslySetInnerHTML={{__html:c.replace(/^[\*\-]\s+/,'')}}/>;
+    if(line.trim().startsWith("### "))
+      return <h5 key={i} className="text-sm font-bold text-slate-100 mt-3 mb-1" dangerouslySetInnerHTML={{__html:c.replace(/^###\s+/,'')}}/>;
+    if(line.trim().startsWith("## "))
+      return <h4 key={i} className="text-base font-bold text-indigo-400 mt-4 mb-2 border-b border-slate-700 pb-1" dangerouslySetInnerHTML={{__html:c.replace(/^##\s+/,'')}}/>;
+    return <p key={i} className="mb-1.5 leading-relaxed text-slate-300 text-sm" dangerouslySetInnerHTML={{__html:c}}/>;
+  });
+}
+
+function Field({label,children,className=""}){
+  return(
+    <div className={`flex flex-col gap-1 ${className}`}>
+      <label className="text-xs font-semibold text-slate-500 tracking-wide uppercase">{label}</label>
+      {children}
+    </div>
+  );
+}
+
+function Modul1Checklist({triggerToast,refreshSignal}){
+  const [history,setHistory]=useState([]);
+  const [form,setForm]=useState({tgl:today(),admin:"Govind",shift:"Pagi",cab:CAB[0],ti:"",to:"",t:{},kdl:"",ss:""});
+  const [sel,setSel]=useState(null);
+  const [fAdm,setFAdm]=useState("Semua");
+  const [fCab,setFCab]=useState("Semua");
+  useEffect(()=>{ appStorage.get("rifim_v4_chk").then(x=>{ if(x) setHistory(x); }); },[refreshSignal]);
+  const done=Object.values(form.t).filter(Boolean).length;
+  const pct=Math.round((done/TASKS.length)*100);
+  const save=()=>{
+    const item={...form,id:genId("CHK"),pct,ts:new Date().toISOString()};
+    const u=[item,...history]; setHistory(u); appStorage.set("rifim_v4_chk",u);
+    triggerToast("Checklist berhasil disimpan!","success");
+    setForm(p=>({...p,ti:"",to:"",t:{},kdl:"",ss:""}));
+  };
+  const del=(id,e)=>{ e.stopPropagation(); if(confirm("Hapus?")){ const u=history.filter(x=>x.id!==id); setHistory(u); appStorage.set("rifim_v4_chk",u); } };
+  const filt=useMemo(()=>history.filter(x=>(fAdm==="Semua"||x.admin===fAdm)&&(fCab==="Semua"||x.cab===fCab)),[history,fAdm,fCab]);
+  const avg=useMemo(()=>filt.length?Math.round(filt.reduce((s,x)=>s+(x.pct||0),0)/filt.length):0,[filt]);
+  const inp="w-full text-sm border border-slate-200 rounded-lg p-2 bg-slate-50 focus:bg-white focus:outline-indigo-500";
+  return(
+    <div className="space-y-6 fade-in">
+      <div className="bg-white rounded-2xl border border-slate-200 shadow-sm p-6">
+        <div className="flex items-center gap-2 mb-4"><span className="w-8 h-8 rounded-lg bg-indigo-50 text-indigo-600 flex items-center justify-center"><i className="ti ti-checkbox text-xl"></i></span><h3 className="text-base font-bold text-slate-800">Isi Checklist Aktivitas Harian</h3></div>
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-4">
+          <Field label="Tanggal"><input type="date" value={form.tgl} onChange={e=>setForm({...form,tgl:e.target.value})} className={inp}/></Field>
+          <Field label="Admin"><select value={form.admin} onChange={e=>setForm({...form,admin:e.target.value})} className={inp}>{ADM.map(a=><option key={a}>{a}</option>)}</select></Field>
+          <Field label="Shift"><select value={form.shift} onChange={e=>setForm({...form,shift:e.target.value})} className={inp}>{["Pagi","Sore","Malam"].map(s=><option key={s}>{s}</option>)}</select></Field>
+          <Field label="Cabang"><select value={form.cab} onChange={e=>setForm({...form,cab:e.target.value})} className={inp}>{CAB.map(c=><option key={c}>{c}</option>)}</select></Field>
+        </div>
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-6">
+          <Field label="Jam Masuk"><input type="time" value={form.ti} onChange={e=>setForm({...form,ti:e.target.value})} className={inp}/></Field>
+          <Field label="Jam Keluar"><input type="time" value={form.to} onChange={e=>setForm({...form,to:e.target.value})} className={inp}/></Field>
+        </div>
+        <div className="mb-6">
+          <div className="flex justify-between items-center mb-3">
+            <span className="text-xs font-semibold text-slate-500 uppercase">Daftar Pekerjaan Harian</span>
+            <span className={`text-xs px-2.5 py-1 rounded-full font-bold ${pct===100?"bg-emerald-50 text-emerald-600":"bg-indigo-50 text-indigo-600"}`}>{done}/{TASKS.length} Selesai ({pct}%)</span>
+          </div>
+          <div className="w-full bg-slate-100 h-1.5 rounded-full overflow-hidden mb-4"><div className="bg-indigo-500 h-full transition-all" style={{width:`${pct}%`}}></div></div>
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-2.5">
+            {TASKS.map(t=>{ const ck=!!form.t[t.id]; return(
+              <label key={t.id} className={`flex items-center gap-3 p-3 rounded-xl border text-sm font-medium cursor-pointer transition-all select-none ${ck?"border-emerald-200 bg-emerald-50 text-emerald-900 shadow-sm":"border-slate-200 bg-white text-slate-700 hover:border-slate-300"}`}>
+                <input type="checkbox" checked={ck} onChange={e=>setForm(p=>({...p,t:{...p.t,[t.id]:e.target.checked}}))} className="w-4 h-4 rounded text-indigo-600 border-slate-300"/>
+                <span>{t.lbl}</span>
+              </label>
+            ); })}
+          </div>
+        </div>
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-6">
+          <Field label="Kendala Hari Ini"><input type="text" placeholder="Tulis kendala operasional..." value={form.kdl} onChange={e=>setForm({...form,kdl:e.target.value})} className={inp}/></Field>
+          <Field label="Link Bukti/Screenshot"><input type="url" placeholder="https://drive.google.com/..." value={form.ss} onChange={e=>setForm({...form,ss:e.target.value})} className={inp}/></Field>
+        </div>
+        <button onClick={save} className="bg-emerald-600 hover:bg-emerald-700 text-white font-medium text-sm py-2.5 px-6 rounded-lg transition-colors inline-flex items-center gap-2"><i className="ti ti-device-floppy text-base"></i>Simpan Checklist</button>
+      </div>
+      <div>
+        <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-4">
+          <div><h3 className="text-base font-bold text-slate-800">Riwayat Pengisian ({filt.length})</h3><p className="text-xs text-slate-500">Rata-rata: {avg}%</p></div>
+          <div className="flex flex-wrap gap-2">
+            <select value={fAdm} onChange={e=>setFAdm(e.target.value)} className="text-xs border border-slate-200 bg-white rounded-lg p-2 font-medium"><option>Semua</option>{ADM.map(a=><option key={a}>{a}</option>)}</select>
+            <select value={fCab} onChange={e=>setFCab(e.target.value)} className="text-xs border border-slate-200 bg-white rounded-lg p-2 font-medium"><option>Semua</option>{CAB.map(c=><option key={c} value={c}>{c.replace("ID Rifim ","")}</option>)}</select>
+          </div>
+        </div>
+        {filt.length===0?(
+          <div className="bg-white rounded-2xl border border-slate-200 p-10 text-center text-slate-400"><i className="ti ti-folder-off text-4xl block mb-2 text-slate-300"></i><p className="text-sm">Belum ada riwayat.</p></div>
+        ):(
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+            {filt.map(x=>(
+              <div key={x.id} onClick={()=>setSel(x)} className="bg-white hover:bg-slate-50 border border-slate-200 rounded-2xl p-4 transition-all cursor-pointer flex items-center gap-4 relative group">
+                <div className="flex-1 min-w-0">
+                  <div className="flex items-center gap-2 mb-1"><span className="text-sm font-bold text-slate-800">{x.admin}</span><span className="text-xs font-semibold text-indigo-600 bg-indigo-50 px-2 py-0.5 rounded">{x.shift}</span><span className="text-xs text-slate-500">{x.tgl}</span></div>
+                  <div className="text-xs text-slate-500 flex items-center gap-1.5"><i className="ti ti-building"></i>{x.cab.replace("ID Rifim ","")} <span className="mx-1">•</span><i className="ti ti-clock"></i>{x.ti||"-"} s.d {x.to||"-"}</div>
+                  {x.kdl&&<p className="text-xs text-amber-600 italic mt-1 flex items-center gap-1"><i className="ti ti-alert-triangle"></i>{x.kdl}</p>}
+                </div>
+                <div className="text-right shrink-0">
+                  <span className={`text-xl font-black ${x.pct===100?"text-emerald-500":x.pct>=70?"text-amber-500":"text-rose-500"}`}>{x.pct}%</span>
+                  <span className="text-[10px] text-slate-400 font-bold block">{Object.values(x.t).filter(Boolean).length}/{TASKS.length}</span>
+                </div>
+                <button onClick={e=>del(x.id,e)} className="absolute right-3 top-3 w-7 h-7 bg-red-50 hover:bg-red-500 text-red-500 hover:text-white rounded-lg items-center justify-center transition-all opacity-0 group-hover:opacity-100 flex"><i className="ti ti-trash text-sm"></i></button>
+              </div>
+            ))}
+          </div>
+        )}
+      </div>
+      {sel&&(
+        <div className="fixed inset-0 bg-slate-900/40 backdrop-blur-sm flex items-center justify-center p-4 z-50 fade-in">
+          <div className="bg-white rounded-2xl border border-slate-200 shadow-xl max-w-lg w-full overflow-hidden">
+            <div className="border-b border-slate-100 p-5 flex justify-between items-center bg-slate-50">
+              <div><h4 className="font-bold text-slate-800">Detail Checklist</h4><p className="text-xs text-slate-500">ID: {sel.id}</p></div>
+              <button onClick={()=>setSel(null)} className="w-8 h-8 rounded-full bg-white hover:bg-slate-100 text-slate-500 flex items-center justify-center border border-slate-200"><i className="ti ti-x"></i></button>
+            </div>
+            <div className="p-6 max-h-[70vh] overflow-y-auto space-y-4">
+              <div className="grid grid-cols-2 gap-4 text-xs">
+                <div><span className="text-slate-400 block font-bold uppercase">Admin & Shift</span><span className="font-bold text-slate-800">{sel.admin} ({sel.shift})</span></div>
+                <div><span className="text-slate-400 block font-bold uppercase">Tanggal</span><span className="font-bold text-slate-800">{sel.tgl} | {sel.ti||"-"} – {sel.to||"-"}</span></div>
+                <div className="col-span-2"><span className="text-slate-400 block font-bold uppercase">Cabang</span><span className="font-bold text-slate-800">{sel.cab}</span></div>
+              </div>
+              <div className="border-t border-slate-100 pt-4">
+                <div className="flex justify-between mb-2"><span className="text-xs text-slate-400 font-bold uppercase">Status Tugas ({sel.pct}%)</span><span className="text-xs font-bold text-indigo-600">{Object.values(sel.t).filter(Boolean).length}/{TASKS.length}</span></div>
+                <div className="space-y-1.5 max-h-60 overflow-y-auto">
+                  {TASKS.map(t=>{ const d=!!sel.t[t.id]; return(
+                    <div key={t.id} className="flex items-center gap-2 text-xs py-1 px-2 rounded bg-slate-50 border border-slate-100">
+                      <i className={`ti ${d?"ti-circle-check-filled text-emerald-500":"ti-circle-x-filled text-slate-300"} text-base`}></i>
+                      <span className={d?"text-slate-800 font-medium":"text-slate-400 line-through"}>{t.lbl}</span>
+                    </div>
+                  ); })}
+                </div>
+              </div>
+              {sel.kdl&&<div className="p-3 rounded-lg bg-amber-50 border border-amber-200 text-xs text-amber-800"><strong className="block mb-1"><i className="ti ti-alert-triangle"></i> Kendala:</strong>{sel.kdl}</div>}
+              {sel.ss&&<div className="text-xs"><span className="text-slate-400 block font-bold uppercase mb-1">Link Bukti</span><a href={sel.ss} target="_blank" rel="noopener noreferrer" className="text-indigo-600 hover:underline font-semibold flex items-center gap-1"><i className="ti ti-external-link"></i>Buka Folder Bukti</a></div>}
+            </div>
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}
+
+function Modul2Laporan({triggerToast,refreshSignal}){
+  const [r,setR]=useState({});
+  const [aiResult,setAiResult]=useState("");
+  const [isAI,setIsAI]=useState(false);
+  useEffect(()=>{ appStorage.get("rifim_v4_lap").then(x=>{ if(x) setR(x); }); appStorage.get("rifim_v4_lap_ai").then(x=>{ if(x) setAiResult(x); }); },[refreshSignal]);
+  const upd=(c,k,v)=>{ const u={...r,[c]:{...(r[c]||{}),[k]:v}}; setR(u); appStorage.set("rifim_v4_lap",u); };
+  const updG=(k,v)=>{ const u={...r,_global:{...(r._global||{}),[k]:v}}; setR(u); appStorage.set("rifim_v4_lap",u); };
+  const g=r._global||{};
+  const totSal=CAB.reduce((s,c)=>s+(Number(r[c]?.sal)||0),0);
+  const totPng=CAB.reduce((s,c)=>s+(Number(r[c]?.png)||0),0);
+  const bal=totSal-totPng;
+  const askT=(Number(g.ask_b)||0)*550000+(Number(g.ask_p)||0)*350000+(Number(g.ask_k)||0)*500000;
+  const feeT=(Number(g.fee_btm)||0)+(Number(g.fee_mnd)||0)+(Number(g.fee_jbi)||0)+(Number(g.fee_sur)||0)+(Number(g.fee_akun)||0)+(Number(g.fee_pot)||0);
+  const genRep=()=>{
+    const tgl=g.tgl||today();
+    let t=`LAPORAN HARIAN RIFIM - ${tgl}\nDari: Admin | Untuk: Pak Bobby & Mba Lia\n\nRINGKASAN PER CABANG\n${"─".repeat(40)}\n`;
+    CAB.forEach((c,i)=>{ const d=r[c]||{}; t+=`\n${i+1}. ${c}\n   Staf: ${d.staf||0} | Saldo Masuk: ${rp(d.sal)} | Pengeluaran: ${rp(d.png)}\n   Order: ${d.ord||0} | Driver: ${d.drv||0} | Balance: ${rp((Number(d.sal)||0)-(Number(d.png)||0))}\n`; });
+    t+=`\nTOTAL KEUANGAN\n${"─".repeat(40)}\nTotal Saldo Masuk: ${rp(totSal)}\nTotal Pengeluaran: ${rp(totPng)}\nBALANCE: ${rp(bal)}\n\nFEE & ASK\n${"─".repeat(40)}\nFee Batam: ${rp(g.fee_btm)} | Manado: ${rp(g.fee_mnd)} | Jambi: ${rp(g.fee_jbi)}\nSurcharge: ${rp(g.fee_sur)} | Akun Baru: ${rp(g.fee_akun)} | Potongan Daily: ${rp(g.fee_pot)}\nTotal Fee: ${rp(feeT)}\n\nASK Baru: ${g.ask_b||0}x550rb = ${rp((Number(g.ask_b)||0)*550000)}\nPerpanjangan: ${g.ask_p||0}x350rb = ${rp((Number(g.ask_p)||0)*350000)}\nKomunitas: ${g.ask_k||0}x500rb = ${rp((Number(g.ask_k)||0)*500000)}\nTotal ASK: ${rp(askT)}`;
+    if(g.notes) t+=`\n\nCATATAN\n${"─".repeat(40)}\n${g.notes}`;
+    return t;
+  };
+  const copy=()=>{ const t=genRep(); const ta=document.createElement("textarea"); ta.value=t; ta.style.position="fixed"; document.body.appendChild(ta); ta.select(); try{ document.execCommand("copy"); triggerToast("Laporan disalin!","success"); }catch(e){ triggerToast("Gagal.","error"); } document.body.removeChild(ta); };
+  const doAI=async()=>{
+    setIsAI(true); triggerToast("Claude AI menganalisis laporan...","info");
+    try{
+      const res=await callClaude(`Analisis laporan harian PT. Rifim International Gemilang (vendor Maxim bandara Indonesia):\n\n${genRep()}`,"Anda konsultan operasional Rifim. Analisis laporan: sorot cabang terbaik/terburuk, efisiensi keuangan, 3 rekomendasi taktis. Format Markdown.");
+      setAiResult(res); appStorage.set("rifim_v4_lap_ai",res);
+      triggerToast("Analisis AI siap!","success");
+    }catch(e){ triggerToast("Gagal memanggil AI.","error"); }
+    finally{ setIsAI(false); }
+  };
+  const inp="text-sm border border-slate-200 rounded-lg p-1.5 text-right bg-slate-50 focus:bg-white focus:outline-indigo-500";
+  return(
+    <div className="space-y-6 fade-in">
+      <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+        {[{l:"Total Saldo Masuk",v:rp(totSal),c:"text-slate-800",ic:"ti-arrow-up-right",bg:"bg-emerald-50 text-emerald-600"},
+          {l:"Total Pengeluaran",v:rp(totPng),c:"text-rose-600",ic:"ti-arrow-down-left",bg:"bg-rose-50 text-rose-600"},
+          {l:"Balance Operasional",v:rp(bal),c:bal>=0?"text-indigo-600":"text-rose-600",ic:"ti-scale",bg:bal>=0?"bg-indigo-50 text-indigo-600":"bg-rose-50 text-rose-600"}
+        ].map(k=>(
+          <div key={k.l} className="bg-white rounded-2xl border border-slate-200 p-5 shadow-sm flex items-center justify-between">
+            <div><span className="text-xs font-semibold text-slate-500 block">{k.l}</span><span className={`text-lg font-black ${k.c}`}>{k.v}</span></div>
+            <span className={`w-10 h-10 rounded-full flex items-center justify-center ${k.bg}`}><i className={`ti ${k.ic} text-xl`}></i></span>
+          </div>
+        ))}
+      </div>
+      <div className="bg-white rounded-2xl border border-slate-200 shadow-sm p-6 overflow-hidden">
+        <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 mb-4">
+          <div className="flex items-center gap-2"><span className="w-8 h-8 rounded-lg bg-indigo-50 text-indigo-600 flex items-center justify-center"><i className="ti ti-building-store text-xl"></i></span><h3 className="text-base font-bold text-slate-800">Laporan Keuangan & Driver Cabang</h3></div>
+          <Field label="Tanggal" className="w-full sm:w-auto shrink-0"><input type="date" value={g.tgl||today()} onChange={e=>updG("tgl",e.target.value)} className="text-sm border border-slate-200 rounded-lg p-2 bg-slate-50 focus:bg-white focus:outline-indigo-500 w-full sm:w-44"/></Field>
+        </div>
+        <div className="overflow-x-auto -mx-6"><div className="inline-block min-w-full align-middle px-6">
+          <table className="min-w-full divide-y divide-slate-200 text-sm">
+            <thead><tr className="bg-slate-50">
+              <th className="py-3 px-3 text-left text-xs font-bold text-slate-500 uppercase">Cabang</th>
+              <th className="py-3 px-2 text-right text-xs font-bold text-slate-500 uppercase w-14">Staf</th>
+              <th className="py-3 px-2 text-right text-xs font-bold text-slate-500 uppercase w-36">Saldo Masuk</th>
+              <th className="py-3 px-2 text-right text-xs font-bold text-slate-500 uppercase w-36">Pengeluaran</th>
+              <th className="py-3 px-2 text-right text-xs font-bold text-slate-500 uppercase w-20">Order</th>
+              <th className="py-3 px-2 text-right text-xs font-bold text-slate-500 uppercase w-20">Driver</th>
+            </tr></thead>
+            <tbody className="divide-y divide-slate-100">
+              {CAB.map(c=>{ const d=r[c]||{}; return(
+                <tr key={c} className="hover:bg-slate-50">
+                  <td className="py-2.5 px-3 font-semibold text-slate-700 text-xs">{c.replace("ID Rifim ","")}</td>
+                  <td className="py-1 px-2"><input type="number" min="0" value={d.staf||""} onChange={e=>upd(c,"staf",e.target.value)} placeholder="0" className={`w-full ${inp}`}/></td>
+                  <td className="py-1 px-2"><input type="number" min="0" value={d.sal||""} onChange={e=>upd(c,"sal",e.target.value)} placeholder="0" className={`w-full ${inp}`}/></td>
+                  <td className="py-1 px-2"><input type="number" min="0" value={d.png||""} onChange={e=>upd(c,"png",e.target.value)} placeholder="0" className={`w-full text-sm border rounded-lg p-1.5 text-right bg-slate-50 focus:bg-white focus:outline-indigo-500 ${Number(d.png)>Number(d.sal)?"border-rose-300 bg-rose-50 text-rose-800":"border-slate-200"}`}/></td>
+                  <td className="py-1 px-2"><input type="number" min="0" value={d.ord||""} onChange={e=>upd(c,"ord",e.target.value)} placeholder="0" className={`w-full ${inp}`}/></td>
+                  <td className="py-1 px-2"><input type="number" min="0" value={d.drv||""} onChange={e=>upd(c,"drv",e.target.value)} placeholder="0" className={`w-full ${inp}`}/></td>
+                </tr>
+              ); })}
+            </tbody>
+          </table>
+        </div></div>
+      </div>
+      <div className="bg-white rounded-2xl border border-slate-200 shadow-sm p-6">
+        <div className="flex items-center gap-2 mb-4"><span className="w-8 h-8 rounded-lg bg-indigo-50 text-indigo-600 flex items-center justify-center"><i className="ti ti-cash text-xl"></i></span><h3 className="text-base font-bold text-slate-800">Pendapatan Tambahan (Fee & ASK)</h3></div>
+        <div className="grid grid-cols-2 md:grid-cols-3 gap-4 mb-6">
+          {[["Fee Saldo Batam","fee_btm"],["Fee Saldo Manado","fee_mnd"],["Fee Saldo Jambi","fee_jbi"],["Fee Surcharge MND","fee_sur"],["Fee Akun Baru","fee_akun"],["Potongan Daily","fee_pot"]].map(([l,k])=>(
+            <Field key={k} label={l}><input type="number" min="0" value={g[k]||""} onChange={e=>updG(k,e.target.value)} placeholder="0" className="text-sm border border-slate-200 rounded-lg p-2 bg-slate-50 focus:bg-white focus:outline-indigo-500 text-right"/></Field>
+          ))}
+        </div>
+        <div className="border-t border-slate-100 pt-5">
+          <span className="text-xs font-bold text-slate-500 uppercase tracking-wide block mb-3">ASK Komisi</span>
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-4">
+            {[["ASK Baru (×550rb)","ask_b"],["Perpanjangan (×350rb)","ask_p"],["Komunitas (×500rb)","ask_k"]].map(([l,k])=>(
+              <Field key={k} label={l}><input type="number" min="0" value={g[k]||""} onChange={e=>updG(k,e.target.value)} placeholder="0" className="text-sm border border-slate-200 rounded-lg p-2 bg-slate-50 focus:bg-white focus:outline-indigo-500 text-right"/></Field>
+            ))}
+          </div>
+          <div className="flex justify-between items-center bg-slate-50 rounded-xl p-4 border border-slate-100 text-sm"><span className="font-semibold text-slate-600">Total Akumulasi Fee & ASK:</span><span className="text-base font-bold text-indigo-600">{rp(feeT+askT)}</span></div>
+        </div>
+      </div>
+      <div className="bg-white rounded-2xl border border-slate-200 shadow-sm p-6">
+        <Field label="Catatan Urgent untuk Pak Bobby"><textarea rows="3" value={g.notes||""} onChange={e=>updG("notes",e.target.value)} placeholder="Tulis kendala krusial atau update penting..." className="w-full mt-1 text-sm border border-slate-200 rounded-lg p-2 bg-slate-50 focus:bg-white focus:outline-indigo-500 min-h-[80px]"/></Field>
+      </div>
+      {aiResult&&(
+        <div className="bg-slate-900 text-slate-100 rounded-2xl p-6 shadow-md border border-slate-800 space-y-4 relative overflow-hidden">
+          <div className="absolute top-0 right-0 p-8 opacity-5"><i className="ti ti-brain text-9xl"></i></div>
+          <div className="flex justify-between items-center border-b border-slate-800 pb-3">
+            <div className="flex items-center gap-2"><span className="w-8 h-8 rounded-lg bg-indigo-500/10 text-indigo-400 flex items-center justify-center"><i className="ti ti-sparkles text-lg"></i></span><h4 className="font-bold text-sm tracking-wide text-slate-200 uppercase">Analisis Eksekutif Claude AI ✨</h4></div>
+            <button onClick={()=>{ setAiResult(""); appStorage.set("rifim_v4_lap_ai",""); }} className="text-slate-400 hover:text-white text-xs border border-slate-800 px-2.5 py-1 rounded-lg">Clear</button>
+          </div>
+          <div className="space-y-1 max-h-[400px] overflow-y-auto pr-2">{renderMD(aiResult)}</div>
+        </div>
+      )}
+      <div className="flex flex-wrap gap-3">
+        <button onClick={copy} className="bg-indigo-600 hover:bg-indigo-700 text-white font-medium text-sm py-2.5 px-6 rounded-lg transition-colors inline-flex items-center gap-2 shadow-sm"><i className="ti ti-copy text-base"></i>Salin Laporan</button>
+        <button onClick={doAI} disabled={isAI} className={`font-semibold text-sm py-2.5 px-6 rounded-lg transition-all inline-flex items-center gap-2 border shadow-xs ${isAI?"bg-slate-100 text-slate-400 border-slate-200 cursor-not-allowed":"bg-gradient-to-r from-violet-600 to-indigo-600 text-white border-transparent hover:from-violet-700 hover:to-indigo-700"}`}>
+          {isAI?<><i className="ti ti-loader animate-spin text-base"></i>Menganalisis...</>:<><i className="ti ti-sparkles text-base"></i>✨ Analisis dengan AI</>}
+        </button>
+        <button onClick={()=>{ if(confirm("Reset form?")){ setR({}); setAiResult(""); appStorage.set("rifim_v4_lap",{}); appStorage.set("rifim_v4_lap_ai",""); triggerToast("Form dikosongkan.","info"); } }} className="bg-white hover:bg-slate-50 text-slate-700 border border-slate-200 font-medium text-sm py-2.5 px-6 rounded-lg transition-colors inline-flex items-center gap-2"><i className="ti ti-refresh text-base"></i>Reset</button>
+      </div>
+    </div>
+  );
+}
+
+function Modul3Files({triggerToast,refreshSignal}){
+  const [s,setS]=useState({});
+  useEffect(()=>{ appStorage.get("rifim_v4_fls").then(x=>{ if(x) setS(x); }); },[refreshSignal]);
+  const td=today();
+  const upd=FILES.filter(f=>s[f.id]?.ts?.startsWith(td)).length;
+  const mark=(id)=>{ const u={...s,[id]:{ts:new Date().toISOString(),by:s[id]?.by||"Admin",notes:s[id]?.notes||""}}; setS(u); appStorage.set("rifim_v4_fls",u); triggerToast("Update dicatat!","success"); };
+  return(
+    <div className="space-y-6 fade-in">
+      <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+        {[{l:"Total Database File",v:`${FILES.length} Files`,c:"text-slate-800",bg:"bg-slate-50 text-slate-600",ic:"ti-database"},
+          {l:"Terupdate Hari Ini",v:`${upd} File`,c:"text-emerald-600",bg:"bg-emerald-50 text-emerald-600",ic:"ti-checklist"},
+          {l:"Pending Update",v:`${FILES.length-upd} File`,c:"text-amber-500",bg:"bg-amber-50 text-amber-500",ic:"ti-clock-play"}
+        ].map(k=>(
+          <div key={k.l} className="bg-white rounded-2xl border border-slate-200 p-5 shadow-sm flex items-center justify-between">
+            <div><span className="text-xs font-semibold text-slate-500 block">{k.l}</span><span className={`text-lg font-black ${k.c}`}>{k.v}</span></div>
+            <span className={`w-10 h-10 rounded-full flex items-center justify-center ${k.bg}`}><i className={`ti ${k.ic} text-xl`}></i></span>
+          </div>
+        ))}
+      </div>
+      <div className="space-y-3">
+        <div className="flex justify-between items-center mb-1">
+          <h3 className="text-base font-bold text-slate-800">Monitor {FILES.length} Google Sheets Rifim</h3>
+          <span className="text-xs text-slate-500 font-semibold bg-white border border-slate-200 px-3 py-1 rounded-full">Hari ini: {Math.round((upd/FILES.length)*100)}%</span>
+        </div>
+        <div className="grid grid-cols-1 gap-3">
+          {FILES.map(f=>{ const st=s[f.id]||{}; const fresh=st.ts?.startsWith(td); return(
+            <div key={f.id} className="bg-white border border-slate-200 rounded-2xl p-4 transition-all hover:shadow-sm flex flex-col md:flex-row md:items-center gap-4">
+              <div className="flex items-center gap-3 shrink-0">
+                <span className={`w-8 h-8 rounded-xl font-bold text-sm flex items-center justify-center ${fresh?"bg-emerald-50 text-emerald-600 border border-emerald-100":"bg-amber-50 text-amber-600 border border-amber-100"}`}>{f.id}</span>
+                <div>
+                  <div className="flex items-center gap-2"><h4 className="font-bold text-slate-800 text-sm">{f.nm}</h4><a href={f.lnk} target="_blank" rel="noopener noreferrer" className="text-slate-400 hover:text-indigo-600 transition-colors"><i className="ti ti-external-link text-sm"></i></a></div>
+                  <span className="text-xs text-slate-400">Owner: <strong className="text-slate-500">{f.u}</strong></span>
+                </div>
+              </div>
+              <div className="md:flex-1 text-xs text-slate-400">
+                {st.ts?(
+                  <div><span className="text-slate-600 font-semibold flex items-center gap-1"><i className="ti ti-user-edit text-sm"></i>Oleh: {st.by||"Admin"}</span><span className="flex items-center gap-1 text-[11px] mt-0.5"><i className="ti ti-calendar-time"></i>{new Date(st.ts).toLocaleString("id-ID",{day:"2-digit",month:"long",hour:"2-digit",minute:"2-digit"})}</span>{st.notes&&<span className="flex items-center gap-1 mt-0.5 text-slate-500 italic"><i className="ti ti-notes"></i>{st.notes}</span>}</div>
+                ):<span className="italic">Belum pernah di-update</span>}
+              </div>
+              <div className="grid grid-cols-1 sm:grid-cols-3 md:w-auto gap-2 md:items-center shrink-0">
+                <input type="text" placeholder="Nama editor..." value={st.by||""} onChange={e=>{ const u={...s,[f.id]:{...(s[f.id]||{}),by:e.target.value}}; setS(u); appStorage.set("rifim_v4_fls",u); }} className="text-xs border border-slate-200 rounded-lg p-2 bg-slate-50 focus:bg-white focus:outline-indigo-500 w-full sm:w-32"/>
+                <input type="text" placeholder="Catatan..." value={st.notes||""} onChange={e=>{ const u={...s,[f.id]:{...(s[f.id]||{}),notes:e.target.value}}; setS(u); appStorage.set("rifim_v4_fls",u); }} className="text-xs border border-slate-200 rounded-lg p-2 bg-slate-50 focus:bg-white focus:outline-indigo-500 w-full sm:w-44"/>
+                <button onClick={()=>mark(f.id)} className={`text-xs font-bold py-2 px-4 rounded-lg flex items-center justify-center gap-1.5 transition-colors ${fresh?"bg-slate-100 hover:bg-slate-200 text-slate-700 border border-slate-200":"bg-emerald-600 hover:bg-emerald-700 text-white"}`}>
+                  <i className={fresh?"ti ti-circle-check-filled text-emerald-500":"ti ti-refresh"}></i>{fresh?"Telah Diupdate":"Tandai Update"}
+                </button>
+              </div>
+            </div>
+          ); })}
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function Modul4Tagihan({triggerToast,refreshSignal}){
+  const [t,setT]=useState([]);
+  const [f,setF]=useState({kr:"",nom:"",dd:today(),st:"PENDING",notes:""});
+  const [fSt,setFSt]=useState("Semua");
+  const [q,setQ]=useState("");
+  const [aiS,setAiS]=useState("");
+  const [isP,setIsP]=useState(false);
+  useEffect(()=>{ appStorage.get("rifim_v4_tgh").then(x=>{ if(x) setT(x); }); appStorage.get("rifim_v4_tgh_ai").then(x=>{ if(x) setAiS(x); }); },[refreshSignal]);
+  const add=()=>{ if(!f.kr||!f.nom) return; const u=[{...f,id:genId("TGH"),nom:Number(f.nom)},...t]; setT(u); appStorage.set("rifim_v4_tgh",u); setF({kr:"",nom:"",dd:today(),st:"PENDING",notes:""}); triggerToast("Tagihan ditambahkan!","success"); };
+  const del=(id)=>{ if(confirm("Hapus?")){ const u=t.filter(x=>x.id!==id); setT(u); appStorage.set("rifim_v4_tgh",u); } };
+  const chg=(id,st)=>{ const u=t.map(x=>x.id===id?{...x,st}:x); setT(u); appStorage.set("rifim_v4_tgh",u); };
+  const totP=t.filter(x=>x.st==="PENDING").reduce((s,x)=>s+x.nom,0);
+  const totL=t.filter(x=>x.st==="LUNAS").reduce((s,x)=>s+x.nom,0);
+  const totO=t.filter(x=>x.st==="OVERDUE").reduce((s,x)=>s+x.nom,0);
+  const filt=useMemo(()=>t.filter(x=>(fSt==="Semua"||x.st===fSt)&&(x.kr.toLowerCase().includes(q.toLowerCase())||(x.notes||"").toLowerCase().includes(q.toLowerCase()))),[t,fSt,q]);
+  const doAI=async()=>{
+    if(!t.length){ triggerToast("Belum ada tagihan.","error"); return; }
+    setIsP(true); triggerToast("Claude AI menyusun prioritas pembayaran...","info");
+    const unpaid=t.filter(x=>x.st!=="LUNAS");
+    const sum=unpaid.map((b,i)=>`${i+1}. ${b.kr} | ${rp(b.nom)} | Tempo: ${b.dd} | ${b.st} | ${b.notes||"-"}`).join("\n");
+    try{
+      const res=await callClaude(`Tanggal: ${today()}\nTagihan Rifim:\n\n${sum||"Kosong."}`, "Cashflow planner PT. Rifim. Urutkan prioritas pembayaran: Overdue diprioritaskan utama, nilai strategis, risiko. Berikan penilaian risiko kas. Markdown.");
+      setAiS(res); appStorage.set("rifim_v4_tgh_ai",res);
+      triggerToast("Strategi AI siap!","success");
+    }catch(e){ triggerToast("Gagal AI.","error"); }
+    finally{ setIsP(false); }
+  };
+  const inp="w-full text-sm border border-slate-200 rounded-lg p-2 bg-slate-50 focus:bg-white focus:outline-indigo-500";
+  return(
+    <div className="space-y-6 fade-in">
+      <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+        {[{l:"Tagihan Pending",v:rp(totP),c:"text-amber-500",bg:"bg-amber-50 text-amber-500",ic:"ti-cash-register"},
+          {l:"Overdue",v:rp(totO),c:"text-rose-600",bg:"bg-rose-50 text-rose-600",ic:"ti-alert-triangle"},
+          {l:"Total Terbayar",v:rp(totL),c:"text-emerald-600",bg:"bg-emerald-50 text-emerald-600",ic:"ti-circle-check"}
+        ].map(k=>(
+          <div key={k.l} className="bg-white rounded-2xl border border-slate-200 p-5 shadow-sm flex items-center justify-between">
+            <div><span className="text-xs font-semibold text-slate-500 block">{k.l}</span><span className={`text-lg font-black ${k.c}`}>{k.v}</span></div>
+            <span className={`w-10 h-10 rounded-full flex items-center justify-center ${k.bg}`}><i className={`ti ${k.ic} text-xl`}></i></span>
+          </div>
+        ))}
+      </div>
+      <div className="bg-white rounded-2xl border border-slate-200 shadow-sm p-6">
+        <div className="flex items-center gap-2 mb-4"><span className="w-8 h-8 rounded-lg bg-indigo-50 text-indigo-600 flex items-center justify-center"><i className="ti ti-receipt text-xl"></i></span><h3 className="text-base font-bold text-slate-800">Tambah Tagihan / Kewajiban Outstanding</h3></div>
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-4">
+          <Field label="Kreditor *"><input type="text" value={f.kr} onChange={e=>setF({...f,kr:e.target.value})} placeholder="PT. Pertamina, Gaji Staff..." className={inp}/></Field>
+          <Field label="Nominal (Rp) *"><input type="number" min="0" value={f.nom} onChange={e=>setF({...f,nom:e.target.value})} placeholder="0" className={inp}/></Field>
+          <Field label="Tenggat Waktu"><input type="date" value={f.dd} onChange={e=>setF({...f,dd:e.target.value})} className={inp}/></Field>
+          <Field label="Status"><select value={f.st} onChange={e=>setF({...f,st:e.target.value})} className={inp}><option>PENDING</option><option>OVERDUE</option><option>LUNAS</option></select></Field>
+        </div>
+        <div className="mb-4"><Field label="Catatan"><input type="text" value={f.notes} onChange={e=>setF({...f,notes:e.target.value})} placeholder="Keterangan..." className={`${inp} w-full`}/></Field></div>
+        <button onClick={add} disabled={!f.kr||!f.nom} className={`font-medium text-sm py-2.5 px-6 rounded-lg transition-colors inline-flex items-center gap-2 ${!f.kr||!f.nom?"bg-slate-200 text-slate-400 cursor-not-allowed":"bg-emerald-600 hover:bg-emerald-700 text-white"}`}><i className="ti ti-plus text-base"></i>Tambah Tagihan</button>
+      </div>
+      {aiS&&(
+        <div className="bg-slate-900 text-slate-100 rounded-2xl p-6 shadow-md border border-slate-800 space-y-4 relative overflow-hidden">
+          <div className="absolute top-0 right-0 p-8 opacity-5"><i className="ti ti-presentation text-9xl text-indigo-400"></i></div>
+          <div className="flex justify-between items-center border-b border-slate-800 pb-3">
+            <div className="flex items-center gap-2"><span className="w-8 h-8 rounded-lg bg-indigo-500/10 text-indigo-400 flex items-center justify-center"><i className="ti ti-award text-lg"></i></span><h4 className="font-bold text-sm text-slate-200 uppercase">✨ Prioritas Pembayaran — Claude AI</h4></div>
+            <button onClick={()=>{ setAiS(""); appStorage.set("rifim_v4_tgh_ai",""); }} className="text-slate-400 hover:text-white text-xs border border-slate-800 px-2.5 py-1 rounded-lg">Clear</button>
+          </div>
+          <div className="space-y-1 max-h-[350px] overflow-y-auto pr-2">{renderMD(aiS)}</div>
+        </div>
+      )}
+      <div>
+        <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-4">
+          <div className="flex items-center gap-3">
+            <h3 className="text-base font-bold text-slate-800">Daftar Tagihan ({filt.length})</h3>
+            <button onClick={doAI} disabled={isP} className={`text-xs font-bold px-3 py-1.5 rounded-full border flex items-center gap-1 transition-all ${isP?"bg-slate-100 text-slate-400 border-slate-200 cursor-not-allowed animate-pulse":"bg-indigo-50 hover:bg-indigo-100 text-indigo-700 border-indigo-200"}`}>
+              {isP?<><i className="ti ti-loader animate-spin text-xs"></i>Merumuskan...</>:<><i className="ti ti-sparkles text-xs"></i>✨ Strategi Prioritas</>}
+            </button>
+          </div>
+          <div className="flex flex-col sm:flex-row gap-2 w-full sm:w-auto">
+            <div className="relative"><span className="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none text-slate-400"><i className="ti ti-search text-sm"></i></span><input type="text" placeholder="Cari..." value={q} onChange={e=>setQ(e.target.value)} className="text-xs border border-slate-200 bg-white rounded-lg pl-9 pr-3 py-2 w-full sm:w-52 font-medium focus:outline-indigo-500"/></div>
+            <select value={fSt} onChange={e=>setFSt(e.target.value)} className="text-xs border border-slate-200 bg-white rounded-lg p-2 font-medium"><option>Semua</option><option>PENDING</option><option>OVERDUE</option><option>LUNAS</option></select>
+          </div>
+        </div>
+        {filt.length===0?(
+          <div className="bg-white rounded-2xl border border-slate-200 p-10 text-center text-slate-400"><i className="ti ti-folder-off text-4xl block mb-2 text-slate-300"></i><p className="text-sm">Tidak ada tagihan.</p></div>
+        ):(
+          <div className="flex flex-col gap-2">
+            {filt.map(x=>{ const iL=x.st==="LUNAS"; const iO=x.st==="OVERDUE"; const sb=iL?"bg-emerald-50 text-emerald-700 border-emerald-100":iO?"bg-rose-50 text-rose-700 border-rose-100":"bg-amber-50 text-amber-700 border-amber-100"; return(
+              <div key={x.id} className="bg-white border border-slate-200 rounded-2xl p-4 flex flex-col sm:flex-row sm:items-center gap-4 hover:shadow-sm transition-all relative group">
+                <div className="flex-1 min-w-0">
+                  <div className="flex items-center gap-2 mb-1"><span className="font-bold text-slate-800 text-sm">{x.kr}</span><span className={`text-[10px] font-bold px-2 py-0.5 rounded-full border ${sb}`}>{x.st}</span></div>
+                  <div className="text-xs text-slate-500 flex flex-wrap items-center gap-x-3"><span className="flex items-center gap-1"><i className="ti ti-calendar-event"></i>Tempo: {x.dd}</span>{x.notes&&<span className="flex items-center gap-1"><i className="ti ti-notes"></i>{x.notes}</span>}</div>
+                </div>
+                <div className="flex sm:flex-col items-start sm:items-end justify-between gap-2 shrink-0 pr-8">
+                  <span className="text-sm font-black text-slate-800">{rp(x.nom)}</span>
+                  <select value={x.st} onChange={e=>chg(x.id,e.target.value)} className="text-xs border border-slate-200 rounded-lg p-1.5 font-semibold bg-slate-50"><option>PENDING</option><option>OVERDUE</option><option>LUNAS</option></select>
+                </div>
+                <button onClick={()=>del(x.id)} className="absolute right-4 top-1/2 -translate-y-1/2 w-8 h-8 bg-rose-50 hover:bg-rose-600 text-rose-500 hover:text-white rounded-lg flex items-center justify-center transition-all opacity-0 group-hover:opacity-100"><i className="ti ti-trash text-sm"></i></button>
+              </div>
+            ); })}
+          </div>
+        )}
+      </div>
+    </div>
+  );
+}
+
+function Modul5Owner({triggerToast,refreshSignal}){
+  const [chk,setChk]=useState([]);
+  const [lap,setLap]=useState({});
+  const [fl,setFl]=useState({});
+  const [tg,setTg]=useState([]);
+  const [aiQ,setAiQ]=useState("");
+  const [aiR,setAiR]=useState("");
+  const [isC,setIsC]=useState(false);
+  useEffect(()=>{
+    Promise.all([appStorage.get("rifim_v4_chk"),appStorage.get("rifim_v4_lap"),appStorage.get("rifim_v4_fls"),appStorage.get("rifim_v4_tgh")]).then(([a,b,c,d])=>{ setChk(a||[]); setLap(b||{}); setFl(c||{}); setTg(d||[]); });
+    appStorage.get("rifim_v4_owner_ai").then(x=>{ if(x) setAiR(x); });
+  },[refreshSignal]);
+  const g=lap._global||{};
+  const totSal=CAB.reduce((s,c)=>s+(Number(lap[c]?.sal)||0),0);
+  const totPng=CAB.reduce((s,c)=>s+(Number(lap[c]?.png)||0),0);
+  const totFee=(Number(g.fee_btm)||0)+(Number(g.fee_mnd)||0)+(Number(g.fee_jbi)||0)+(Number(g.fee_sur)||0)+(Number(g.fee_akun)||0)+(Number(g.fee_pot)||0);
+  const totAsk=(Number(g.ask_b)||0)*550000+(Number(g.ask_p)||0)*350000+(Number(g.ask_k)||0)*500000;
+  const totIn=totSal+totFee+totAsk;
+  const profit=totIn-totPng;
+  const td=today();
+  const upT=FILES.filter(f=>fl[f.id]?.ts?.startsWith(td)).length;
+  const tdChk=chk.filter(x=>x.tgl===td);
+  const avgP=tdChk.length>0?Math.round(tdChk.reduce((s,x)=>s+x.pct,0)/tdChk.length):0;
+  const totTagP=tg.filter(x=>x.st==="PENDING"||x.st==="OVERDUE").reduce((s,x)=>s+x.nom,0);
+  const perfA=ADM.map(a=>{ const it=chk.filter(x=>x.admin===a); const avg=it.length>0?Math.round(it.reduce((s,x)=>s+x.pct,0)/it.length):0; return {admin:a,n:it.length,avg}; });
+  const maxBV=Math.max(...CAB.map(c=>Math.abs((Number(lap[c]?.sal)||0)-(Number(lap[c]?.png)||0))),1);
+  const ask=async(q)=>{
+    const aQ=q||aiQ; if(!aQ.trim()) return;
+    setIsC(true); triggerToast("Claude AI menganalisis...","info");
+    const cK=`Pemasukan: ${rp(totIn)} (Cabang: ${rp(totSal)}, Fee: ${rp(totFee)}, ASK: ${rp(totAsk)}). Pengeluaran: ${rp(totPng)}. Profit: ${rp(profit)}. Kewajiban: ${rp(totTagP)}.`;
+    const cC=CAB.map(c=>{ const b=lap[c]||{}; const n=(Number(b.sal)||0)-(Number(b.png)||0); return `- ${c.replace("ID Rifim ","")}: Saldo=${rp(b.sal)}, Pengeluaran=${rp(b.png)}, Margin=${rp(n)}, Driver=${b.drv||0}, Order=${b.ord||0}`; }).join("\n");
+    const cA=perfA.map(p=>`- ${p.admin}: ${p.avg}% (${p.n} entri)`).join("\n")+`\nPerforma hari ini: ${avgP}%. File terupdate: ${upT}/${FILES.length}.`;
+    const prompt=`Halo, Anda penasihat Pak Bobby (Owner PT. Rifim International Gemilang — vendor Maxim bandara Indonesia: Batam, Jambi, Pekanbaru, Balikpapan, Manado).\n\n[KEUANGAN]\n${cK}\n\n[CABANG]\n${cC}\n\n[ADMINISTRASI]\n${cA}\n\nPertanyaan: "${aQ}"\n\nJawab analitis, taktis, berorientasi hasil. Bahasa Indonesia profesional.`;
+    try{
+      const res=await callClaude(prompt,"Business Executive Advisor eksklusif Pak Bobby, Owner PT. Rifim International Gemilang. Berikan saran manajerial berorientasi hasil.");
+      setAiR(res); appStorage.set("rifim_v4_owner_ai",res);
+      setAiQ(""); triggerToast("Saran AI siap!","success");
+    }catch(e){ triggerToast("Gagal AI.","error"); }
+    finally{ setIsC(false); }
+  };
+  return(
+    <div className="space-y-6 fade-in">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+        {[{l:"Pemasukan Kotor",v:rp(totIn),c:"text-emerald-600",bg:"bg-emerald-50 text-emerald-600",ic:"ti-trending-up"},
+          {l:"Pengeluaran",v:rp(totPng),c:"text-rose-600",bg:"bg-rose-50 text-rose-600",ic:"ti-trending-down"},
+          {l:"Profit Bersih",v:rp(profit),c:profit>=0?"text-indigo-600":"text-rose-600",bg:profit>=0?"bg-indigo-50 text-indigo-600":"bg-rose-50 text-rose-600",ic:"ti-cash"},
+          {l:"Kewajiban Pending",v:rp(totTagP),c:"text-amber-500",bg:"bg-amber-50 text-amber-500",ic:"ti-wallet"}
+        ].map(k=>(
+          <div key={k.l} className="bg-white rounded-2xl border border-slate-200 p-5 shadow-sm flex items-center justify-between">
+            <div><span className="text-xs font-semibold text-slate-500 block uppercase tracking-wider">{k.l}</span><span className={`text-lg font-black ${k.c}`}>{k.v}</span></div>
+            <span className={`w-10 h-10 rounded-full flex items-center justify-center ${k.bg}`}><i className={`ti ${k.ic} text-xl`}></i></span>
+          </div>
+        ))}
+      </div>
+      <div className="bg-slate-900 text-slate-100 rounded-2xl border border-slate-800 p-6 shadow-lg relative overflow-hidden">
+        <div className="absolute top-0 right-0 p-8 opacity-5"><i className="ti ti-message-chatbot text-9xl text-indigo-300"></i></div>
+        <div className="flex items-center gap-2 mb-4 border-b border-slate-800 pb-3">
+          <span className="w-9 h-9 rounded-xl bg-indigo-500/20 text-indigo-400 flex items-center justify-center"><i className="ti ti-message-chatbot text-xl"></i></span>
+          <div><h3 className="font-bold text-sm text-slate-200 uppercase tracking-wide">Konsultan Bisnis AI — Pak Bobby ✨</h3><p className="text-[10px] text-slate-400">Claude AI menganalisis data kas, cabang & administrasi secara instan</p></div>
+        </div>
+        <div className="flex flex-wrap gap-2 mb-4">
+          {[["✨ Ringkasan Keuangan","Beri ringkasan eksekutif kesehatan keuangan operasional Rifim hari ini"],
+            ["✨ Solusi Margin Negatif","Rekomendasikan tindakan taktis untuk cabang yang sedang negatif margin"],
+            ["✨ Evaluasi Kinerja Admin","Evaluasi kepatuhan staf admin Govind, Tasya, Abel dan status update file"],
+            ["✨ Cabang Terbaik","Cabang mana paling menguntungkan? Apa yang bisa direplikasi ke cabang lain?"]
+          ].map(([l,q])=>(
+            <button key={l} onClick={()=>ask(q)} className="text-xs bg-slate-800 hover:bg-slate-700 text-indigo-300 border border-slate-700/50 px-3 py-1.5 rounded-lg transition-all">{l}</button>
+          ))}
+        </div>
+        {aiR&&(
+          <div className="bg-slate-950 rounded-xl p-5 border border-slate-800 max-h-[300px] overflow-y-auto mb-4">
+            <div className="text-xs text-indigo-400 font-bold uppercase tracking-wider mb-2 flex items-center gap-1"><i className="ti ti-speakerphone"></i>Saran Claude AI:</div>
+            <div className="space-y-1">{renderMD(aiR)}</div>
+          </div>
+        )}
+        <div className="flex gap-2">
+          <input type="text" value={aiQ} onChange={e=>setAiQ(e.target.value)} onKeyDown={e=>e.key==="Enter"&&ask()} placeholder="Tanyakan analisis keuangan, strategi cabang, efisiensi biaya..." className="flex-1 bg-slate-950 border border-slate-800 rounded-xl p-3 text-sm focus:outline-none focus:border-indigo-500 text-slate-200 placeholder-slate-500"/>
+          <button onClick={()=>ask()} disabled={isC||!aiQ.trim()} className={`px-5 rounded-xl font-bold text-sm transition-all flex items-center gap-1.5 shrink-0 ${isC||!aiQ.trim()?"bg-slate-800 text-slate-500 cursor-not-allowed":"bg-indigo-600 hover:bg-indigo-700 text-white"}`}>
+            {isC?<><i className="ti ti-loader animate-spin"></i>Berpikir...</>:<><i className="ti ti-send"></i>✨ Tanya AI</>}
+          </button>
+        </div>
+      </div>
+      <div className="bg-white rounded-2xl border border-slate-200 shadow-sm p-6 overflow-hidden">
+        <div className="flex items-center gap-2 mb-4"><span className="w-8 h-8 rounded-lg bg-indigo-50 text-indigo-600 flex items-center justify-center"><i className="ti ti-chart-bar text-xl"></i></span><div><h3 className="text-base font-bold text-slate-800">Perbandingan Kinerja Operasional Cabang</h3><p className="text-xs text-slate-500">Data laporan terakhir</p></div></div>
+        <div className="overflow-x-auto -mx-6"><div className="inline-block min-w-full align-middle px-6">
+          <table className="min-w-full divide-y divide-slate-200 text-sm">
+            <thead><tr className="bg-slate-50">
+              <th className="py-2.5 px-3 text-left text-xs font-bold text-slate-500 uppercase">Cabang</th>
+              <th className="py-2.5 px-2 text-right text-xs font-bold text-slate-500 uppercase">Saldo Masuk</th>
+              <th className="py-2.5 px-2 text-right text-xs font-bold text-slate-500 uppercase">Pengeluaran</th>
+              <th className="py-2.5 px-2 text-right text-xs font-bold text-slate-500 uppercase">Order</th>
+              <th className="py-2.5 px-2 text-right text-xs font-bold text-slate-500 uppercase">Driver</th>
+              <th className="py-2.5 px-2 text-right text-xs font-bold text-slate-500 uppercase">Margin</th>
+            </tr></thead>
+            <tbody className="divide-y divide-slate-100">
+              {CAB.map(c=>{ const d=lap[c]||{}; const n=(Number(d.sal)||0)-(Number(d.png)||0); return(
+                <tr key={c} className="hover:bg-slate-50">
+                  <td className="py-3 px-3 font-semibold text-slate-700 text-xs">{c.replace("ID Rifim ","")}</td>
+                  <td className="py-3 px-2 text-right font-medium text-xs">{rp(d.sal)}</td>
+                  <td className="py-3 px-2 text-right font-medium text-xs">{rp(d.png)}</td>
+                  <td className="py-3 px-2 text-right text-xs">{d.ord||"-"}</td>
+                  <td className="py-3 px-2 text-right text-xs">{d.drv||"-"}</td>
+                  <td className={`py-3 px-2 text-right font-black text-xs ${n>=0?"text-emerald-600":"text-rose-600"}`}>{rp(n)}</td>
+                </tr>
+              ); })}
+            </tbody>
+          </table>
+        </div></div>
+      </div>
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+        <div className="bg-white rounded-2xl border border-slate-200 shadow-sm p-6">
+          <div className="flex items-center gap-2 mb-4"><span className="w-8 h-8 rounded-lg bg-indigo-50 text-indigo-600 flex items-center justify-center"><i className="ti ti-presentation-analytics text-xl"></i></span><h3 className="text-sm font-bold text-slate-800">Margin Profit per Cabang</h3></div>
+          <div className="space-y-3">
+            {CAB.map(c=>{ const d=lap[c]||{}; const n=(Number(d.sal)||0)-(Number(d.png)||0); const pos=n>=0; const pct=Math.min(Math.round((Math.abs(n)/maxBV)*100),100); return(
+              <div key={c} className="space-y-1">
+                <div className="flex justify-between text-xs font-semibold"><span className="text-slate-600">{c.replace("ID Rifim ","")}</span><span className={pos?"text-emerald-600":"text-rose-600"}>{rp(n)}</span></div>
+                <div className="w-full bg-slate-100 h-2 rounded-full overflow-hidden"><div className={`h-full rounded-full transition-all duration-500 ${pos?"bg-emerald-500":"bg-rose-500"}`} style={{width:`${pct||5}%`}}></div></div>
+              </div>
+            ); })}
+          </div>
+        </div>
+        <div className="space-y-4">
+          <div className="bg-white rounded-2xl border border-slate-200 shadow-sm p-6">
+            <div className="flex items-center gap-2 mb-3"><span className="w-8 h-8 rounded-lg bg-indigo-50 text-indigo-600 flex items-center justify-center"><i className="ti ti-users text-xl"></i></span><h3 className="text-sm font-bold text-slate-800">Indeks Kepatuhan Admin</h3></div>
+            <div className="divide-y divide-slate-100">
+              {perfA.map(p=>(
+                <div key={p.admin} className="flex justify-between items-center py-2.5">
+                  <div><span className="font-bold text-slate-800 text-xs block">{p.admin}</span><span className="text-[10px] text-slate-400 uppercase">{p.n} entri checklist</span></div>
+                  <div className="flex items-center gap-3"><div className="w-20 bg-slate-100 h-1.5 rounded-full overflow-hidden hidden sm:block"><div className="bg-indigo-500 h-full" style={{width:`${p.avg}%`}}></div></div><span className={`text-sm font-black ${p.avg>=85?"text-emerald-600":p.avg>=70?"text-amber-500":"text-rose-500"}`}>{p.avg}%</span></div>
+                </div>
+              ))}
+            </div>
+            <div className="flex justify-between text-xs text-slate-500 pt-3 border-t border-slate-100 mt-2"><span>Rata-rata hari ini:</span><span className="font-bold text-slate-800">{avgP}%</span></div>
+          </div>
+          <div className="bg-white rounded-2xl border border-slate-200 shadow-sm p-6">
+            <div className="flex items-center justify-between mb-3">
+              <div className="flex items-center gap-2"><span className="w-8 h-8 rounded-lg bg-indigo-50 text-indigo-600 flex items-center justify-center"><i className="ti ti-folders text-xl"></i></span><h3 className="text-sm font-bold text-slate-800">Status {FILES.length} Google Sheets</h3></div>
+              <span className="text-xs font-black text-emerald-600 bg-emerald-50 border border-emerald-100 px-2.5 py-0.5 rounded-full">{upT}/{FILES.length} Terupdate</span>
+            </div>
+            <div className="flex flex-wrap gap-1.5 pt-2">
+              {FILES.map(f=>{ const fr=fl[f.id]?.ts?.startsWith(td); return(
+                <div key={f.id} title={`${f.nm} (${fr?"SUDAH":"BELUM"} update)`} className={`w-9 h-9 rounded-xl flex items-center justify-center font-bold text-xs border transition-all cursor-pointer ${fr?"bg-emerald-500 text-white border-emerald-600":"bg-amber-50 text-amber-700 border-amber-200 hover:bg-amber-100"}`}>{f.id}</div>
+              ); })}
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+const TABS=[
+  { id:"checklist", lbl:"Checklist Harian",  ic:"ti-checklist",        cmp:Modul1Checklist },
+  { id:"laporan",   lbl:"Laporan Harian",     ic:"ti-report-analytics", cmp:Modul2Laporan  },
+  { id:"files",     lbl:"Monitor Files",      ic:"ti-folders",          cmp:Modul3Files    },
+  { id:"tagihan",   lbl:"Kewajiban/Tagihan",  ic:"ti-receipt",          cmp:Modul4Tagihan  },
+  { id:"owner",     lbl:"Owner Dashboard",    ic:"ti-dashboard",        cmp:Modul5Owner    }
+];
+
+function App(){
+  const [activeTab,setActiveTab]=useState("checklist");
+  const [toast,setToast]=useState({show:false,msg:"",type:"info"});
+  const [refreshSignal,setRefreshSignal]=useState(0);
+  const triggerToast=useCallback((msg,type="info")=>{ setToast({show:true,msg,type}); setTimeout(()=>setToast(p=>({...p,show:false})),3500); },[]);
+  useEffect(()=>{ const u=appStorage.subscribe(k=>{ if(k.startsWith("rifim_v4_")) setRefreshSignal(p=>p+1); }); return()=>u(); },[]);
+  const AComp=useMemo(()=>TABS.find(x=>x.id===activeTab)?.cmp||Modul1Checklist,[activeTab]);
+  return(
+    <div className="max-w-7xl mx-auto px-4 sm:px-6 py-6 space-y-6">
+      <header className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 bg-white border border-slate-200 rounded-2xl p-5 shadow-xs">
+        <div>
+          <h1 className="text-xl font-black text-slate-800 tracking-tight flex items-center gap-2">
+            <span className="text-indigo-600 bg-indigo-50 p-1.5 rounded-lg flex items-center justify-center"><i className="ti ti-brand-airtable text-2xl"></i></span>
+            Sistem Admin Rifim Terintegrasi
+          </h1>
+          <p className="text-xs text-slate-500 font-medium mt-1">PT. Rifim International Gemilang • Vendor Maxim Bandara Indonesia • Batam · Jambi · Pekanbaru · Balikpapan · Manado</p>
+        </div>
+        <div className="flex items-center gap-2 shrink-0">
+          <a href="https://docs.google.com/spreadsheets/d/1KHOZOBg0NNVIqQO3E9yBVt-lCDcDsTM4s4jQbzSdF9c/edit" target="_blank" rel="noopener noreferrer" className="flex items-center gap-2 border border-indigo-200 bg-indigo-50 text-indigo-700 rounded-xl px-4 py-2 text-xs font-bold hover:bg-indigo-100 transition-all shadow-xs"><i className="ti ti-table-column text-sm"></i>System Rifim</a>
+          <a href="https://drive.google.com/drive/folders/1ptHZ5ATAV1L4poBZwMWCVTWIK6FtRwIl" target="_blank" rel="noopener noreferrer" className="flex items-center gap-2 border border-emerald-200 bg-emerald-50 text-emerald-700 rounded-xl px-4 py-2 text-xs font-bold hover:bg-emerald-100 transition-all shadow-xs"><i className="ti ti-folder text-sm"></i>Google Drive</a>
+        </div>
+      </header>
+      <nav className="flex gap-1.5 overflow-x-auto pb-2 border-b border-slate-200 -mx-4 px-4 sm:mx-0 sm:px-0">
+        {TABS.map(tab=>{ const active=activeTab===tab.id; return(
+          <button key={tab.id} onClick={()=>setActiveTab(tab.id)} className={`flex items-center gap-2 px-4 py-2.5 rounded-xl text-xs font-bold tracking-wide uppercase transition-all whitespace-nowrap border border-transparent ${active?"bg-indigo-600 text-white shadow-md shadow-indigo-600/10":"text-slate-500 hover:text-slate-800 hover:bg-slate-100"}`}>
+            <i className={`ti ${tab.ic} text-sm`}></i>{tab.lbl}
+          </button>
+        ); })}
+      </nav>
+      <main className="min-h-[400px]"><AComp triggerToast={triggerToast} refreshSignal={refreshSignal}/></main>
+      <footer className="text-center text-[10px] text-slate-400 font-semibold tracking-wider uppercase pt-6 border-t border-slate-200">
+        Sistem Admin Rifim v4.0 • PT. Rifim International Gemilang • Powered by React, Tailwind CSS & Claude AI
+      </footer>
+      {toast.show&&(
+        <div className="fixed bottom-6 right-6 z-50 p-4 rounded-xl shadow-xl flex items-center gap-3 border bg-white max-w-sm fade-in">
+          <span className={`w-8 h-8 rounded-lg flex items-center justify-center shrink-0 ${toast.type==="success"?"bg-emerald-50 text-emerald-600 border border-emerald-100":toast.type==="error"?"bg-rose-50 text-rose-600 border border-rose-100":"bg-indigo-50 text-indigo-600 border border-indigo-100"}`}>
+            <i className={`ti ${toast.type==="success"?"ti-circle-check":toast.type==="error"?"ti-alert-circle":"ti-info-circle"} text-xl`}></i>
+          </span>
+          <div className="flex-1 text-xs font-bold text-slate-700 leading-tight">{toast.msg}</div>
+        </div>
+      )}
+    </div>
+  );
+}
+
+const root=ReactDOM.createRoot(document.getElementById("root"));
+root.render(<App/>);
+</script>
+</body>
+</html>
