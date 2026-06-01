@@ -1,8 +1,8 @@
 const CLIENT_ID =
-"1037149829816-1pfh3jaeac5qatteu58qu5gtvdtgfqlr.apps.googleusercontent.com";
+"181935617941-5d0cspgdt39kdog72fetn7js0oksskee.apps.googleusercontent.com";
 
 const API_KEY =
-"AIzaSyBh5SWdw7EUhu7Akcqy6TvF7wP86ZSiddc";
+"AIzaSyArvTvSNtZK5dlVq1acC9wN9emn9oVQpN8";
 
 const DISCOVERY_DOC =
 "https://www.googleapis.com/discovery/v1/apis/drive/v3/rest";
