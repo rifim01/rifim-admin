@@ -8,7 +8,7 @@ const DISCOVERY_DOC =
 "https://www.googleapis.com/discovery/v1/apis/drive/v3/rest";
 
 const SCOPES =
-"https://www.googleapis.com/auth/drive.file";
+"https://www.googleapis.com/auth/drive";
 
 const FOLDER_ID =
 "1Ejaz210g3TeM46W6up5BtgHNzEWwOnRQ";
