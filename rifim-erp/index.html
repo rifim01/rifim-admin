@@ -12,7 +12,10 @@
   <title>RIFIM ERP</title>
 
   <!-- PWA -->
-  <link rel="manifest" href="manifest.json" />
+  <link
+    rel="manifest"
+    href="manifest.json"
+  />
 
   <!-- ICON -->
   <link
@@ -22,7 +25,7 @@
 
   <!-- GOOGLE FONT -->
   <link
-    href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap"
+    href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700;800&display=swap"
     rel="stylesheet"
   />
 
@@ -51,42 +54,42 @@
       justify-content:center;
       align-items:center;
 
+      padding:20px;
+
       background:
       linear-gradient(
-        135deg,
-        rgba(255,255,255,.95),
-        rgba(255,230,230,.95)
+        rgba(255,255,255,.90),
+        rgba(255,240,240,.92)
       ),
       url('assets/bg.jpg');
 
       background-size:cover;
       background-position:center;
 
-      overflow:hidden;
+      overflow-x:hidden;
     }
 
     .container{
 
       width:100%;
-      max-width:420px;
+      max-width:430px;
 
-      padding:20px;
       text-align:center;
     }
 
     .logo{
 
-      width:120px;
-      height:120px;
+      width:130px;
+      height:130px;
 
       object-fit:cover;
 
-      border-radius:24px;
-
-      box-shadow:
-      0 10px 30px rgba(0,0,0,.15);
+      border-radius:30px;
 
       margin-bottom:25px;
+
+      box-shadow:
+      0 15px 40px rgba(0,0,0,.18);
     }
 
     .title{
@@ -94,9 +97,9 @@
       font-size:52px;
       font-weight:800;
 
-      color:#1f2937;
+      color:#1e293b;
 
-      margin-bottom:10px;
+      margin-bottom:8px;
 
       letter-spacing:1px;
     }
@@ -104,39 +107,42 @@
     .subtitle{
 
       color:#ef4444;
-      font-weight:700;
-
-      margin-bottom:6px;
 
       font-size:20px;
+      font-weight:700;
+
+      margin-bottom:8px;
     }
 
     .desc{
 
       color:#64748b;
-      font-size:15px;
 
       margin-bottom:35px;
+
+      font-size:15px;
     }
 
     .login-card{
 
-      background:rgba(255,255,255,.95);
+      background:
+      rgba(255,255,255,.95);
 
-      backdrop-filter:blur(15px);
+      backdrop-filter:blur(20px);
+
+      border-radius:35px;
 
       padding:35px;
 
-      border-radius:30px;
-
       box-shadow:
-      0 15px 40px rgba(0,0,0,.08);
+      0 15px 45px rgba(0,0,0,.10);
     }
 
     .form-group{
 
-      text-align:left;
       margin-bottom:22px;
+
+      text-align:left;
     }
 
     .form-group label{
@@ -145,10 +151,10 @@
 
       margin-bottom:10px;
 
+      color:#475569;
+
       font-size:14px;
       font-weight:700;
-
-      color:#475569;
 
       text-transform:uppercase;
     }
@@ -158,35 +164,30 @@
       position:relative;
     }
 
-    .input-box input,
-    .input-box select{
+    .input-box input{
 
       width:100%;
-
       height:60px;
 
       border-radius:18px;
 
       border:2px solid #e2e8f0;
 
-      padding:0 18px;
+      padding:0 20px;
 
-      font-size:17px;
-
-      background:#fff;
+      font-size:16px;
 
       transition:.3s;
     }
 
-    .input-box input:focus,
-    .input-box select:focus{
-
-      border-color:#ef4444;
+    .input-box input:focus{
 
       outline:none;
 
+      border-color:#ef4444;
+
       box-shadow:
-      0 0 0 4px rgba(239,68,68,.1);
+      0 0 0 5px rgba(239,68,68,.1);
     }
 
     .toggle-password{
@@ -200,7 +201,7 @@
 
       cursor:pointer;
 
-      font-size:20px;
+      font-size:18px;
     }
 
     .login-btn{
@@ -216,7 +217,7 @@
       linear-gradient(
         135deg,
         #ef4444,
-        #ff3b3b
+        #ff2d2d
       );
 
       color:#fff;
@@ -228,10 +229,10 @@
 
       transition:.3s;
 
-      box-shadow:
-      0 10px 25px rgba(239,68,68,.25);
+      margin-top:5px;
 
-      margin-top:10px;
+      box-shadow:
+      0 10px 30px rgba(239,68,68,.30);
     }
 
     .login-btn:hover{
@@ -239,43 +240,47 @@
       transform:translateY(-2px);
 
       box-shadow:
-      0 15px 35px rgba(239,68,68,.35);
+      0 15px 35px rgba(239,68,68,.40);
     }
 
     .reset-btn{
-
-      margin-top:15px;
 
       background:none;
       border:none;
 
       color:#64748b;
 
+      margin-top:18px;
+
       cursor:pointer;
 
       font-size:14px;
-    }
-
-    .footer{
-
-      margin-top:25px;
-
-      font-size:13px;
       font-weight:600;
-
-      color:#94a3b8;
-
-      letter-spacing:1px;
     }
 
     .loading{
 
       display:none;
 
-      margin-top:20px;
+      margin-top:18px;
 
       color:#ef4444;
-      font-weight:600;
+
+      font-weight:700;
+    }
+
+    .footer{
+
+      margin-top:25px;
+
+      color:#94a3b8;
+
+      font-size:12px;
+      font-weight:700;
+
+      letter-spacing:1px;
+
+      line-height:1.8;
     }
 
     @media(max-width:768px){
@@ -284,8 +289,12 @@
         font-size:42px;
       }
 
+      .subtitle{
+        font-size:17px;
+      }
+
       .login-card{
-        padding:25px;
+        padding:28px;
       }
 
     }
@@ -328,7 +337,7 @@
       <div class="form-group">
 
         <label>
-          Login Sebagai
+          Email Staff
         </label>
 
         <div class="input-box">
@@ -336,8 +345,7 @@
           <input
             type="email"
             id="email"
-            placeholder="Masukkan email..."
-            value="rifim01@adminrifim.org"
+            placeholder="Masukkan email staff..."
           />
 
         </div>
@@ -380,6 +388,8 @@
         🔐 Masuk ke Sistem
       </button>
 
+      <!-- RESET -->
+
       <button
         class="reset-btn"
         onclick="resetPassword()"
@@ -387,7 +397,12 @@
         Reset Password
       </button>
 
-      <div class="loading" id="loading">
+      <!-- LOADING -->
+
+      <div
+        class="loading"
+        id="loading"
+      >
         Memproses login...
       </div>
 
@@ -395,8 +410,8 @@
 
       <div class="footer">
 
-        INTEGRITAS • INOVASI • KUALITAS •
-        KEBERLANJUTAN
+        INTEGRITAS • INOVASI •
+        KUALITAS • KEBERLANJUTAN
 
       </div>
 
@@ -404,49 +419,54 @@
 
   </div>
 
-  <!-- APP JS -->
-
   <script>
 
-    // =========================
+    // =====================================
     // FIREBASE CONFIG
-    // =========================
+    // =====================================
 
     const firebaseConfig = {
 
-      apiKey: "ISI_API_KEY",
+      apiKey:
+      "AIzaSyCROrmmx9cxlAeMEobuT9DAWmVuF1oZrG4",
 
       authDomain:
-      "ISI_AUTH_DOMAIN",
+      "gen-lang-client-0837778946.firebaseapp.com",
 
       projectId:
-      "ISI_PROJECT_ID",
+      "gen-lang-client-0837778946",
 
       storageBucket:
-      "ISI_BUCKET",
+      "gen-lang-client-0837778946.firebasestorage.app",
 
       messagingSenderId:
-      "ISI_SENDER_ID",
+      "984064974556",
 
       appId:
-      "ISI_APP_ID"
+      "1:984064974556:web:42e4771e687590b2595e19",
+
+      measurementId:
+      "G-R5VGPRKM61"
 
     };
 
-    // =========================
-    // FIREBASE INIT
-    // =========================
+    // =====================================
+    // INIT FIREBASE
+    // =====================================
 
     firebase.initializeApp(
       firebaseConfig
     );
 
     const auth =
-      firebase.auth();
+    firebase.auth();
 
-    // =========================
+    const db =
+    firebase.firestore();
+
+    // =====================================
     // TOGGLE PASSWORD
-    // =========================
+    // =====================================
 
     function togglePassword(){
 
@@ -469,33 +489,35 @@
 
     }
 
-    // =========================
-    // LOGIN
-    // =========================
+    // =====================================
+    // LOGIN FUNCTION
+    // =====================================
 
     async function login(){
 
       const email =
       document.getElementById(
         'email'
-      ).value;
+      ).value.trim();
 
       const password =
       document.getElementById(
         'password'
-      ).value;
+      ).value.trim();
 
       const loading =
       document.getElementById(
         'loading'
       );
 
+      // VALIDATION
+
       if(
         !email || !password
       ){
 
         alert(
-          "Email & password wajib diisi"
+          "Email & Password wajib diisi"
         );
 
         return;
@@ -505,6 +527,8 @@
       "block";
 
       try{
+
+        // LOGIN FIREBASE
 
         const userCredential =
         await auth
@@ -517,16 +541,23 @@
         userCredential.user;
 
         console.log(
-          "Login sukses",
+          "Login sukses:",
           user.email
         );
 
+        // SAVE SESSION
+
         localStorage.setItem(
           "rifim_user",
-          JSON.stringify(user)
+          JSON.stringify({
+            uid:user.uid,
+            email:user.email
+          })
         );
 
-        window.location =
+        // REDIRECT
+
+        window.location.href =
         "dashboard.html";
 
       }catch(error){
@@ -534,6 +565,7 @@
         console.log(error);
 
         alert(
+          "Login gagal:\n\n" +
           error.message
         );
 
@@ -544,21 +576,21 @@
 
     }
 
-    // =========================
+    // =====================================
     // RESET PASSWORD
-    // =========================
+    // =====================================
 
     async function resetPassword(){
 
       const email =
       document.getElementById(
         'email'
-      ).value;
+      ).value.trim();
 
       if(!email){
 
         alert(
-          "Masukkan email dulu"
+          "Masukkan email terlebih dahulu"
         );
 
         return;
@@ -572,7 +604,7 @@
         );
 
         alert(
-          "Reset password dikirim ke email"
+          "Link reset password berhasil dikirim ke email."
         );
 
       }catch(error){
@@ -585,9 +617,9 @@
 
     }
 
-    // =========================
-    // CHECK LOGIN
-    // =========================
+    // =====================================
+    // AUTO LOGIN CHECK
+    // =====================================
 
     auth.onAuthStateChanged(
       (user)=>{
@@ -595,7 +627,7 @@
       if(user){
 
         console.log(
-          "User login:",
+          "User aktif:",
           user.email
         );
 
@@ -603,9 +635,26 @@
 
     });
 
-    // =========================
+    // =====================================
+    // ENTER KEY LOGIN
+    // =====================================
+
+    document.addEventListener(
+      "keypress",
+      function(e){
+
+        if(e.key === "Enter"){
+
+          login();
+
+        }
+
+      }
+    );
+
+    // =====================================
     // SERVICE WORKER
-    // =========================
+    // =====================================
 
     if(
       'serviceWorker'
@@ -631,3 +680,4 @@
 
 </body>
 </html>
+```
