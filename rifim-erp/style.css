@@ -433,3 +433,106 @@ input:focus{
   text-align:center;
 
 }
+.attendance-grid{
+
+  display:grid;
+
+  grid-template-columns:
+  repeat(auto-fit,minmax(350px,1fr));
+
+  gap:30px;
+
+}
+
+.attendance-card{
+
+  background:white;
+
+  padding:30px;
+
+  border-radius:25px;
+
+  box-shadow:
+  0 5px 20px rgba(0,0,0,.08);
+
+}
+
+.attendance-card h2{
+
+  margin-bottom:25px;
+
+  color:#111827;
+
+}
+
+video{
+
+  width:100%;
+
+  border-radius:20px;
+
+  margin-bottom:20px;
+
+  background:black;
+
+}
+
+.primary-btn{
+
+  width:100%;
+
+  padding:15px;
+
+  border:none;
+
+  border-radius:15px;
+
+  background:#ef4444;
+
+  color:white;
+
+  font-size:16px;
+
+  font-weight:600;
+
+  cursor:pointer;
+
+  transition:.3s;
+
+}
+
+.primary-btn:hover{
+
+  background:#dc2626;
+
+}
+
+.gps-info{
+
+  margin-bottom:20px;
+
+}
+
+.gps-info p{
+
+  margin-bottom:10px;
+
+  font-size:16px;
+
+}
+
+.gps-valid{
+
+  background:#dcfce7;
+
+  color:#166534;
+
+  padding:12px;
+
+  border-radius:12px;
+
+  margin-bottom:20px;
+
+  font-weight:600;
+
+}
