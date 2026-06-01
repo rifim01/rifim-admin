@@ -1,74 +1,89 @@
-```html
+```html id="jyn6vf"
 <!DOCTYPE html>
 <html lang="id">
 
 <head>
 
-  <meta charset="UTF-8">
+<meta charset="UTF-8">
 
-  <meta
-    name="viewport"
-    content="width=device-width, initial-scale=1.0"
-  >
+<meta
+name="viewport"
+content="width=device-width, initial-scale=1.0"
+/>
 
-  <title>
-    RIFIM ERP
-  </title>
+<title>RIFIM ERP</title>
 
-  <link
-    rel="stylesheet"
-    href="style.css"
-  >
+<link
+rel="stylesheet"
+href="style.css"
+/>
 
-  <link
-    rel="manifest"
-    href="manifest.json"
-  >
+<link
+rel="manifest"
+href="manifest.json"
+/>
+
+<link
+href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap"
+rel="stylesheet"
+/>
 
 </head>
 
-<body class="dark">
+<body>
 
-  <div class="login-page">
+<div class="login-wrapper">
 
-    <div class="login-card fade">
+  <div class="login-container fade">
 
-      <div class="logo-area">
+    <div class="brand-area">
 
-        <img
-          src="logo.png"
-          class="logo"
-        >
+      <img
+        src="assets/logo.png"
+        class="logo"
+      >
 
-        <h1>RIFIM ERP</h1>
+      <h1>RIFIM ERP</h1>
 
-        <p>
-          PT. RIFIM INTERNATIONAL GEMILANG
-        </p>
+      <h3>
+        PT. RIFIM INTERNATIONAL GEMILANG
+      </h3>
 
-        <span class="subtitle">
-          Airport Operations & Administration
-        </span>
+      <p>
+        Airport Operations & Administration
+      </p>
+
+    </div>
+
+    <div class="login-card">
+
+      <div class="form-group">
+
+        <label>LOGIN SEBAGAI</label>
+
+        <select id="email">
+
+          <option>
+            rifim01@adminrifim.org
+          </option>
+
+          <option>
+            supervisor@rifim.org
+          </option>
+
+          <option>
+            staff@rifim.org
+          </option>
+
+        </select>
 
       </div>
 
       <div class="form-group">
 
-        <label>Email Staff</label>
+        <label>PASSWORD AKSES</label>
 
-        <input
-          type="email"
-          id="email"
-          placeholder="Masukkan email..."
-        >
-
-      </div>
-
-      <div class="form-group">
-
-        <label>Password Akses</label>
-
-        <div class="password-box">
+        <div class="password-wrapper">
 
           <input
             type="password"
@@ -76,12 +91,12 @@
             placeholder="Masukkan password..."
           >
 
-          <button
-            class="show-btn"
+          <span
+            class="eye"
             onclick="togglePassword()"
           >
             👁️
-          </button>
+          </span>
 
         </div>
 
@@ -94,9 +109,10 @@
         🔐 Masuk ke Sistem
       </button>
 
-      <div class="login-footer">
+      <div class="footer-text">
 
-        Integritas • Inovasi • Kualitas • Keberlanjutan
+        INTEGRITAS • INOVASI •
+        KUALITAS • KEBERLANJUTAN
 
       </div>
 
@@ -104,24 +120,26 @@
 
   </div>
 
+</div>
+
 <script src="app.js"></script>
 
 <script>
 
 function togglePassword(){
 
-  const input =
+  const password =
   document.getElementById(
     'password'
   );
 
-  if(input.type === 'password'){
+  if(password.type === 'password'){
 
-    input.type = 'text';
+    password.type = 'text';
 
   }else{
 
-    input.type = 'password';
+    password.type = 'password';
 
   }
 
