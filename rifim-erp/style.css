@@ -1,0 +1,98 @@
+body{
+  margin:0;
+  font-family:'Segoe UI';
+  background:#0F0F0F;
+  color:white;
+}
+
+.dashboard{
+  display:flex;
+}
+
+.sidebar{
+  width:260px;
+  height:100vh;
+  background:#161616;
+  padding:20px;
+}
+
+.sidebar ul{
+  list-style:none;
+  padding:0;
+}
+
+.sidebar li{
+  padding:15px;
+  margin-bottom:10px;
+  background:#1C1C1C;
+  border-radius:12px;
+}
+
+.sidebar a{
+  color:white;
+  text-decoration:none;
+}
+
+.content{
+  flex:1;
+  padding:30px;
+}
+
+.card{
+  background:#1C1C1C;
+  padding:25px;
+  border-radius:20px;
+  margin-bottom:20px;
+}
+
+button{
+  width:100%;
+  padding:15px;
+  border:none;
+  border-radius:15px;
+  background:#E53935;
+  color:white;
+  font-size:16px;
+  cursor:pointer;
+}
+
+.camera-box{
+  width:100%;
+  height:300px;
+  background:black;
+  border-radius:20px;
+  overflow:hidden;
+  margin-bottom:20px;
+}
+
+video{
+  width:100%;
+  height:100%;
+  object-fit:cover;
+}
+
+.table{
+  width:100%;
+  border-collapse:collapse;
+}
+
+.table th,
+.table td{
+  border-bottom:1px solid #333;
+  padding:15px;
+}
+
+.stats-grid{
+  display:grid;
+  grid-template-columns:repeat(4,1fr);
+  gap:20px;
+}
+
+.stat-card{
+  text-align:center;
+}
+
+.success{
+  color:#00E676;
+  margin:15px 0;
+}
