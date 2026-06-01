@@ -38,7 +38,11 @@
 .tbl-wrap tbody tr{border-bottom:1px solid #F1F5F9;transition:background .1s}
 .tbl-wrap tbody tr:hover{background:#FAFBFF}
 .tbl-wrap td{padding:9px 12px;font-size:12.5px;color:#374151;vertical-align:middle;white-space:nowrap}
-.login-bg{background:linear-gradient(135deg,#1a1a2e,#16213e,#0f3460)}
+/* LOGIN BACKGROUND MODERN */
+.login-bg{background: radial-gradient(circle at 0% 0%, #ffebee 0%, transparent 50%), radial-gradient(circle at 100% 100%, #ffcdd2 0%, transparent 50%), #f8fafc; position:relative; overflow:hidden;}
+.login-bg::before{content:""; position:absolute; top:-50%; left:-50%; width:200%; height:200%; background:radial-gradient(circle, rgba(229,57,53,0.05) 0%, transparent 40%); animation:rotate 20s linear infinite;}
+@keyframes rotate{100%{transform:rotate(360deg);}}
+
 .dash-inp { width: 100%; border: 1px solid #E2E8F0; border-radius: 8px; padding: 6px 10px; font-size: 13px; color: #1E293B; outline: none; transition: all 0.2s; }
 .dash-inp:focus { border-color: #818CF8; box-shadow: 0 0 0 3px rgba(129, 140, 248, 0.1); }
 /* Chart Styles */
@@ -54,7 +58,8 @@
 <script type="text/babel">
 const {useState,useEffect,useMemo,useCallback,useRef}=React;
 
-const LOGO="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='80' height='80'%3E%3Crect width='100%25' height='100%25' fill='%23E53935' rx='20'/%3E%3Ctext x='50%25' y='50%25' dy='.3em' fill='%23ffffff' font-size='36' font-family='sans-serif' font-weight='900' text-anchor='middle'%3ERI%3C/text%3E%3C/svg%3E";
+// URL Logo Diubah menjadi file yang diunggah
+const LOGO_URL = "Rifim_Logo.jpeg";
 const GAS="https://script.google.com/macros/s/AKfycbyV8Us4bSqMIVgB8Q0QJVygv6K2oUJVtLRvR8OW0SHPXYPyKIwQ6Xu8fRJB8iAysovM/exec";
 const SAL_ID="1Qhwg1MB4IWqcWZJliGOlxh6q9AFrGyP7EICvFVOIXoY";
 const DRIVE_ROOT="https://drive.google.com/drive/folders/1hSeERvZrHQtBP_9tWqw87fqQfy2wiBS4";
@@ -83,14 +88,13 @@ const FILES=[
 const TASKS=[{id:"saldo",lbl:"Isi Saldo Driver"},{id:"dpot",lbl:"Total Driver Potong"},{id:"pord",lbl:"Potong Order"},{id:"tpot",lbl:"Total Potongan"},{id:"nom",lbl:"Nominal Potongan"},{id:"upot",lbl:"Update Potongan Daily"},{id:"dlua",lbl:"Update DB Driver Luar"},{id:"feel",lbl:"Update Fee Saldo Luar"},{id:"abs",lbl:"Update Master Absensi"},{id:"tgt",lbl:"Update Form Target Kota"},{id:"hpku",lbl:"Update Hutang PKU"},{id:"sub",lbl:"Submit Laporan"}];
 
 // JADWAL SHIFT CONSTANTS
-const MAX_LIBUR=4, TOTAL_WEEKS=4;
+const MAX_LIBUR=4;
 const BRANCHES=["Admin","ID Rifim Jambi","ID Rifim Pekanbaru","ID Rifim Airport Balikpapan","ID Rifim Airport Batam","ID Rifim Airport Manado"];
 const BRANCH_SHORT={"Admin":"Admin","ID Rifim Jambi":"Jambi","ID Rifim Pekanbaru":"Pekanbaru","ID Rifim Airport Balikpapan":"Balikpapan","ID Rifim Airport Batam":"Batam","ID Rifim Airport Manado":"Manado"};
 const SHIFT_TIMES={default:{PAGI:"07:05",SIANG:"15:05",LIBUR:"—"},"ID Rifim Airport Batam":{PAGI:"07:05",SIANG:"14:05",LIBUR:"—"}};
 const WORK_SHIFTS=["PAGI","SIANG"];
 const ALL_SHIFTS=["PAGI","SIANG","LIBUR"];
 const AVATAR_COLORS=["#4f46e5","#0891b2","#059669","#d97706","#dc2626","#7c3aed","#db2777","#0284c7","#16a34a","#b45309","#0e7490","#7e22ce"];
-const WEEK_STARTS=[new Date(2026,4,26),new Date(2026,5,1),new Date(2026,5,8),new Date(2026,5,15)];
 
 const JADWAL_RULES={
   differentShift:[
@@ -148,6 +152,16 @@ function rp(n){return"Rp "+(Number(n)||0).toLocaleString("id-ID")}
 function today(){return new Date().toISOString().slice(0,10)}
 function genId(p){return p+"-"+Date.now().toString(36).toUpperCase()+Math.random().toString(36).slice(2,4).toUpperCase()}
 function fmtD(s){if(!s)return"";try{return new Date(s).toLocaleDateString("id-ID",{day:"2-digit",month:"short",year:"numeric",hour:"2-digit",minute:"2-digit"})}catch{return s}}
+function getMonday(d) {
+  d = new Date(d);
+  var day = d.getDay(), diff = d.getDate() - day + (day == 0 ? -6:1);
+  return new Date(d.setDate(diff));
+}
+function addDays(d, days) {
+  var date = new Date(d.valueOf());
+  date.setDate(date.getDate() + days);
+  return date;
+}
 function nomTagihan(sum){return sum+5000}
 
 // STORAGE
@@ -181,25 +195,28 @@ function Login({onLogin}){
   };
   return(
     <div className="login-bg" style={{minHeight:"100vh",display:"flex",alignItems:"center",justifyContent:"center",padding:16}}>
-      <div style={{width:"100%",maxWidth:380}}>
+      <div style={{width:"100%",maxWidth:400,position:"relative",zIndex:10}}>
         <div style={{textAlign:"center",marginBottom:32}}>
-          <div style={{width:80,height:80,borderRadius:20,background:"var(--red)",color:"#fff",fontSize:36,fontWeight:900,display:"flex",alignItems:"center",justifyContent:"center",margin:"0 auto 16px",boxShadow:"0 8px 32px rgba(0,0,0,.4)"}}>RI</div>
-          <div style={{color:"#fff",fontSize:24,fontWeight:900,letterSpacing:"-.5px"}}>RIFIM ERP</div>
-          <div style={{color:"#94A3B8",fontSize:13,marginTop:4}}>PT. Rifim International Gemilang</div>
-          <div style={{color:"#64748B",fontSize:11,marginTop:2}}>Airport Operations & Administration</div>
+          <div style={{width:100,height:100,borderRadius:24,background:"#fff",display:"flex",alignItems:"center",justifyContent:"center",margin:"0 auto 16px",boxShadow:"0 12px 40px rgba(229,57,53,.3)",overflow:"hidden", border:"4px solid #fff"}}>
+            <img src={LOGO_URL} alt="RIFIM Logo" style={{width:"100%",height:"100%",objectFit:"cover"}} onError={(e) => { e.target.onerror = null; e.target.style.display="none"; e.target.parentElement.innerHTML="<span style='color:var(--red);font-size:40px;font-weight:900'>RI</span>"; }} />
+          </div>
+          <div style={{color:"#1E293B",fontSize:26,fontWeight:900,letterSpacing:"-.5px",textShadow:"0 2px 10px rgba(255,255,255,0.5)"}}>RIFIM ERP</div>
+          <div style={{color:"var(--red)",fontSize:13,marginTop:4,fontWeight:700,letterSpacing:"0.5px"}}>PT. RIFIM INTERNATIONAL GEMILANG</div>
+          <div style={{color:"#64748B",fontSize:11,marginTop:4}}>Airport Operations & Administration</div>
         </div>
-        <div style={{background:"rgba(255,255,255,.05)",backdropFilter:"blur(12px)",border:"1px solid rgba(255,255,255,.1)",borderRadius:20,padding:28,display:"flex",flexDirection:"column",gap:16}}>
+        <div style={{background:"rgba(255,255,255,.85)",backdropFilter:"blur(20px)",border:"1px solid rgba(255,255,255,.6)",borderRadius:24,padding:32,display:"flex",flexDirection:"column",gap:20,boxShadow:"0 10px 40px rgba(0,0,0,.08)"}}>
           <div>
-            <div style={{color:"#94A3B8",fontSize:11,fontWeight:700,textTransform:"uppercase",letterSpacing:".5px",marginBottom:8}}>Password Admin / Owner</div>
+            <div style={{color:"#475569",fontSize:11,fontWeight:800,textTransform:"uppercase",letterSpacing:".5px",marginBottom:8}}>Password Akses</div>
             <div style={{position:"relative"}}>
-              <input type={sh?"text":"password"} value={pw} onChange={e=>setPw(e.target.value)} onKeyDown={e=>e.key==="Enter"&&go()} placeholder="Masukkan password..." style={{width:"100%",background:"rgba(255,255,255,.08)",border:"1.5px solid rgba(255,255,255,.1)",borderRadius:12,padding:"11px 44px 11px 14px",color:"#fff",fontSize:14,outline:"none"}}/>
-              <button onClick={()=>setSh(!sh)} style={{position:"absolute",right:12,top:"50%",transform:"translateY(-50%)",background:"none",border:"none",color:"#64748B",cursor:"pointer",fontSize:16}}>{sh?"🙈":"👁"}</button>
+              <input type={sh?"text":"password"} value={pw} onChange={e=>setPw(e.target.value)} onKeyDown={e=>e.key==="Enter"&&go()} placeholder="Masukkan password..." style={{width:"100%",background:"#fff",border:"2px solid #E2E8F0",borderRadius:12,padding:"12px 44px 12px 16px",color:"#1E293B",fontSize:14,outline:"none",transition:"all 0.2s"}} onFocus={e=>e.target.style.borderColor="var(--red)"} onBlur={e=>e.target.style.borderColor="#E2E8F0"}/>
+              <button onClick={()=>setSh(!sh)} style={{position:"absolute",right:14,top:"50%",transform:"translateY(-50%)",background:"none",border:"none",color:"#94A3B8",cursor:"pointer",fontSize:16}}>{sh?"🙈":"👁"}</button>
             </div>
           </div>
-          {e2&&<div style={{background:"rgba(220,38,38,.15)",border:"1px solid rgba(220,38,38,.3)",borderRadius:8,padding:"8px 12px",color:"#FCA5A5",fontSize:12,fontWeight:600}}>{e2}</div>}
-          <button onClick={go} className="btn-red" style={{justifyContent:"center",width:"100%",padding:"12px",fontSize:14}}>
+          {e2&&<div style={{background:"#FEF2F2",border:"1px solid #FECACA",borderRadius:10,padding:"10px 14px",color:"#DC2626",fontSize:12,fontWeight:700}}>{e2}</div>}
+          <button onClick={go} className="btn-red" style={{justifyContent:"center",width:"100%",padding:"14px",fontSize:14,borderRadius:12,boxShadow:"0 4px 14px rgba(229,57,53,.3)"}}>
             🔐 Masuk ke Sistem
           </button>
+          <div style={{textAlign:"center",color:"#94A3B8",fontSize:9,fontWeight:700,letterSpacing:"1px"}}>INTEGRITAS • INOVASI • KUALITAS • KEBERLANJUTAN</div>
         </div>
       </div>
     </div>
@@ -226,57 +243,68 @@ function Toast({toasts,remove}){
 // ── JADWAL SHIFT COMPONENT ───────────────────────────────────────────────────
 function JadwalShift({ toast }) {
   const [activeBranch, setActiveBranch] = useState("ID Rifim Airport Batam");
-  const [schedule, setSchedule] = useState({});
+  const [weekStart, setWeekStart] = useState(getMonday(new Date()));
   const [staffList, setStaffList] = useState(JSON.parse(JSON.stringify(MASTER_STAFF)));
+  const [schedule, setSchedule] = useState({}); 
   const [openDrop, setOpenDrop] = useState(null);
   const [showAdd, setShowAdd] = useState(false);
-  const [currentWeek, setCurrentWeek] = useState(0);
-
   const [newName, setNewName] = useState("");
   const [newJab, setNewJab] = useState("STAFF KONTER");
   const [newId, setNewId] = useState("");
-  const [initialized, setInitialized] = useState(false);
+  const [isSyncing, setIsSyncing] = useState(false);
+
+  const getWeekKey = (date) => fmtD(date);
 
   useEffect(() => {
-    if (initialized) return;
-    const newSched = {};
+    const wk = getWeekKey(weekStart);
+    if (!schedule[wk]) {
+      // Data belum ada untuk minggu ini, tidak otomatis generate untuk hindari overwrite.
+    }
+  }, [weekStart, schedule]);
+
+  const handleGenerateJadwal = () => {
+    const wk = getWeekKey(weekStart);
+    const newSched = { ...schedule };
+    newSched[wk] = newSched[wk] || {};
+    
     staffList.forEach(s => {
-      newSched[s.nama] = {};
-      for(let w=0; w<TOTAL_WEEKS; w++){
-        newSched[s.nama][w] = {};
-        const numId = s.idStaff.match(/\d+/) ? parseInt(s.idStaff.match(/\d+/)[0]) : Math.floor(Math.random()*100);
-        const liburDay = (numId + w*3) % 7;
-        for(let d=0; d<7; d++){
-          newSched[s.nama][w][d] = (d === liburDay) ? 'LIBUR' : WORK_SHIFTS[Math.floor(Math.random()*WORK_SHIFTS.length)];
-        }
+      newSched[wk][s.nama] = newSched[wk][s.nama] || {};
+      const numId = s.idStaff.match(/\d+/) ? parseInt(s.idStaff.match(/\d+/)[0]) : Math.floor(Math.random()*100);
+      const liburDay = (numId + new Date(weekStart).getDate()) % 7;
+      
+      for(let d=0; d<7; d++){
+        newSched[wk][s.nama][d] = {
+          shift: (d === liburDay) ? 'LIBUR' : WORK_SHIFTS[Math.floor(Math.random()*WORK_SHIFTS.length)],
+          att: null
+        };
       }
     });
 
     JADWAL_RULES.differentShift.forEach(rule => {
-      for(let w=0; w<TOTAL_WEEKS; w++) for(let d=0; d<7; d++){
-        const shA = newSched[rule.a]?.[w]?.[d];
-        const shB = newSched[rule.b]?.[w]?.[d];
+      for(let d=0; d<7; d++){
+        const shA = newSched[wk][rule.a]?.[d]?.shift;
+        const shB = newSched[wk][rule.b]?.[d]?.shift;
         if(shA && shB && shA !== 'LIBUR' && shB !== 'LIBUR' && shA === shB){
-          if(newSched[rule.b]?.[w]) {
+          if(newSched[wk][rule.b]) {
             const diff = WORK_SHIFTS.find(x => x !== shA);
-            newSched[rule.b][w][d] = diff || 'PAGI';
+            newSched[wk][rule.b][d].shift = diff || 'PAGI';
           }
         }
       }
     });
 
     JADWAL_RULES.coverRelations.forEach(rule => {
-      for(let w=0; w<TOTAL_WEEKS; w++) for(let d=0; d<7; d++){
-        const anyCovereeLibur = rule.coverees.some(n => newSched[n]?.[w]?.[d] === 'LIBUR');
-        if(anyCovereeLibur && newSched[rule.coverer]?.[w]?.[d] === 'LIBUR'){
-          if(newSched[rule.coverer]?.[w]) newSched[rule.coverer][w][d] = 'PAGI';
+      for(let d=0; d<7; d++){
+        const anyCovereeLibur = rule.coverees.some(n => newSched[wk][n]?.[d]?.shift === 'LIBUR');
+        if(anyCovereeLibur && newSched[wk][rule.coverer]?.[d]?.shift === 'LIBUR'){
+          if(newSched[wk][rule.coverer]) newSched[wk][rule.coverer][d].shift = 'PAGI';
         }
       }
     });
 
     setSchedule(newSched);
-    setInitialized(true);
-  }, [initialized, staffList]);
+    toast("Jadwal minggu ini berhasil di-generate sesuai aturan!", "success");
+  };
 
   useEffect(() => {
     const handleClick = (e) => {
@@ -286,57 +314,48 @@ function JadwalShift({ toast }) {
     return () => document.removeEventListener('click', handleClick);
   }, [openDrop]);
 
-  const countLibur = (name) => {
+  const countLibur = (name, wk) => {
     let n=0;
-    for(let w=0;w<TOTAL_WEEKS;w++) for(let d=0;d<7;d++) if(schedule[name]?.[w]?.[d]==='LIBUR') n++;
+    for(let d=0;d<7;d++) if(schedule[wk]?.[name]?.[d]?.shift === 'LIBUR') n++;
     return n;
   };
 
-  const getCellBadge = (name, week, day) => {
-    const sh = schedule[name]?.[week]?.[day] || 'PAGI';
+  const getCellBadge = (name, wk, day) => {
+    const sh = schedule[wk]?.[name]?.[day]?.shift || 'PAGI';
     const llRule = JADWAL_RULES.liburLembur.find(r => r.a === name || r.b === name);
     if(llRule && sh !== 'LIBUR'){
       const partner = llRule.a === name ? llRule.b : llRule.a;
-      if(schedule[partner]?.[week]?.[day] === 'LIBUR') return 'LEMBUR';
+      if(schedule[wk]?.[partner]?.[day]?.shift === 'LIBUR') return 'LEMBUR';
     }
     const cvRule = JADWAL_RULES.coverRelations.find(r => r.coverer === name);
     if(cvRule && sh !== 'LIBUR'){
-      if(cvRule.coverees.some(n => schedule[n]?.[week]?.[day] === 'LIBUR')) return 'COVER';
+      if(cvRule.coverees.some(n => schedule[wk]?.[n]?.[day]?.shift === 'LIBUR')) return 'COVER';
     }
     const subRule = JADWAL_RULES.substituteOnly.find(r => r.name === name);
     if(subRule && sh !== 'LIBUR'){
-      if(subRule.coverees.some(n => schedule[n]?.[week]?.[day] === 'LIBUR')) return 'SUB';
+      if(subRule.coverees.some(n => schedule[wk]?.[n]?.[day]?.shift === 'LIBUR')) return 'SUB';
     }
     return null;
   };
 
-  const isStandby = (name, week, day) => {
+  const isStandby = (name, wk, day) => {
     const subRule = JADWAL_RULES.substituteOnly.find(r => r.name === name);
     if(!subRule) return false;
-    return !subRule.coverees.some(n => schedule[n]?.[week]?.[day] === 'LIBUR');
+    return !subRule.coverees.some(n => schedule[wk]?.[n]?.[day]?.shift === 'LIBUR');
   };
 
   const shiftTime = (sh) => {
     return (SHIFT_TIMES[activeBranch] || SHIFT_TIMES.default)[sh] || "—";
   };
 
-  const formatWeekDates = (wi) => {
-    const s = WEEK_STARTS[wi], e = new Date(s); e.setDate(e.getDate()+6);
-    const M = ['Jan','Feb','Mar','Apr','Mei','Jun','Jul','Agu','Sep','Okt','Nov','Des'];
-    return `${s.getDate()} ${M[s.getMonth()]} – ${e.getDate()} ${M[e.getMonth()]}`;
-  };
-
   const handleSetShift = (name, day, newSh) => {
-    const curSh = schedule[name]?.[currentWeek]?.[day];
-    if(newSh === 'LIBUR' && curSh !== 'LIBUR' && countLibur(name) >= MAX_LIBUR){
-      toast(`⛔ ${name} sudah ${MAX_LIBUR}x libur bulan ini!`, 'error');
-      setOpenDrop(null); return;
-    }
+    const wk = getWeekKey(weekStart);
+    const curSh = schedule[wk]?.[name]?.[day]?.shift;
 
     const dsRule = JADWAL_RULES.differentShift.find(r => r.a === name || r.b === name);
     if(dsRule && newSh !== 'LIBUR'){
       const partner = dsRule.a === name ? dsRule.b : dsRule.a;
-      const partnerSh = schedule[partner]?.[currentWeek]?.[day];
+      const partnerSh = schedule[wk]?.[partner]?.[day]?.shift;
       if(partnerSh === newSh && partnerSh !== 'LIBUR'){
         toast(`⚠️ ${name} & ${partner} harus beda shift!`, 'warn');
         setOpenDrop(null); return;
@@ -344,21 +363,35 @@ function JadwalShift({ toast }) {
     }
 
     const newSched = { ...schedule };
-    newSched[name][currentWeek][day] = newSh;
+    if(!newSched[wk]) newSched[wk] = {};
+    if(!newSched[wk][name]) newSched[wk][name] = {};
+    if(!newSched[wk][name][day]) newSched[wk][name][day] = { shift: 'PAGI', att: null };
+    
+    newSched[wk][name][day].shift = newSh;
 
     JADWAL_RULES.coverRelations.forEach(r => {
       for(let d2=0; d2<7; d2++){
-        const anyLib = r.coverees.some(n => newSched[n]?.[currentWeek]?.[d2] === 'LIBUR');
-        if(anyLib && newSched[r.coverer]?.[currentWeek]?.[d2] === 'LIBUR'){
-          if(newSched[r.coverer]?.[currentWeek]) newSched[r.coverer][currentWeek][d2] = 'PAGI';
+        const anyLib = r.coverees.some(n => newSched[wk]?.[n]?.[d2]?.shift === 'LIBUR');
+        if(anyLib && newSched[wk]?.[r.coverer]?.[d2]?.shift === 'LIBUR'){
+          if(newSched[wk][r.coverer]) newSched[wk][r.coverer][d2].shift = 'PAGI';
         }
       }
     });
 
     setSchedule(newSched);
     setOpenDrop(null);
-    if(newSh === 'LIBUR') toast(`🏖 Libur set — ${countLibur(name)}/${MAX_LIBUR} hari`, 'success');
-    else toast(`✓ ${name} → ${newSh} (${shiftTime(newSh)})`, 'success');
+    toast(`✓ ${name} → ${newSh} (${shiftTime(newSh)})`, 'success');
+  };
+
+  const handleSetAtt = (name, day, attVal) => {
+    const wk = getWeekKey(weekStart);
+    const newSched = { ...schedule };
+    if(!newSched[wk]) newSched[wk] = {};
+    if(!newSched[wk][name]) newSched[wk][name] = {};
+    if(!newSched[wk][name][day]) newSched[wk][name][day] = { shift: 'PAGI', att: null };
+    
+    newSched[wk][name][day].att = attVal;
+    setSchedule(newSched);
   };
 
   const handleAddStaff = () => {
@@ -369,54 +402,56 @@ function JadwalShift({ toast }) {
       toast('Nama sudah ada!', 'error'); return;
     }
     const s = {nama: name, jabatan: newJab, idStaff: id, cabang: activeBranch};
-    
-    const newSched = {...schedule};
-    newSched[name] = {};
-    const liburDays = [0,2,4,6];
-    for(let w=0; w<TOTAL_WEEKS; w++){
-      newSched[name][w] = {};
-      for(let d=0; d<7; d++) {
-        newSched[name][w][d] = (d === liburDays[w]) ? 'LIBUR' : 'PAGI';
-      }
-    }
-    
-    setSchedule(newSched);
     setStaffList([...staffList, s]);
-    setShowAdd(false);
-    setNewName("");
-    setNewId("");
+    setShowAdd(false); setNewName(""); setNewId("");
     toast(`${name} ditambahkan!`, 'success');
   };
 
   const handleDelStaff = (name) => {
-    setStaffList(staffList.filter(s => s.nama !== name));
-    const newSched = {...schedule};
-    delete newSched[name];
-    setSchedule(newSched);
-    toast(`${name} dihapus`, 'error');
+    if(confirm(`Yakin hapus ${name}?`)) {
+      setStaffList(staffList.filter(s => s.nama !== name));
+      toast(`${name} dihapus`, 'error');
+    }
+  };
+
+  const syncStaffFromDB = async () => {
+    setIsSyncing(true);
+    toast("Mengambil data dari DB Master Staff...", "info");
+    try {
+      const res = await gasGet({action: 'sync_master_staff'});
+      if (res.success && res.data) {
+        setStaffList(res.data);
+        toast(`Berhasil sinkronisasi ${res.data.length} staff!`, "success");
+      } else {
+        toast("Sinkronisasi gagal, pastikan Apps Script sudah diperbarui.", "error");
+      }
+    } catch(e) {
+      toast("Error koneksi saat sync: " + e.message, "error");
+    }
+    setIsSyncing(false);
+  };
+
+  const exportPDF = () => {
+    window.print();
+    toast("Membuka dialog cetak PDF...", "success");
   };
 
   const curStaff = staffList.filter(s => s.cabang === activeBranch);
-  const counts = { PAGI: 0, SIANG: 0, LIBUR: 0 };
-  let totalLibur = 0;
+  const wk = getWeekKey(weekStart);
   
-  if (initialized) {
-    curStaff.forEach(s => {
-      if (s.role !== 'substitute') {
-        totalLibur += countLibur(s.nama);
-        for(let d=0; d<7; d++) {
-          const sh = schedule[s.nama]?.[currentWeek]?.[d] || 'PAGI';
-          if(counts[sh] !== undefined) counts[sh]++;
-        }
-      }
-    });
-  }
-  const expectedLibur = curStaff.filter(s => s.role !== 'substitute').length * MAX_LIBUR;
-  const dotC = { PAGI: '#34d399', SIANG: '#fbbf24', LIBUR: '#94a3b8' };
-  const times = SHIFT_TIMES[activeBranch] || SHIFT_TIMES.default;
+  const absensiData = curStaff.map(s => {
+    let H=0, T=0, A=0;
+    for(let d=0; d<7; d++) {
+      const att = schedule[wk]?.[s.nama]?.[d]?.att;
+      if(att === 'H') H++;
+      if(att === 'T') T++;
+      if(att === 'A') A++;
+    }
+    return { name: s.nama, H, T, A, Total: H+T };
+  });
 
   return (
-    <div className="jadwal-container fade">
+    <div className="jadwal-container fade" id="jadwal-print-area">
       <style>{`
         .jadwal-container {
           --bg:#0b0e1a;--surface:#111627;--surface2:#161d30;--border:#1e2640;
@@ -430,118 +465,102 @@ function JadwalShift({ toast }) {
           --warn:#ef4444;--warn-bg:rgba(239,68,68,.13);
           background: var(--bg); color: var(--text); font-family: 'DM Sans', sans-serif;
           border-radius: 16px; overflow: visible; box-shadow: 0 4px 20px rgba(0,0,0,0.05);
-          padding-bottom: 40px;
+          padding-bottom: 40px; margin-bottom: 40px;
         }
         .jadwal-container * { box-sizing: border-box; }
-        .jadwal-container .j-header { background:linear-gradient(135deg,#0f1525,#111a2e);border-bottom:1px solid var(--border);padding:14px 24px;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:10px; border-radius: 16px 16px 0 0;}
-        .jadwal-container .brand { display:flex;align-items:center;gap:11px; }
-        .jadwal-container .logo-box { width:34px;height:34px;border-radius:9px;background:linear-gradient(135deg,#4f6ef7,#38bdf8);display:flex;align-items:center;justify-content:center;font-family:'Syne',sans-serif;font-weight:800;font-size:14px;color:#fff; }
-        .jadwal-container .j-header h1 { font-family:'Syne',sans-serif;font-size:18px;font-weight:800; margin:0; }
-        .jadwal-container .j-header h1 span { color:var(--accent2); }
-        .jadwal-container .shift-bar { display:flex;gap:5px;flex-wrap:wrap;align-items:center;background:var(--surface);border-bottom:1px solid var(--border);padding:8px 24px; }
-        .jadwal-container .shift-tag { display:flex;align-items:center;gap:5px;padding:4px 10px;border-radius:20px;font-size:10px;font-weight:700;border:1px solid transparent; }
-        .jadwal-container .shift-tag .time { font-size:12px;font-weight:800;font-family:'Syne',sans-serif; }
-        .jadwal-container .shift-tag.PAGI { background:var(--pagi-bg);color:var(--pagi-c);border-color:rgba(52,211,153,.25); }
-        .jadwal-container .shift-tag.SIANG { background:var(--siang-bg);color:var(--siang-c);border-color:rgba(251,191,36,.25); }
-        .jadwal-container .shift-tag.LIBUR { background:var(--libur-bg);color:var(--libur-c);border-color:rgba(148,163,184,.25); }
-        .jadwal-container .batam-note { font-size:10px;color:var(--muted);padding:3px 9px;background:#12182a;border-radius:6px;border:1px solid var(--border); }
-        .jadwal-container .libur-rule { margin-left:auto;display:flex;align-items:center;gap:5px;background:var(--warn-bg);border:1px solid rgba(239,68,68,.3);border-radius:8px;padding:4px 11px;font-size:11px;font-weight:700;color:#fca5a5; }
-        .jadwal-container .rules-bar { background:#0d1120;border-bottom:1px solid var(--border);padding:8px 24px;display:flex;gap:8px;flex-wrap:wrap;align-items:center; }
-        .jadwal-container .rule-pill { display:flex;align-items:center;gap:5px;padding:3px 10px;border-radius:20px;font-size:10px;font-weight:600;border:1px solid; }
-        .jadwal-container .rule-pill.diff { background:rgba(139,92,246,.1);color:#c084fc;border-color:rgba(139,92,246,.25); }
-        .jadwal-container .rule-pill.cover { background:var(--cover-bg);color:var(--cover-c);border-color:rgba(56,189,248,.25); }
-        .jadwal-container .rule-pill.sub { background:rgba(251,191,36,.08);color:#fbbf24;border-color:rgba(251,191,36,.2); }
-        .jadwal-container .rule-pill.lembur { background:var(--lembur-bg);color:var(--lembur-c);border-color:rgba(251,146,60,.25); }
-        .jadwal-container .j-wrap { padding:16px 18px 20px;max-width:1200px;margin:0 auto; }
-        .jadwal-container .ctrl-row { display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:10px;margin-bottom:13px; }
-        .jadwal-container .tabs { display:flex;gap:5px;flex-wrap:wrap; }
-        .jadwal-container .tab-btn { padding:7px 12px;border-radius:8px;border:1px solid var(--border);background:var(--surface);color:var(--muted);cursor:pointer;font-size:11px;font-weight:700;transition:all .18s;font-family:'DM Sans',sans-serif;display:flex;align-items:center;gap:4px; }
-        .jadwal-container .tab-btn:hover { border-color:var(--accent);color:var(--text); }
-        .jadwal-container .tab-btn.active { background:var(--accent);border-color:var(--accent);color:#fff;box-shadow:0 4px 14px rgba(79,110,247,.35); }
-        .jadwal-container .tab-btn.admin.active { background:#0ea5e9;border-color:#0ea5e9; }
-        .jadwal-container .tab-count { background:rgba(255,255,255,.18);border-radius:10px;padding:1px 5px;font-size:9px;font-weight:800; }
-        .jadwal-container .week-nav { display:flex;align-items:center;gap:6px; }
-        .jadwal-container .wlabel { font-family:'Syne',sans-serif;font-size:13px;font-weight:800;color:var(--text);min-width:78px;text-align:center; }
-        .jadwal-container .wdates { font-size:10px;color:var(--muted);min-width:110px;text-align:center; }
-        .jadwal-container .wbtn { background:var(--surface2);border:1px solid var(--border);border-radius:7px;padding:5px 9px;color:var(--muted);cursor:pointer;font-size:13px;transition:all .15s; }
-        .jadwal-container .wbtn:hover { border-color:var(--accent);color:var(--text); }
-        .jadwal-container .week-dots { display:flex;gap:4px;align-items:center; }
-        .jadwal-container .wd { width:7px;height:7px;border-radius:50%;background:var(--border);transition:background .2s; }
-        .jadwal-container .wd.active { background:var(--accent); }
-        .jadwal-container .wd.done { background:#059669; }
-        .jadwal-container .j-cards { display:flex;gap:7px;flex-wrap:wrap;margin-bottom:15px; }
-        .jadwal-container .jcard { background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:9px 14px;display:flex;align-items:center;gap:8px;min-width:88px; }
-        .jadwal-container .jcard .dot { width:8px;height:8px;border-radius:50%;flex-shrink:0; }
-        .jadwal-container .jcard .lbl { font-size:9px;color:var(--muted);font-weight:700;letter-spacing:1px;text-transform:uppercase; }
-        .jadwal-container .jcard .num { font-family:'Syne',sans-serif;font-size:18px;font-weight:800;color:var(--text);line-height:1.1; }
-        .jadwal-container .jcard .sub { font-size:9px;color:var(--muted); }
-        .jadwal-container .tbl-wrap { background:var(--surface);border:1px solid var(--border);border-radius:14px;overflow:visible;box-shadow:0 8px 32px rgba(0,0,0,.4); }
-        .jadwal-container .tbl-head { display:grid;grid-template-columns:190px 72px repeat(7,1fr);background:var(--surface2);border-bottom:1px solid var(--border); border-radius:14px 14px 0 0; overflow:hidden;}
-        .jadwal-container .th { padding:10px 3px;text-align:center;font-size:9px;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;color:var(--muted); }
-        .jadwal-container .th:first-child { padding-left:14px;text-align:left; }
-        .jadwal-container .th.weekend { color:var(--accent2); }
-        .jadwal-container .th.libur-th { color:#fca5a5; }
-        .jadwal-container .tbl-row { display:grid;grid-template-columns:190px 72px repeat(7,1fr);border-bottom:1px solid #13182a;transition:background .12s; }
-        .jadwal-container .tbl-row:last-child { border-bottom:none; }
-        .jadwal-container .tbl-row:hover { background:#13182a; }
-        .jadwal-container .tbl-row.even { background:#0e1220; }
-        .jadwal-container .tbl-row.group-sep { border-top:2px solid #1e2640; }
-        .jadwal-container .staff-cell { padding:7px 14px;display:flex;align-items:center;justify-content:space-between;gap:4px; }
-        .jadwal-container .staff-info { display:flex;align-items:center;gap:7px;overflow:hidden; }
-        .jadwal-container .avatar { width:26px;height:26px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:800;color:#fff;flex-shrink:0; }
-        .jadwal-container .staff-name { font-size:11px;font-weight:600;color:var(--text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:92px; }
-        .jadwal-container .staff-pos { font-size:9px;color:var(--muted); }
-        .jadwal-container .staff-id { font-size:8px;color:#2a3560; }
-        .jadwal-container .staff-note { font-size:8px;color:#4f6ef7;font-style:italic; }
-        .jadwal-container .del-btn { background:none;border:none;color:#2a3560;cursor:pointer;font-size:11px;padding:2px 4px;border-radius:3px;flex-shrink:0;transition:color .15s; }
-        .jadwal-container .del-btn:hover { color:#ef4444; }
-        .jadwal-container .libur-cell { display:flex;align-items:center;justify-content:center;padding:3px; }
-        .jadwal-container .lc { display:flex;flex-direction:column;align-items:center;gap:2px;padding:4px 5px;border-radius:7px;min-width:52px; }
-        .jadwal-container .lc.ok { background:rgba(52,211,153,.1);border:1px solid rgba(52,211,153,.2); }
-        .jadwal-container .lc.warn { background:rgba(251,191,36,.1);border:1px solid rgba(251,191,36,.2); }
-        .jadwal-container .lc.full { background:rgba(239,68,68,.15);border:1px solid rgba(239,68,68,.4); }
-        .jadwal-container .lc-n { font-family:'Syne',sans-serif;font-size:13px;font-weight:800;line-height:1; }
-        .jadwal-container .lc-n.ok { color:#34d399; }
-        .jadwal-container .lc-n.warn { color:#fbbf24; }
-        .jadwal-container .lc-n.full { color:var(--warn); }
-        .jadwal-container .lc-l { font-size:7px;font-weight:700;letter-spacing:.5px;text-transform:uppercase;color:var(--muted); }
-        .jadwal-container .lc-bar { display:flex;gap:2px;margin-top:2px; }
-        .jadwal-container .lc-pip { width:9px;height:3px;border-radius:2px;background:var(--border); }
-        .jadwal-container .lc-pip.used { background:var(--libur-c); }
-        .jadwal-container .lc-pip.over { background:var(--warn); }
-        .jadwal-container .shift-cell { padding:5px 2px;display:flex;align-items:center;justify-content:center;position:relative; }
-        .jadwal-container .shift-btn { width:100%;padding:4px 2px;border-radius:6px;border:1px solid transparent;cursor:pointer;font-family:'DM Sans',sans-serif;text-align:center;display:flex;flex-direction:column;align-items:center;gap:1px;transition:all .15s;position:relative; }
-        .jadwal-container .sh-name { font-size:8px;font-weight:800;letter-spacing:.5px; }
-        .jadwal-container .sh-time { font-size:9px;font-weight:700;font-family:'Syne',sans-serif; }
-        .jadwal-container .shift-btn.PAGI { background:var(--pagi-bg);color:var(--pagi-c);border-color:rgba(52,211,153,.2); }
-        .jadwal-container .shift-btn.SIANG { background:var(--siang-bg);color:var(--siang-c);border-color:rgba(251,191,36,.2); }
-        .jadwal-container .shift-btn.LIBUR { background:var(--libur-bg);color:var(--libur-c);border-color:rgba(148,163,184,.2); }
-        .jadwal-container .shift-btn.STANDBY { background:var(--standby-bg);color:var(--standby-c);border-color:rgba(61,79,122,.3);cursor:default; }
-        .jadwal-container .shift-btn:not(.STANDBY):hover { filter:brightness(1.2);transform:translateY(-1px); }
-        .jadwal-container .badge { position:absolute;top:-4px;right:-2px;font-size:7px;font-weight:800;padding:1px 4px;border-radius:4px;letter-spacing:.3px;z-index:2;border:1px solid; }
-        .jadwal-container .badge.LEMBUR { background:var(--lembur-bg);color:var(--lembur-c);border-color:rgba(251,146,60,.4); }
-        .jadwal-container .badge.COVER { background:var(--cover-bg);color:var(--cover-c);border-color:rgba(56,189,248,.4); }
-        .jadwal-container .badge.SUB { background:rgba(251,191,36,.12);color:#fbbf24;border-color:rgba(251,191,36,.3); }
-        .jadwal-container .ddown { position:absolute;z-index:200;top:calc(100% + 4px);left:50%;transform:translateX(-50%);background:#1a2240;border:1px solid #2a3a6a;border-radius:10px;padding:5px;display:flex;flex-direction:column;gap:3px;box-shadow:0 12px 28px rgba(0,0,0,.7);min-width:100px; }
-        .jadwal-container .dd-opt { padding:5px 9px;border-radius:6px;font-size:10px;font-weight:700;cursor:pointer;border:none;font-family:'DM Sans',sans-serif;display:flex;justify-content:space-between;align-items:center;gap:7px;transition:opacity .12s; }
-        .jadwal-container .dd-opt:hover:not(.disabled) { opacity:.8; }
-        .jadwal-container .dd-opt.disabled { opacity:.3;cursor:not-allowed;position:relative; }
-        .jadwal-container .dd-opt .dd-time { font-family:'Syne',sans-serif;font-size:10px;font-weight:800; }
-        .jadwal-container .dd-opt.PAGI { background:var(--pagi-bg);color:var(--pagi-c); }
-        .jadwal-container .dd-opt.SIANG { background:var(--siang-bg);color:var(--siang-c); }
-        .jadwal-container .dd-opt.LIBUR { background:var(--libur-bg);color:var(--libur-c); }
-        .jadwal-container .dd-hint { font-size:9px;color:#6b82b8;text-align:center;padding:3px 4px;background:#131e38;border-radius:4px; }
-        .jadwal-container .dd-cancel { background:#1e2a48;color:var(--muted);font-size:9px;text-align:center;padding:3px;border:none;border-radius:5px;cursor:pointer;font-family:'DM Sans',sans-serif; }
-        .jadwal-container .add-row { padding:10px 14px;background:#0b0e1a;border-top:1px solid var(--border);border-radius: 0 0 14px 14px; }
-        .jadwal-container .add-form { display:flex;gap:7px;flex-wrap:wrap;align-items:center; }
-        .jadwal-container .add-form input, .jadwal-container .add-form select { background:var(--surface2);border:1px solid #2a3a6a;border-radius:7px;padding:6px 10px;color:var(--text);font-size:11px;font-family:'DM Sans',sans-serif;outline:none; }
-        .jadwal-container .add-form input:focus, .jadwal-container .add-form select:focus { border-color:var(--accent); }
-        .jadwal-container .add-form input { width:140px; }
-        .jadwal-container .add-form select { min-width:125px; }
-        .jadwal-container .btn-add-confirm { background:var(--accent);border:none;border-radius:7px;padding:6px 14px;color:#fff;font-size:11px;font-weight:700;cursor:pointer;font-family:'DM Sans',sans-serif; }
-        .jadwal-container .btn-toggle-add { background:none;border:1px dashed #2a3a6a;border-radius:7px;padding:6px 14px;color:#3d4f7a;font-size:11px;font-weight:600;cursor:pointer;transition:all .15s;font-family:'DM Sans',sans-serif; }
-        .jadwal-container .btn-toggle-add:hover { border-color:var(--accent);color:#7b9af7; }
-        .jadwal-container .btn-cancel { background:var(--surface2);border:none;border-radius:7px;padding:6px 10px;color:var(--muted);font-size:11px;cursor:pointer;font-family:'DM Sans',sans-serif; }
+        .j-header { background:linear-gradient(135deg,#0f1525,#111a2e);border-bottom:1px solid var(--border);padding:14px 24px;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:10px; border-radius: 16px 16px 0 0;}
+        .brand { display:flex;align-items:center;gap:11px; }
+        .logo-box { width:34px;height:34px;border-radius:9px;background:linear-gradient(135deg,#4f6ef7,#38bdf8);display:flex;align-items:center;justify-content:center;font-family:'Syne',sans-serif;font-weight:800;font-size:14px;color:#fff; }
+        .j-header h1 { font-family:'Syne',sans-serif;font-size:18px;font-weight:800; margin:0; }
+        .j-header h1 span { color:var(--accent2); }
+        .shift-bar { display:flex;gap:5px;flex-wrap:wrap;align-items:center;background:var(--surface);border-bottom:1px solid var(--border);padding:8px 24px; }
+        .shift-tag { display:flex;align-items:center;gap:5px;padding:4px 10px;border-radius:20px;font-size:10px;font-weight:700;border:1px solid transparent; }
+        .shift-tag .time { font-size:12px;font-weight:800;font-family:'Syne',sans-serif; }
+        .shift-tag.PAGI { background:var(--pagi-bg);color:var(--pagi-c);border-color:rgba(52,211,153,.25); }
+        .shift-tag.SIANG { background:var(--siang-bg);color:var(--siang-c);border-color:rgba(251,191,36,.25); }
+        .shift-tag.LIBUR { background:var(--libur-bg);color:var(--libur-c);border-color:rgba(148,163,184,.25); }
+        .rules-bar { background:#0d1120;border-bottom:1px solid var(--border);padding:8px 24px;display:flex;gap:8px;flex-wrap:wrap;align-items:center; }
+        .rule-pill { display:flex;align-items:center;gap:5px;padding:3px 10px;border-radius:20px;font-size:10px;font-weight:600;border:1px solid; }
+        .rule-pill.diff { background:rgba(139,92,246,.1);color:#c084fc;border-color:rgba(139,92,246,.25); }
+        .rule-pill.cover { background:var(--cover-bg);color:var(--cover-c);border-color:rgba(56,189,248,.25); }
+        .rule-pill.sub { background:rgba(251,191,36,.08);color:#fbbf24;border-color:rgba(251,191,36,.2); }
+        .rule-pill.lembur { background:var(--lembur-bg);color:var(--lembur-c);border-color:rgba(251,146,60,.25); }
+        .j-wrap { padding:16px 18px 20px;max-width:1200px;margin:0 auto; }
+        .ctrl-row { display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:10px;margin-bottom:13px; }
+        .tabs { display:flex;gap:5px;flex-wrap:wrap; }
+        .tab-btn { padding:7px 12px;border-radius:8px;border:1px solid var(--border);background:var(--surface);color:var(--muted);cursor:pointer;font-size:11px;font-weight:700;transition:all .18s;font-family:'DM Sans',sans-serif;display:flex;align-items:center;gap:4px; }
+        .tab-btn:hover { border-color:var(--accent);color:var(--text); }
+        .tab-btn.active { background:var(--accent);border-color:var(--accent);color:#fff;box-shadow:0 4px 14px rgba(79,110,247,.35); }
+        .tab-btn.admin.active { background:#0ea5e9;border-color:#0ea5e9; }
+        .j-cards { display:flex;gap:7px;flex-wrap:wrap;margin-bottom:15px; }
+        .j-tbl-wrap { background:var(--surface);border:1px solid var(--border);border-radius:14px;overflow:visible;box-shadow:0 8px 32px rgba(0,0,0,.4); margin-bottom: 20px; }
+        .j-tbl-head { display:grid;grid-template-columns:190px repeat(7,1fr);background:var(--surface2);border-bottom:1px solid var(--border); border-radius:14px 14px 0 0; overflow:hidden;}
+        .j-th { padding:10px 3px;text-align:center;font-size:9px;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;color:var(--muted); }
+        .j-th:first-child { padding-left:14px;text-align:left; }
+        .j-tbl-row { display:grid;grid-template-columns:190px repeat(7,1fr);border-bottom:1px solid #13182a;transition:background .12s; }
+        .j-tbl-row:last-child { border-bottom:none; }
+        .j-tbl-row:hover { background:#13182a; }
+        .j-tbl-row.even { background:#0e1220; }
+        .j-tbl-row.group-sep { border-top:2px solid #1e2640; }
+        .staff-cell { padding:7px 14px;display:flex;align-items:center;justify-content:space-between;gap:4px; border-right: 1px solid var(--border); }
+        .staff-info { display:flex;align-items:center;gap:7px;overflow:hidden; }
+        .avatar { width:26px;height:26px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:800;color:#fff;flex-shrink:0; }
+        .staff-name { font-size:11px;font-weight:600;color:var(--text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:92px; }
+        .staff-pos { font-size:9px;color:var(--muted); }
+        .staff-id { font-size:8px;color:#2a3560; }
+        .staff-note { font-size:8px;color:#4f6ef7;font-style:italic; }
+        .del-btn { background:none;border:none;color:#2a3560;cursor:pointer;font-size:11px;padding:2px 4px;border-radius:3px;flex-shrink:0;transition:color .15s; }
+        .del-btn:hover { color:#ef4444; }
+        .shift-cell { padding:5px;display:flex;flex-direction:column;align-items:center;justify-content:center;position:relative; border-right: 1px solid #13182a; }
+        .shift-btn { width:100%;padding:4px 2px;border-radius:6px;border:1px solid transparent;cursor:pointer;font-family:'DM Sans',sans-serif;text-align:center;display:flex;flex-direction:column;align-items:center;gap:1px;transition:all .15s;position:relative; }
+        .sh-name { font-size:8px;font-weight:800;letter-spacing:.5px; }
+        .sh-time { font-size:9px;font-weight:700;font-family:'Syne',sans-serif; }
+        .shift-btn.PAGI { background:var(--pagi-bg);color:var(--pagi-c);border-color:rgba(52,211,153,.2); }
+        .shift-btn.SIANG { background:var(--siang-bg);color:var(--siang-c);border-color:rgba(251,191,36,.2); }
+        .shift-btn.LIBUR { background:var(--libur-bg);color:var(--libur-c);border-color:rgba(148,163,184,.2); }
+        .shift-btn.STANDBY { background:var(--standby-bg);color:var(--standby-c);border-color:rgba(61,79,122,.3);cursor:default; }
+        .shift-btn:not(.STANDBY):hover { filter:brightness(1.2);transform:translateY(-1px); }
+        .badge { position:absolute;top:-4px;right:-2px;font-size:7px;font-weight:800;padding:1px 4px;border-radius:4px;letter-spacing:.3px;z-index:2;border:1px solid; }
+        .badge.LEMBUR { background:var(--lembur-bg);color:var(--lembur-c);border-color:rgba(251,146,60,.4); }
+        .badge.COVER { background:var(--cover-bg);color:var(--cover-c);border-color:rgba(56,189,248,.4); }
+        .badge.SUB { background:rgba(251,191,36,.12);color:#fbbf24;border-color:rgba(251,191,36,.3); }
+        .ddown { position:absolute;z-index:200;top:calc(100% + 4px);left:50%;transform:translateX(-50%);background:#1a2240;border:1px solid #2a3a6a;border-radius:10px;padding:5px;display:flex;flex-direction:column;gap:3px;box-shadow:0 12px 28px rgba(0,0,0,.7);min-width:100px; }
+        .dd-opt { padding:5px 9px;border-radius:6px;font-size:10px;font-weight:700;cursor:pointer;border:none;font-family:'DM Sans',sans-serif;display:flex;justify-content:space-between;align-items:center;gap:7px;transition:opacity .12s; }
+        .dd-opt:hover:not(.disabled) { opacity:.8; }
+        .dd-opt.disabled { opacity:.3;cursor:not-allowed;position:relative; }
+        .dd-opt .dd-time { font-family:'Syne',sans-serif;font-size:10px;font-weight:800; }
+        .dd-opt.PAGI { background:var(--pagi-bg);color:var(--pagi-c); }
+        .dd-opt.SIANG { background:var(--siang-bg);color:var(--siang-c); }
+        .dd-opt.LIBUR { background:var(--libur-bg);color:var(--libur-c); }
+        .dd-hint { font-size:9px;color:#6b82b8;text-align:center;padding:3px 4px;background:#131e38;border-radius:4px; }
+        .dd-cancel { background:#1e2a48;color:var(--muted);font-size:9px;text-align:center;padding:3px;border:none;border-radius:5px;cursor:pointer;font-family:'DM Sans',sans-serif; }
+        .add-row { padding:10px 14px;background:#0b0e1a;border-top:1px solid var(--border);border-radius: 0 0 14px 14px; }
+        .add-form { display:flex;gap:7px;flex-wrap:wrap;align-items:center; }
+        .add-form input, .add-form select { background:var(--surface2);border:1px solid #2a3a6a;border-radius:7px;padding:6px 10px;color:var(--text);font-size:11px;font-family:'DM Sans',sans-serif;outline:none; }
+        .add-form input:focus, .add-form select:focus { border-color:var(--accent); }
+        .add-form input { width:140px; }
+        .add-form select { min-width:125px; }
+        .btn-add-confirm { background:var(--accent);border:none;border-radius:7px;padding:6px 14px;color:#fff;font-size:11px;font-weight:700;cursor:pointer;font-family:'DM Sans',sans-serif; }
+        .btn-toggle-add { background:none;border:1px dashed #2a3a6a;border-radius:7px;padding:6px 14px;color:#3d4f7a;font-size:11px;font-weight:600;cursor:pointer;transition:all .15s;font-family:'DM Sans',sans-serif; }
+        .btn-toggle-add:hover { border-color:var(--accent);color:#7b9af7; }
+        .btn-cancel { background:var(--surface2);border:none;border-radius:7px;padding:6px 10px;color:var(--muted);font-size:11px;cursor:pointer;font-family:'DM Sans',sans-serif; }
+
+        .att-chk { margin-top: 4px; display:flex; gap:3px; justify-content:center; }
+        .att-box { width: 12px; height: 12px; border-radius: 3px; cursor:pointer; border:1px solid var(--border); background: var(--surface2); }
+        .att-box.H { background: #10b981; border-color: #059669; }
+        .att-box.T { background: #f59e0b; border-color: #d97706; }
+        .att-box.A { background: #ef4444; border-color: #b91c1c; }
+
+        .info-tbl { width: 100%; border-collapse: collapse; font-size: 11px; background: var(--surface); border-radius: 10px; overflow: hidden; }
+        .info-tbl th { background: var(--surface2); padding: 8px; text-align: left; color: var(--muted); font-weight: 700; border-bottom: 1px solid var(--border); }
+        .info-tbl td { padding: 8px; border-bottom: 1px solid var(--border); color: var(--text); }
+        .info-tbl tr:last-child td { border-bottom: none; }
+
+        @media print {
+          body * { visibility: hidden; }
+          #jadwal-print-area, #jadwal-print-area * { visibility: visible; }
+          #jadwal-print-area { position: absolute; left: 0; top: 0; width: 100%; }
+        }
       `}</style>
 
       <div className="j-header">
@@ -552,7 +571,14 @@ function JadwalShift({ toast }) {
             <h1>Jadwal Kerja <span>Staff</span></h1>
           </div>
         </div>
-        <div style={{background:"var(--surface2)",border:"1px solid var(--border)",borderRadius:7,padding:"5px 12px",fontSize:10,color:"var(--muted)"}}>Mei – Jun 2026</div>
+        <div style={{display:'flex', gap:10}}>
+          <button onClick={syncStaffFromDB} disabled={isSyncing} style={{background:"#1e293b",border:"1px solid #334155",borderRadius:7,padding:"6px 12px",fontSize:11,color:"#fff",cursor:"pointer",fontWeight:600}}>
+            {isSyncing ? "⏳ Syncing..." : "🔄 Sync DB Staff"}
+          </button>
+          <button onClick={exportPDF} style={{background:"var(--red)",border:"none",borderRadius:7,padding:"6px 12px",fontSize:11,color:"#fff",cursor:"pointer",fontWeight:600}}>
+            📄 Simpan PDF ke Drive
+          </button>
+        </div>
       </div>
 
       <div className="shift-bar">
@@ -561,7 +587,6 @@ function JadwalShift({ toast }) {
         <div className="shift-tag SIANG"><span>SIANG</span><span className="time">15:05</span></div>
         <div className="shift-tag LIBUR"><span>LIBUR</span><span>—</span></div>
         <div className="batam-note">⚡ Batam SIANG = <strong>14:05</strong></div>
-        <div className="libur-rule">🏖 Maks <strong style={{fontSize:13,margin:"0 2px"}}>4</strong> Libur/bulan</div>
       </div>
 
       <div className="rules-bar">
@@ -571,10 +596,7 @@ function JadwalShift({ toast }) {
         <div className="rule-pill diff">🔄 Balikpapan: Marissa ≠ Tiara</div>
         <div className="rule-pill diff">🔄 Batam: Regita ≠ Desti</div>
         <div className="rule-pill diff">🔄 Manado: Jessica ≠ Jusni</div>
-        <div className="rule-pill lembur">⏰ Libur → partner LEMBUR (Jambi/PKU/Batam/Manado)</div>
-        <div className="rule-pill cover">🛡 Nabila cover Govin/Sandra libur</div>
-        <div className="rule-pill cover">🛡 Yudi cover Regita/Desti libur</div>
-        <div className="rule-pill sub">⭐ Henry pengganti Marissa/Tiara libur</div>
+        <div className="rule-pill lembur">⏰ Libur → partner LEMBUR</div>
       </div>
 
       <div className="j-wrap">
@@ -590,55 +612,34 @@ function JadwalShift({ toast }) {
             })}
           </div>
           <div style={{display:"flex",alignItems:"center",gap:10,flexWrap:"wrap"}}>
-            <div style={{display:"flex",alignItems:"center",gap:6,fontSize:10,color:"var(--muted)"}}>
-              Minggu 
-              <div className="week-dots">
-                {[0,1,2,3].map(i => <div key={i} className={`wd ${i<currentWeek?'done':''} ${i===currentWeek?'active':''}`}></div>)}
-              </div>
+            <button onClick={handleGenerateJadwal} style={{background:"#10b981",border:"none",borderRadius:7,padding:"6px 12px",fontSize:11,color:"#fff",cursor:"pointer",fontWeight:700}}>
+              ✨ Generate Jadwal
+            </button>
+            <div style={{display:"flex",alignItems:"center",gap:6}}>
+              <input type="date" value={fmtD(weekStart).split('/').reverse().join('-')} onChange={(e) => setWeekStart(getMonday(e.target.value))} style={{background:"var(--surface2)", border:"1px solid var(--border)", borderRadius:6, padding:"4px 8px", color:"#fff", fontSize:11, outline:"none"}} />
             </div>
-            <div className="week-nav">
-              <button className="wbtn" onClick={() => {if(currentWeek>0){setCurrentWeek(p=>p-1);setOpenDrop(null);}}}>‹</button>
-              <div>
-                <div className="wlabel">Minggu {currentWeek+1}</div>
-                <div className="wdates">{formatWeekDates(currentWeek)}</div>
-              </div>
-              <button className="wbtn" onClick={() => {if(currentWeek<3){setCurrentWeek(p=>p+1);setOpenDrop(null);}}}>›</button>
+            <div style={{fontSize:11, color:"var(--accent2)", fontWeight:700}}>
+              {fmtD(weekStart)} – {fmtD(addDays(weekStart, 6))}
             </div>
           </div>
         </div>
 
-        <div className="j-cards">
-          {["PAGI","SIANG","LIBUR"].map(sh => (
-            <div key={sh} className="jcard" style={sh==='LIBUR'?{borderColor:'rgba(239,68,68,.15)'}:{}}>
-              <div className="dot" style={{background:dotC[sh],boxShadow:`0 0 6px ${dotC[sh]}88`}}></div>
-              <div><div className="lbl">{sh}</div><div className="num">{counts[sh]||0}</div><div className="sub">{sh!=='LIBUR'?times[sh]:'minggu ini'}</div></div>
-            </div>
-          ))}
-          <div className="jcard"><div className="dot" style={{background:"#38bdf8",boxShadow:"0 0 6px #38bdf888"}}></div>
-            <div><div className="lbl">Staff</div><div className="num">{curStaff.filter(s=>s.role!=='substitute').length}</div></div></div>
-          <div className="jcard" style={{borderColor:"rgba(239,68,68,.15)"}}>
-            <div className="dot" style={{background:"#f87171",boxShadow:"0 0 6px #f8717188"}}></div>
-            <div><div className="lbl">Libur/bln</div><div className="num">{totalLibur}</div><div className="sub">target {expectedLibur}</div></div>
-          </div>
-        </div>
-
-        <div className="tbl-wrap">
-          <div className="tbl-head">
-            <div className="th" style={{textAlign:"left",paddingLeft:14}}>STAFF</div>
-            <div className="th libur-th">LIBUR<br/>/BLN</div>
-            <div className="th">SEN</div><div className="th">SEL</div><div className="th">RAB</div>
-            <div className="th">KAM</div><div className="th">JUM</div>
-            <div className="th weekend">SAB</div><div className="th weekend">MIN</div>
+        <div className="j-tbl-wrap">
+          <div className="j-tbl-head">
+            <div className="j-th" style={{textAlign:"left",paddingLeft:14}}>STAFF / VALIDASI</div>
+            {[0,1,2,3,4,5,6].map(d => {
+              const date = addDays(weekStart, d);
+              const dayName = ["MIN","SEN","SEL","RAB","KAM","JUM","SAB"][date.getDay()];
+              return <div key={d} className={`j-th ${date.getDay()===0||date.getDay()===6?'weekend':''}`}>{dayName} <br/><span style={{fontSize:8,color:"var(--border)"}}>{date.getDate()}</span></div>
+            })}
           </div>
           <div>
             {curStaff.map((s, i) => {
               const k = s.nama;
-              const lc = countLibur(k);
-              const lst = lc >= MAX_LIBUR ? 'full' : lc === MAX_LIBUR - 1 ? 'warn' : 'ok';
               const isGroupSep = (i > 0 && curStaff[i-1]?.jabatan !== s.jabatan && s.role === 'substitute');
 
               return (
-                <div key={k} className={`tbl-row ${i%2===0?'even':''} ${isGroupSep?'group-sep':''}`}>
+                <div key={k} className={`j-tbl-row ${i%2===0?'even':''} ${isGroupSep?'group-sep':''}`}>
                   <div className="staff-cell">
                     <div className="staff-info">
                       <div className="avatar" style={{background: AVATAR_COLORS[i % AVATAR_COLORS.length]}}>{k[0]}</div>
@@ -648,27 +649,16 @@ function JadwalShift({ toast }) {
                         {s.note ? <div className="staff-note">{s.note}</div> : <div className="staff-id">{s.idStaff}</div>}
                       </div>
                     </div>
-                    <button className="del-btn" onClick={() => handleDelStaff(k)} title="Hapus">✕</button>
+                    <div style={{display:'flex', gap:4}}>
+                       <button className="del-btn" onClick={() => handleDelStaff(k)} title="Hapus">✕</button>
+                    </div>
                   </div>
-                  
-                  {s.role === 'substitute' ? (
-                    <div className="libur-cell"><div className="lc ok" style={{background:"rgba(251,191,36,.08)",borderColor:"rgba(251,191,36,.2)"}}>
-                      <div className="lc-n" style={{color:"#fbbf24",fontSize:10}}>⭐</div>
-                      <div className="lc-l">PENGGANTI</div></div></div>
-                  ) : (
-                    <div className="libur-cell"><div className={`lc ${lst}`}>
-                      <div className={`lc-n ${lst}`}>{lc}/{MAX_LIBUR}</div>
-                      <div className="lc-l">{lc>=MAX_LIBUR?'PENUH':'sisa '+(MAX_LIBUR-lc)}</div>
-                      <div className="lc-bar">
-                        {[0,1,2,3].map(pi => <div key={pi} className={`lc-pip ${pi<lc?(lc>MAX_LIBUR?'over':'used'):''}`}></div>)}
-                      </div>
-                    </div></div>
-                  )}
 
                   {[0,1,2,3,4,5,6].map(d => {
-                    const standby = isStandby(k, currentWeek, d);
-                    const sh = standby ? 'STANDBY' : (schedule[k]?.[currentWeek]?.[d] || 'PAGI');
-                    const badge = standby ? null : getCellBadge(k, currentWeek, d);
+                    const standby = isStandby(k, wk, d);
+                    const dayData = schedule[wk]?.[k]?.[d] || { shift: 'PAGI', att: null };
+                    const sh = standby ? 'STANDBY' : dayData.shift;
+                    const badge = standby ? null : getCellBadge(k, wk, d);
                     const isOpen = openDrop && openDrop.name === k && openDrop.day === d;
                     const tm = standby ? '—' : shiftTime(sh);
 
@@ -683,6 +673,14 @@ function JadwalShift({ toast }) {
                           {badge && <span className={`badge ${badge}`}>{badge}</span>}
                         </button>
                         
+                        {!standby && (
+                          <div className="att-chk">
+                            <div className={`att-box ${dayData.att==='H'?'H':''}`} title="Hadir" onClick={()=>handleSetAtt(k, d, dayData.att==='H'?null:'H')}></div>
+                            <div className={`att-box ${dayData.att==='T'?'T':''}`} title="Terlambat" onClick={()=>handleSetAtt(k, d, dayData.att==='T'?null:'T')}></div>
+                            <div className={`att-box ${dayData.att==='A'?'A':''}`} title="Alpha" onClick={()=>handleSetAtt(k, d, dayData.att==='A'?null:'A')}></div>
+                          </div>
+                        )}
+
                         {isOpen && (
                           <div className="ddown">
                             {ALL_SHIFTS.map(sv => {
@@ -690,12 +688,11 @@ function JadwalShift({ toast }) {
                               let blockedShift = null;
                               if(dsRule){
                                 const partner = dsRule.a === k ? dsRule.b : dsRule.a;
-                                const partnerSh = schedule[partner]?.[currentWeek]?.[d];
+                                const partnerSh = schedule[wk]?.[partner]?.[d]?.shift;
                                 if(partnerSh && partnerSh !== 'LIBUR') blockedShift = partnerSh;
                               }
-                              const liburFull = lc >= MAX_LIBUR && sh !== 'LIBUR';
-                              const isBlocked = (sv !== 'LIBUR' && sv === blockedShift) || (sv === 'LIBUR' && liburFull);
-                              const hint = sv === blockedShift ? `(${dsRule?.a===k?dsRule?.b:dsRule?.a} pakai)` : sv === 'LIBUR' && liburFull ? '(limit)' : '';
+                              const isBlocked = (sv !== 'LIBUR' && sv === blockedShift);
+                              const hint = sv === blockedShift ? `(${dsRule?.a===k?dsRule?.b:dsRule?.a} pakai)` : '';
 
                               return (
                                 <button key={sv} className={`dd-opt ${sv} ${isBlocked?'disabled':''}`} disabled={isBlocked} onClick={(e) => {
@@ -707,15 +704,6 @@ function JadwalShift({ toast }) {
                                 </button>
                               );
                             })}
-                            {(() => {
-                              const dsRule = JADWAL_RULES.differentShift.find(r => r.a === k || r.b === k);
-                              if(dsRule){
-                                const partner = dsRule.a === k ? dsRule.b : dsRule.a;
-                                const partnerSh = schedule[partner]?.[currentWeek]?.[d];
-                                if(partnerSh && partnerSh !== 'LIBUR') return <div className="dd-hint">🔄 Beda shift dg partner</div>;
-                              }
-                              return null;
-                            })()}
                             <button className="dd-cancel" onClick={(e) => { e.stopPropagation(); setOpenDrop(null); }}>✕ Batal</button>
                           </div>
                         )}
@@ -743,6 +731,56 @@ function JadwalShift({ toast }) {
             )}
           </div>
         </div>
+
+        <div style={{display:'grid', gridTemplateColumns:'1fr 1fr', gap:16}}>
+           {/* Tabel Keterangan */}
+           <div className="j-tbl-wrap" style={{marginBottom:0}}>
+              <div style={{padding:"12px 14px", borderBottom:"1px solid var(--border)", background:"var(--surface2)", borderRadius:"14px 14px 0 0"}}>
+                 <span style={{fontSize:12, fontWeight:700, color:"#fff"}}>Keterangan Kehadiran</span>
+              </div>
+              <table className="info-tbl">
+                 <thead><tr><th>Nama</th><th>Keterangan (Sakit/Izin/Alfa)</th></tr></thead>
+                 <tbody>
+                    {[1,2,3,4,5].map(i => (
+                       <tr key={i}>
+                          <td><input type="text" style={{background:'transparent', border:'none', color:'var(--text)', outline:'none', width:'100%'}} placeholder="Nama..." /></td>
+                          <td><input type="text" style={{background:'transparent', border:'none', color:'var(--text)', outline:'none', width:'100%'}} placeholder="Keterangan..." /></td>
+                       </tr>
+                    ))}
+                 </tbody>
+              </table>
+           </div>
+
+           {/* Tabel Status Absensi */}
+           <div className="j-tbl-wrap" style={{marginBottom:0}}>
+              <div style={{padding:"12px 14px", borderBottom:"1px solid var(--border)", background:"var(--surface2)", borderRadius:"14px 14px 0 0", display:'flex', justifyContent:'space-between'}}>
+                 <span style={{fontSize:12, fontWeight:700, color:"#fff"}}>Status Absensi Mingguan</span>
+                 <div style={{display:'flex', gap:8, fontSize:10}}>
+                    <span style={{color:"#10b981"}}>H: Hadir</span>
+                    <span style={{color:"#f59e0b"}}>T: Telat</span>
+                    <span style={{color:"#ef4444"}}>A: Alfa</span>
+                 </div>
+              </div>
+              <div style={{maxHeight: 185, overflowY:'auto'}}>
+                <table className="info-tbl">
+                  <thead><tr><th>Nama Staff</th><th style={{textAlign:'center'}}>H</th><th style={{textAlign:'center'}}>T</th><th style={{textAlign:'center'}}>A</th><th style={{textAlign:'center'}}>Total</th></tr></thead>
+                  <tbody>
+                      {absensiData.map((a, i) => (
+                        <tr key={i}>
+                            <td style={{fontWeight:600}}>{a.name}</td>
+                            <td style={{textAlign:'center', color:'#10b981'}}>{a.H}</td>
+                            <td style={{textAlign:'center', color:'#f59e0b'}}>{a.T}</td>
+                            <td style={{textAlign:'center', color:'#ef4444'}}>{a.A}</td>
+                            <td style={{textAlign:'center', fontWeight:700}}>{a.Total}</td>
+                        </tr>
+                      ))}
+                      {absensiData.length === 0 && <tr><td colSpan="5" style={{textAlign:'center', padding:16, color:'var(--muted)'}}>Belum ada data di cabang ini</td></tr>}
+                  </tbody>
+                </table>
+              </div>
+           </div>
+        </div>
+
       </div>
     </div>
   );
@@ -954,6 +992,7 @@ function Dashboard({toast, refresh}) {
          </div>
       </div>
 
+      {/* Tabel Riwayat Laporan Harian */}
       {dashHistory.length > 0 && (
          <div className="card-premium" style={{padding:"24px"}}>
             <div style={{display:"flex",alignItems:"center",justifyContent:"space-between",marginBottom:16}}>
@@ -1072,7 +1111,7 @@ function SalDock({toast, role}){
     });
     
     if(!out.length){toast("Tidak ada baris yang terisi","error");return}
-    updatePending([...out, ...pendingRows]); 
+    updatePending([...out, ...pendingRows]); // Data baru di atas
     setLines(Array.from({length:10},EMPTY));
     toast(out.length+" transaksi dipindahkan ke Preview!","success");
   }
@@ -1114,13 +1153,14 @@ function SalDock({toast, role}){
     if(successList.length > 0) {
       updateHistory([...successList, ...historyRows]);
       
+      // Update Agregasi untuk Dashboard (Saldo Masuk & Jumlah Driver)
       DB.get("rifim_dash_aggr").then(agg => {
         const currentAgg = agg || {};
         successList.forEach(r => {
           if(!currentAgg[r.cabang]) {
              currentAgg[r.cabang] = { saldo: 0, driver: 0 };
           }
-          currentAgg[r.cabang].saldo += r.nomTag; 
+          currentAgg[r.cabang].saldo += r.nomTag; // Menggunakan Nominal Tagihan
           currentAgg[r.cabang].driver += 1;
         });
         DB.set("rifim_dash_aggr", currentAgg);
@@ -1140,6 +1180,8 @@ function SalDock({toast, role}){
 
   return(
     <div className="fade" style={{display:"flex",flexDirection:"column",gap:20}}>
+      
+      {/* INPUT CARD */}
       <div className="card-premium" style={{padding:"20px 24px"}}>
         <div style={{display:"flex",alignItems:"center",justifyContent:"space-between",marginBottom:14}}>
           <div style={{display:"flex",alignItems:"center",gap:12}}>
@@ -1209,6 +1251,7 @@ function SalDock({toast, role}){
         </div>
       </div>
 
+      {/* PREVIEW & HISTORY CARD */}
       {(pendingRows.length > 0 || historyRows.length > 0) && (
         <div className="card-premium" style={{padding:"20px 24px"}}>
           <div style={{display:"flex",alignItems:"center",justifyContent:"space-between",marginBottom:16,flexWrap:"wrap",gap:12}}>
@@ -1232,9 +1275,10 @@ function SalDock({toast, role}){
                 </tr>
               </thead>
               <tbody>
+                {/* PENDING ROWS */}
                 {pendingRows.map((r, i) => (
                   <tr key={`p-${r.id}`} style={{background:"#fff"}}>
-                    <td><span className="badge badge-warn">⏳ MENUNGGU DIKIRIM</span></td>
+                    <td><span className="badge badge-warn">⏳ PENDING</span></td>
                     <td className="mono" style={{fontSize:11}}>{r.tglDisp}</td>
                     <td className="mono" style={{fontWeight:700,color:"#1E293B"}}>{r.loginId}</td>
                     <td>
@@ -1264,6 +1308,7 @@ function SalDock({toast, role}){
                   </tr>
                 ))}
                 
+                {/* HISTORY ROWS */}
                 {historyRows.map((r, i) => (
                   <tr key={`h-${r.id}-${i}`} style={{background:"#F0FDF4", opacity: 0.8}}>
                     <td><span className="badge badge-ok">✅ SENT</span></td>
@@ -1280,6 +1325,7 @@ function SalDock({toast, role}){
             </table>
           </div>
 
+          {/* Ringkasan hanya untuk Pending */}
           {pendingRows.length > 0 && (
             <div style={{display:"flex",gap:24,marginTop:12,paddingTop:12,borderTop:"1px solid #F1F5F9",flexWrap:"wrap"}}>
               <div style={{fontSize:12,color:"#64748B"}}>Total Pending: <strong style={{color:"#1E293B"}}>{pendingRows.length}</strong></div>
