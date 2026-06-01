@@ -1,5 +1,6 @@
 const CLIENT_ID = "1037149829816-1pfh3jaeac5qatteu58qu5gtvdtgfqlr.apps.googleusercontent.com";
-const API_KEY = "";
+const API_KEY = "const API_KEY =
+"AIzaSyxxxxxxxx";";
 
 const DISCOVERY_DOC =
   "https://www.googleapis.com/discovery/v1/apis/drive/v3/rest";
