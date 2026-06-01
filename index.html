@@ -38,9 +38,10 @@
 .tbl-wrap tbody tr{border-bottom:1px solid #F1F5F9;transition:background .1s}
 .tbl-wrap tbody tr:hover{background:#FAFBFF}
 .tbl-wrap td{padding:9px 12px;font-size:12.5px;color:#374151;vertical-align:middle;white-space:nowrap}
+
 /* LOGIN BACKGROUND MODERN */
-.login-bg{background: radial-gradient(circle at 0% 0%, #ffebee 0%, transparent 50%), radial-gradient(circle at 100% 100%, #ffcdd2 0%, transparent 50%), #f8fafc; position:relative; overflow:hidden;}
-.login-bg::before{content:""; position:absolute; top:-50%; left:-50%; width:200%; height:200%; background:radial-gradient(circle, rgba(229,57,53,0.05) 0%, transparent 40%); animation:rotate 20s linear infinite;}
+.login-bg{background: radial-gradient(circle at 0% 0%, #ffebee 0%, transparent 60%), radial-gradient(circle at 100% 100%, #ffcdd2 0%, transparent 60%), #f8fafc; position:relative; overflow:hidden;}
+.login-bg::before{content:""; position:absolute; top:-50%; left:-50%; width:200%; height:200%; background:radial-gradient(circle, rgba(229,57,53,0.03) 0%, transparent 40%); animation:rotate 30s linear infinite;}
 @keyframes rotate{100%{transform:rotate(360deg);}}
 
 .dash-inp { width: 100%; border: 1px solid #E2E8F0; border-radius: 8px; padding: 6px 10px; font-size: 13px; color: #1E293B; outline: none; transition: all 0.2s; }
@@ -58,10 +59,10 @@
 <script type="text/babel">
 const {useState,useEffect,useMemo,useCallback,useRef}=React;
 
-// URL Logo Diubah menjadi file yang diunggah
+// LOGO DARI FILE LOKAL
 const LOGO_URL = "Rifim_Logo.jpeg";
+const LOGO_FALLBACK = "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='80' height='80'%3E%3Crect width='100%25' height='100%25' fill='%23E53935' rx='20'/%3E%3Ctext x='50%25' y='50%25' dy='.3em' fill='%23ffffff' font-size='36' font-family='sans-serif' font-weight='900' text-anchor='middle'%3ERI%3C/text%3E%3C/svg%3E";
 const GAS="https://script.google.com/macros/s/AKfycbyV8Us4bSqMIVgB8Q0QJVygv6K2oUJVtLRvR8OW0SHPXYPyKIwQ6Xu8fRJB8iAysovM/exec";
-const SAL_ID="1Qhwg1MB4IWqcWZJliGOlxh6q9AFrGyP7EICvFVOIXoY";
 const DRIVE_ROOT="https://drive.google.com/drive/folders/1hSeERvZrHQtBP_9tWqw87fqQfy2wiBS4";
 const ADMIN_PASS="rifim2024";
 const OWNER_PASS="owner2024";
@@ -69,26 +70,17 @@ const OWNER_PASS="owner2024";
 const CABANG=["ID Rifim Airport Batam","ID Rifim Airport Balikpapan","ID Rifim Airport Manado","ID Rifim Airport Pekanbaru","ID Rifim Airport Jambi","ID Rifim Batam","ID Rifim Jambi Luar"];
 const CABANG_FOLDER={"ID Rifim Airport Batam":"1WEWHJetDvxvUOIDdv7ypou2xUnCCGWw3","ID Rifim Airport Balikpapan":"1dZWNkiSalumDeZADlnzBR_E1MomHAQpz","ID Rifim Airport Manado":"1lZSWi-pmJeFWBkRh7QRxWjPYe5ERE3XN","ID Rifim Airport Pekanbaru":"1pEmjAAhXtIm5m2wv51tv1li8XtMeXJfW","ID Rifim Airport Jambi":"1O1hb4tSvRra-8U-eNyS5Ba-sF24D_Kng","ID Rifim Batam":"1yHNwFpFJZwNdBktcTtqjAZA5SH6_4kJ0","ID Rifim Jambi Luar":"1xyHHdebV67ygnNFFPXL895o-MKIhkVTI"};
 
-// Hardcoded for Dashboard requirements
-const DASH_CABANG = ["ID Rifim Airport Batam", "ID Rifim Airport Jambi", "ID Rifim Airport Balikpapan", "ID Rifim Airport Manado", "ID Rifim Airport Pekanbaru", "ID Rifim Batam", "ID Rifim Jambi Luar", "ID Kantor"];
+const ADMIN_LIST = ["Nabilla", "Govin", "Febriany Sandra"];
 
 const FILES=[
-  {id:1,nm:"SAL>INPUT DOCK",u:"Govind/Tasya",lnk:`https://docs.google.com/spreadsheets/d/${SAL_ID}/edit`},
-  {id:2,nm:"Database Staff",u:"Abel",lnk:"https://docs.google.com/spreadsheets/d/1wfMbfjlCMy_Cknig6ymk81HO8XPg56_7P8VOVRWrpGs/edit"},
-  {id:3,nm:"Form ASK PT Syafiq",u:"Mba Lia/Nia",lnk:"https://docs.google.com/spreadsheets/d/1CC_sXIcuV0dPUcyOZXZX0En_jGrsMfK8PnuopP-DBzY/edit"},
-  {id:4,nm:"Database Driver Luar",u:"Govind/Tasya",lnk:"https://docs.google.com/spreadsheets/d/1gUe-Fb78fTZKPHMyIHTjuNLvLPSdrE2bqQitjbnw1JU/edit"},
-  {id:5,nm:"Perhitungan Gaji Staff",u:"Abel/Nabilla",lnk:"https://docs.google.com/spreadsheets/d/1YdAEw3sF1FFKQvVZG43D1eRjVmbzRieq8erdkSYhVq8/edit"},
-  {id:6,nm:"Potongan Daily",u:"Govind/Tasya",lnk:"https://docs.google.com/spreadsheets/d/1SUCsDp_Khuk-RqUGETkbl9zsPnpOBjlLzXkPAtUCD-Q/edit"},
-  {id:7,nm:"File Pendapatan",u:"Abel",lnk:"https://docs.google.com/spreadsheets/d/1NsAl4e3lHmnfRP34yOuWCEeZSEa2XyZJGej0OSkQVNk/edit"},
-  {id:8,nm:"Master Absensi",u:"Govind/Tasya",lnk:"https://docs.google.com/spreadsheets/d/1YlqQyQUnM5B7ZMEB3uRQwr8-AE6J1vT-c_WXVIK8J_c/edit"},
-  {id:9,nm:"Pengeluaran & Pemasukan",u:"Mba Lia/Bobby",lnk:"https://docs.google.com/spreadsheets/d/1AgpEqhpDU4BUxcN_i_jaF8Ccw6RwptV2TOJjyTCVPSo/edit"},
-  {id:10,nm:"Rincian Fee Saldo Luar",u:"Govind/Tasya",lnk:"https://docs.google.com/spreadsheets/d/1datTe77hpUiCDTzBQOcDok23IZ1FS_Zo30eupGJRCb8/edit"}
+  {id:1,nm:"DATABASE STAFF",u:"Admin",lnk:`https://docs.google.com/spreadsheets/d/1fcraq3QHqIaD-13Ebzt6stT9aA6j_loTXeAtpNX12kw/edit`},
+  {id:2,nm:"DATABASE TRANSAKSI",u:"System",lnk:`https://docs.google.com/spreadsheets/d/1Qhwg1MB4IWqcWZJliGOlxh6q9AFrGyP7EICvFVOIXoY/edit`}
 ];
 
 const TASKS=[{id:"saldo",lbl:"Isi Saldo Driver"},{id:"dpot",lbl:"Total Driver Potong"},{id:"pord",lbl:"Potong Order"},{id:"tpot",lbl:"Total Potongan"},{id:"nom",lbl:"Nominal Potongan"},{id:"upot",lbl:"Update Potongan Daily"},{id:"dlua",lbl:"Update DB Driver Luar"},{id:"feel",lbl:"Update Fee Saldo Luar"},{id:"abs",lbl:"Update Master Absensi"},{id:"tgt",lbl:"Update Form Target Kota"},{id:"hpku",lbl:"Update Hutang PKU"},{id:"sub",lbl:"Submit Laporan"}];
 
 // JADWAL SHIFT CONSTANTS
-const MAX_LIBUR=4;
+const MAX_LIBUR=1; // Disesuaikan menjadi 1 per minggu agar logic mingguan berjalan lancar
 const BRANCHES=["Admin","ID Rifim Jambi","ID Rifim Pekanbaru","ID Rifim Airport Balikpapan","ID Rifim Airport Batam","ID Rifim Airport Manado"];
 const BRANCH_SHORT={"Admin":"Admin","ID Rifim Jambi":"Jambi","ID Rifim Pekanbaru":"Pekanbaru","ID Rifim Airport Balikpapan":"Balikpapan","ID Rifim Airport Batam":"Batam","ID Rifim Airport Manado":"Manado"};
 const SHIFT_TIMES={default:{PAGI:"07:05",SIANG:"15:05",LIBUR:"—"},"ID Rifim Airport Batam":{PAGI:"07:05",SIANG:"14:05",LIBUR:"—"}};
@@ -151,7 +143,7 @@ const MASTER_STAFF=[
 function rp(n){return"Rp "+(Number(n)||0).toLocaleString("id-ID")}
 function today(){return new Date().toISOString().slice(0,10)}
 function genId(p){return p+"-"+Date.now().toString(36).toUpperCase()+Math.random().toString(36).slice(2,4).toUpperCase()}
-function fmtD(s){if(!s)return"";try{return new Date(s).toLocaleDateString("id-ID",{day:"2-digit",month:"short",year:"numeric",hour:"2-digit",minute:"2-digit"})}catch{return s}}
+function fmtD(s){if(!s)return"";try{return new Date(s).toLocaleDateString("id-ID",{day:"2-digit",month:"short",year:"numeric"})}catch{return s}}
 function getMonday(d) {
   d = new Date(d);
   var day = d.getDay(), diff = d.getDate() - day + (day == 0 ? -6:1);
@@ -187,24 +179,42 @@ async function gasGet(params){
 
 // ── LOGIN ────────────────────────────────────────────────────────────────────
 function Login({onLogin}){
-  const [pw,setPw]=useState(""),err=useState("")[0];
-  const [e2,setE2]=useState(""),show=useState(false)[0],[sh,setSh]=useState(false);
+  const [pw,setPw]=useState("");
+  const [adminName, setAdminName] = useState(ADMIN_LIST[0]);
+  const [e2,setE2]=useState("");
+  const [sh,setSh]=useState(false);
+
   const go=()=>{
-    if(pw===ADMIN_PASS||pw===OWNER_PASS){onLogin(pw===OWNER_PASS?"owner":"admin")}
-    else{setE2("Password salah");setTimeout(()=>setE2(""),2500)}
+    if(pw===ADMIN_PASS) {
+      onLogin("admin", adminName);
+    } else if (pw===OWNER_PASS) {
+      onLogin("owner", "Direktur Utama");
+    } else {
+      setE2("Password salah");
+      setTimeout(()=>setE2(""),2500);
+    }
   };
+
   return(
     <div className="login-bg" style={{minHeight:"100vh",display:"flex",alignItems:"center",justifyContent:"center",padding:16}}>
       <div style={{width:"100%",maxWidth:400,position:"relative",zIndex:10}}>
         <div style={{textAlign:"center",marginBottom:32}}>
-          <div style={{width:100,height:100,borderRadius:24,background:"#fff",display:"flex",alignItems:"center",justifyContent:"center",margin:"0 auto 16px",boxShadow:"0 12px 40px rgba(229,57,53,.3)",overflow:"hidden", border:"4px solid #fff"}}>
-            <img src={LOGO_URL} alt="RIFIM Logo" style={{width:"100%",height:"100%",objectFit:"cover"}} onError={(e) => { e.target.onerror = null; e.target.style.display="none"; e.target.parentElement.innerHTML="<span style='color:var(--red);font-size:40px;font-weight:900'>RI</span>"; }} />
+          <div style={{width:110,height:110,borderRadius:24,background:"#fff",display:"flex",alignItems:"center",justifyContent:"center",margin:"0 auto 16px",boxShadow:"0 12px 40px rgba(229,57,53,.3)",overflow:"hidden", border:"4px solid #fff"}}>
+            <img src={LOGO_URL} alt="RIFIM Logo" style={{width:"100%",height:"100%",objectFit:"cover"}} onError={(e) => { e.target.onerror = null; e.target.src = LOGO_FALLBACK; }} />
           </div>
           <div style={{color:"#1E293B",fontSize:26,fontWeight:900,letterSpacing:"-.5px",textShadow:"0 2px 10px rgba(255,255,255,0.5)"}}>RIFIM ERP</div>
           <div style={{color:"var(--red)",fontSize:13,marginTop:4,fontWeight:700,letterSpacing:"0.5px"}}>PT. RIFIM INTERNATIONAL GEMILANG</div>
           <div style={{color:"#64748B",fontSize:11,marginTop:4}}>Airport Operations & Administration</div>
         </div>
         <div style={{background:"rgba(255,255,255,.85)",backdropFilter:"blur(20px)",border:"1px solid rgba(255,255,255,.6)",borderRadius:24,padding:32,display:"flex",flexDirection:"column",gap:20,boxShadow:"0 10px 40px rgba(0,0,0,.08)"}}>
+          
+          <div>
+            <div style={{color:"#475569",fontSize:11,fontWeight:800,textTransform:"uppercase",letterSpacing:".5px",marginBottom:8}}>Login Sebagai</div>
+            <select value={adminName} onChange={e=>setAdminName(e.target.value)} style={{width:"100%",background:"#fff",border:"2px solid #E2E8F0",borderRadius:12,padding:"12px 16px",color:"#1E293B",fontSize:14,outline:"none",transition:"all 0.2s"}}>
+              {ADMIN_LIST.map(a => <option key={a} value={a}>{a}</option>)}
+            </select>
+          </div>
+
           <div>
             <div style={{color:"#475569",fontSize:11,fontWeight:800,textTransform:"uppercase",letterSpacing:".5px",marginBottom:8}}>Password Akses</div>
             <div style={{position:"relative"}}>
@@ -253,14 +263,7 @@ function JadwalShift({ toast }) {
   const [newId, setNewId] = useState("");
   const [isSyncing, setIsSyncing] = useState(false);
 
-  const getWeekKey = (date) => fmtD(date);
-
-  useEffect(() => {
-    const wk = getWeekKey(weekStart);
-    if (!schedule[wk]) {
-      // Data belum ada untuk minggu ini, tidak otomatis generate untuk hindari overwrite.
-    }
-  }, [weekStart, schedule]);
+  const getWeekKey = (date) => date.toISOString().slice(0,10);
 
   const handleGenerateJadwal = () => {
     const wk = getWeekKey(weekStart);
@@ -346,6 +349,12 @@ function JadwalShift({ toast }) {
 
   const shiftTime = (sh) => {
     return (SHIFT_TIMES[activeBranch] || SHIFT_TIMES.default)[sh] || "—";
+  };
+
+  const formatWeekDates = (date) => {
+    const e = addDays(date, 6);
+    const M = ['Jan','Feb','Mar','Apr','Mei','Jun','Jul','Agu','Sep','Okt','Nov','Des'];
+    return `${date.getDate()} ${M[date.getMonth()]} – ${e.getDate()} ${M[e.getMonth()]}`;
   };
 
   const handleSetShift = (name, day, newSh) => {
@@ -449,6 +458,23 @@ function JadwalShift({ toast }) {
     }
     return { name: s.nama, H, T, A, Total: H+T };
   });
+
+  const counts = { PAGI: 0, SIANG: 0, LIBUR: 0 };
+  let totalLibur = 0;
+  
+  curStaff.forEach(s => {
+    if (s.role !== 'substitute') {
+      totalLibur += countLibur(s.nama, wk);
+      for(let d=0; d<7; d++) {
+        const sh = schedule[wk]?.[s.nama]?.[d]?.shift || (schedule[wk]?.[s.nama] ? null : 'PAGI');
+        if(sh && counts[sh] !== undefined) counts[sh]++;
+      }
+    }
+  });
+
+  const expectedLibur = curStaff.filter(s => s.role !== 'substitute').length * MAX_LIBUR;
+  const dotC = { PAGI: '#34d399', SIANG: '#fbbf24', LIBUR: '#94a3b8' };
+  const times = SHIFT_TIMES[activeBranch] || SHIFT_TIMES.default;
 
   return (
     <div className="jadwal-container fade" id="jadwal-print-area">
@@ -619,8 +645,23 @@ function JadwalShift({ toast }) {
               <input type="date" value={fmtD(weekStart).split('/').reverse().join('-')} onChange={(e) => setWeekStart(getMonday(e.target.value))} style={{background:"var(--surface2)", border:"1px solid var(--border)", borderRadius:6, padding:"4px 8px", color:"#fff", fontSize:11, outline:"none"}} />
             </div>
             <div style={{fontSize:11, color:"var(--accent2)", fontWeight:700}}>
-              {fmtD(weekStart)} – {fmtD(addDays(weekStart, 6))}
+              {formatWeekDates(weekStart)}
             </div>
+          </div>
+        </div>
+
+        <div className="j-cards">
+          {["PAGI","SIANG","LIBUR"].map(sh => (
+            <div key={sh} className="jcard" style={sh==='LIBUR'?{borderColor:'rgba(239,68,68,.15)'}:{}}>
+              <div className="dot" style={{background:dotC[sh],boxShadow:`0 0 6px ${dotC[sh]}88`}}></div>
+              <div><div className="lbl">{sh}</div><div className="num">{counts[sh]||0}</div><div className="sub">{sh!=='LIBUR'?times[sh]:'Mgg ini'}</div></div>
+            </div>
+          ))}
+          <div className="jcard"><div className="dot" style={{background:"#38bdf8",boxShadow:"0 0 6px #38bdf888"}}></div>
+            <div><div className="lbl">Staff</div><div className="num">{curStaff.filter(s=>s.role!=='substitute').length}</div></div></div>
+          <div className="jcard" style={{borderColor:"rgba(239,68,68,.15)"}}>
+            <div className="dot" style={{background:"#f87171",boxShadow:"0 0 6px #f8717188"}}></div>
+            <div><div className="lbl">Libur/Mgg</div><div className="num">{totalLibur}</div><div className="sub">target {expectedLibur}</div></div>
           </div>
         </div>
 
@@ -656,56 +697,62 @@ function JadwalShift({ toast }) {
 
                   {[0,1,2,3,4,5,6].map(d => {
                     const standby = isStandby(k, wk, d);
-                    const dayData = schedule[wk]?.[k]?.[d] || { shift: 'PAGI', att: null };
-                    const sh = standby ? 'STANDBY' : dayData.shift;
+                    const dayData = schedule[wk]?.[k]?.[d] || { shift: null, att: null };
+                    const sh = standby ? 'STANDBY' : (dayData.shift || 'PAGI');
                     const badge = standby ? null : getCellBadge(k, wk, d);
                     const isOpen = openDrop && openDrop.name === k && openDrop.day === d;
                     const tm = standby ? '—' : shiftTime(sh);
 
                     return (
                       <div key={d} className="shift-cell">
-                        <button className={`shift-btn ${sh}`} disabled={standby} onClick={(e) => {
-                          e.stopPropagation();
-                          if(!standby) setOpenDrop(isOpen ? null : {name: k, day: d});
-                        }}>
-                          <span className="sh-name">{standby ? 'STANDBY' : sh}</span>
-                          <span className="sh-time">{tm}</span>
-                          {badge && <span className={`badge ${badge}`}>{badge}</span>}
-                        </button>
-                        
-                        {!standby && (
-                          <div className="att-chk">
-                            <div className={`att-box ${dayData.att==='H'?'H':''}`} title="Hadir" onClick={()=>handleSetAtt(k, d, dayData.att==='H'?null:'H')}></div>
-                            <div className={`att-box ${dayData.att==='T'?'T':''}`} title="Terlambat" onClick={()=>handleSetAtt(k, d, dayData.att==='T'?null:'T')}></div>
-                            <div className={`att-box ${dayData.att==='A'?'A':''}`} title="Alpha" onClick={()=>handleSetAtt(k, d, dayData.att==='A'?null:'A')}></div>
-                          </div>
-                        )}
+                        {dayData.shift ? (
+                          <>
+                            <button className={`shift-btn ${sh}`} disabled={standby} onClick={(e) => {
+                              e.stopPropagation();
+                              if(!standby) setOpenDrop(isOpen ? null : {name: k, day: d});
+                            }}>
+                              <span className="sh-name">{standby ? 'STANDBY' : sh}</span>
+                              <span className="sh-time">{tm}</span>
+                              {badge && <span className={`badge ${badge}`}>{badge}</span>}
+                            </button>
+                            
+                            {!standby && (
+                              <div className="att-chk">
+                                <div className={`att-box ${dayData.att==='H'?'H':''}`} title="Hadir" onClick={()=>handleSetAtt(k, d, dayData.att==='H'?null:'H')}></div>
+                                <div className={`att-box ${dayData.att==='T'?'T':''}`} title="Terlambat" onClick={()=>handleSetAtt(k, d, dayData.att==='T'?null:'T')}></div>
+                                <div className={`att-box ${dayData.att==='A'?'A':''}`} title="Alpha" onClick={()=>handleSetAtt(k, d, dayData.att==='A'?null:'A')}></div>
+                              </div>
+                            )}
 
-                        {isOpen && (
-                          <div className="ddown">
-                            {ALL_SHIFTS.map(sv => {
-                              const dsRule = JADWAL_RULES.differentShift.find(r => r.a === k || r.b === k);
-                              let blockedShift = null;
-                              if(dsRule){
-                                const partner = dsRule.a === k ? dsRule.b : dsRule.a;
-                                const partnerSh = schedule[wk]?.[partner]?.[d]?.shift;
-                                if(partnerSh && partnerSh !== 'LIBUR') blockedShift = partnerSh;
-                              }
-                              const isBlocked = (sv !== 'LIBUR' && sv === blockedShift);
-                              const hint = sv === blockedShift ? `(${dsRule?.a===k?dsRule?.b:dsRule?.a} pakai)` : '';
+                            {isOpen && (
+                              <div className="ddown">
+                                {ALL_SHIFTS.map(sv => {
+                                  const dsRule = JADWAL_RULES.differentShift.find(r => r.a === k || r.b === k);
+                                  let blockedShift = null;
+                                  if(dsRule){
+                                    const partner = dsRule.a === k ? dsRule.b : dsRule.a;
+                                    const partnerSh = schedule[wk]?.[partner]?.[d]?.shift;
+                                    if(partnerSh && partnerSh !== 'LIBUR') blockedShift = partnerSh;
+                                  }
+                                  const isBlocked = (sv !== 'LIBUR' && sv === blockedShift);
+                                  const hint = sv === blockedShift ? `(${dsRule?.a===k?dsRule?.b:dsRule?.a} pakai)` : '';
 
-                              return (
-                                <button key={sv} className={`dd-opt ${sv} ${isBlocked?'disabled':''}`} disabled={isBlocked} onClick={(e) => {
-                                  e.stopPropagation();
-                                  if(!isBlocked) handleSetShift(k, d, sv);
-                                }} title={hint}>
-                                  <span>{sv}{hint ? ` ${hint}` : ''}</span>
-                                  <span className="dd-time">{shiftTime(sv)}</span>
-                                </button>
-                              );
-                            })}
-                            <button className="dd-cancel" onClick={(e) => { e.stopPropagation(); setOpenDrop(null); }}>✕ Batal</button>
-                          </div>
+                                  return (
+                                    <button key={sv} className={`dd-opt ${sv} ${isBlocked?'disabled':''}`} disabled={isBlocked} onClick={(e) => {
+                                      e.stopPropagation();
+                                      if(!isBlocked) handleSetShift(k, d, sv);
+                                    }} title={hint}>
+                                      <span>{sv}{hint ? ` ${hint}` : ''}</span>
+                                      <span className="dd-time">{shiftTime(sv)}</span>
+                                    </button>
+                                  );
+                                })}
+                                <button className="dd-cancel" onClick={(e) => { e.stopPropagation(); setOpenDrop(null); }}>✕ Batal</button>
+                              </div>
+                            )}
+                          </>
+                        ) : (
+                          <div style={{fontSize:9, color:"var(--muted)", textAlign:"center", marginTop:10}}>Belum<br/>Generate</div>
                         )}
                       </div>
                     );
@@ -1030,7 +1077,7 @@ function Dashboard({toast, refresh}) {
 }
 
 // ── SAL INPUT DOCK DENGAN HISTORY ────────────────────────────────────────────
-function SalDock({toast, role}){
+function SalDock({toast, role, adminName}){
   const EMPTY=()=>({credit:"",sum:"",tgl:""});
   
   const [lines, setLines] = useState(Array.from({length:10},EMPTY));
@@ -1123,6 +1170,8 @@ function SalDock({toast, role}){
     const successList = [];
     const failedList = [];
 
+    const realAdmin = role === "owner" ? "Owner" : adminName;
+
     for(const r of pendingRows){
       try {
         const d = await gasGet({
@@ -1133,7 +1182,7 @@ function SalDock({toast, role}){
           cabang: r.cabang,
           jenis: "TOPUP",
           nominal: r.sum,
-          admin: role === "owner" ? "Owner" : "Admin",
+          admin: realAdmin,
           dock: dockNo
         });
         
@@ -1525,9 +1574,9 @@ function LaporanHarian({refresh}){
 }
 
 // ── CHECKLIST ────────────────────────────────────────────────────────────────
-function Checklist({toast,refresh}){
+function Checklist({toast,refresh, adminName}){
   const [hist,setHist]=useState([]);
-  const [form,setForm]=useState({tgl:today(),admin:"Govind",shift:"Pagi",cab:CABANG[0],ti:"",to:"",t:{},kdl:"",ss:""});
+  const [form,setForm]=useState({tgl:today(),admin:adminName||ADMIN_LIST[0],shift:"Pagi",cab:CABANG[0],ti:"",to:"",t:{},kdl:"",ss:""});
   useEffect(()=>{DB.get("rifim_chk").then(x=>{if(x)setHist(x)});},[refresh]);
   const done=Object.values(form.t).filter(Boolean).length;
   const pct=Math.round((done/TASKS.length)*100);
@@ -1543,7 +1592,7 @@ function Checklist({toast,refresh}){
       <div className="card-premium" style={{padding:24}}>
         <div style={{fontSize:15,fontWeight:800,marginBottom:20}}>Isi Checklist Harian</div>
         <div style={{display:"grid",gridTemplateColumns:"1fr 1fr 1fr 1fr",gap:14,marginBottom:20}}>
-          {[["Tanggal","tgl","date"],["Admin","admin","select",["Govind","Tasya","Abel"]],["Shift","shift","select",["Pagi","Siang"]],["Jam Masuk","ti","time"]].map(([l,k,t,opts])=>(
+          {[["Tanggal","tgl","date"],["Admin","admin","select",ADMIN_LIST],["Shift","shift","select",["Pagi","Siang"]],["Jam Masuk","ti","time"]].map(([l,k,t,opts])=>(
             <div key={k}>
               <div style={{fontSize:11,fontWeight:700,color:"#94A3B8",textTransform:"uppercase",marginBottom:6}}>{l}</div>
               {t==="select"?<select value={form[k]} onChange={e=>setForm({...form,[k]:e.target.value})} className="inp">{opts.map(o=><option key={o}>{o}</option>)}</select>:<input type={t} value={form[k]} onChange={e=>setForm({...form,[k]:e.target.value})} className="inp"/>}
@@ -1757,6 +1806,7 @@ const NAV = [
 
 function App(){
   const [role,setRole]=useState(null);
+  const [adminName, setAdminName]=useState("");
   const [active,setActive]=useState("dashboard");
   const [toasts,setToasts]=useState([]);
   const [refresh,setRefresh]=useState(0);
@@ -1766,7 +1816,12 @@ function App(){
   
   useEffect(()=>{const u=DB.subscribe(()=>setRefresh(p=>p+1));return()=>u()},[]);
   
-  if(!role)return <Login onLogin={setRole}/>;
+  const handleLogin = (r, name) => {
+    setRole(r);
+    setAdminName(name);
+  };
+
+  if(!role)return <Login onLogin={handleLogin}/>;
   
   let ActiveCmp = Dashboard;
   for (const g of NAV) {
@@ -1779,7 +1834,7 @@ function App(){
       <aside style={{width:250,background:"#18181b",color:"#a1a1aa",display:"flex",flexDirection:"column",flexShrink:0,position:"sticky",top:0,height:"100vh",overflow:"hidden"}}>
         <div style={{padding:"24px 20px",borderBottom:"1px solid rgba(255,255,255,0.05)"}}>
           <div style={{display:"flex",alignItems:"center",gap:12}}>
-            <div style={{width:40,height:40,borderRadius:10,background:"var(--red)",display:"flex",alignItems:"center",justifyContent:"center",color:"#fff",fontSize:18,fontWeight:900,boxShadow:"0 2px 8px rgba(0,0,0,.2)"}}>RI</div>
+            <img src={LOGO_URL} alt="RIFIM" style={{width: 40, height: 40, borderRadius: 8, objectFit: 'cover'}} onError={(e) => { e.target.onerror = null; e.target.src = LOGO_FALLBACK; }} />
             <div>
               <div style={{fontSize:16,fontWeight:800,color:"#fff",lineHeight:1.1,letterSpacing:"0.5px"}}>RIFIM</div>
               <div style={{fontSize:10,color:"#a1a1aa",marginTop:2,fontWeight:600}}>ERP - MAXIM AIRPORT</div>
@@ -1813,8 +1868,8 @@ function App(){
           <div style={{width:36,height:36,borderRadius:"50%",background:"var(--red)",display:"flex",alignItems:"center",justifyContent:"center",color:"#fff",fontSize:13,fontWeight:800}}>
             {role==="owner"?"RF":"AD"}
           </div>
-          <div style={{flex:1}}>
-            <div style={{fontSize:13,fontWeight:700,color:"#fff"}}>{role==="owner"?"Direktur Utama":"Administrator"}</div>
+          <div style={{flex:1, minWidth:0}}>
+            <div style={{fontSize:13,fontWeight:700,color:"#fff",whiteSpace:"nowrap",overflow:"hidden",textOverflow:"ellipsis"}}>{adminName}</div>
             <div style={{fontSize:10,color:"#a1a1aa",marginTop:2}}>PT. Rifim Int. Gemilang</div>
           </div>
         </div>
@@ -1841,7 +1896,7 @@ function App(){
         </header>
 
         <main style={{flex:1,padding:"28px",maxWidth:1200,margin:"0 auto",width:"100%"}}>
-          <ActiveCmp toast={toast} refresh={refresh} role={role}/>
+          <ActiveCmp toast={toast} refresh={refresh} role={role} adminName={adminName}/>
         </main>
 
         <footer style={{textAlign:"center",fontSize:10,color:"#CBD5E1",padding:"16px",borderTop:"1px solid #F1F5F9",fontWeight:600,letterSpacing:".3px"}}>
