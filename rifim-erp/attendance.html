@@ -48,7 +48,10 @@
         📊 Dashboard
       </a>
 
-      <a href="attendance.html" class="active">
+      <a
+        href="attendance.html"
+        class="active"
+      >
         📍 Attendance
       </a>
 
@@ -64,9 +67,11 @@
 
   </aside>
 
-  <!-- CONTENT -->
+  <!-- MAIN CONTENT -->
 
   <main class="main-content">
+
+    <!-- TOPBAR -->
 
     <div class="topbar">
 
@@ -80,13 +85,16 @@
 
       </div>
 
-      <button onclick="logout()">
+      <button
+        class="logout-btn"
+        onclick="logout()"
+      >
         Logout
       </button>
 
     </div>
 
-    <!-- ATTENDANCE GRID -->
+    <!-- GRID -->
 
     <div class="attendance-grid">
 
@@ -186,7 +194,7 @@
 
 const camera =
 document.getElementById(
-  'camera'
+  "camera"
 );
 
 const airportLat = 1.1433;
@@ -194,7 +202,9 @@ const airportLng = 104.0150;
 
 let selfieTaken = false;
 
-// START CAMERA
+/* =========================
+   START CAMERA
+========================= */
 
 async function startCamera(){
 
@@ -222,18 +232,20 @@ async function startCamera(){
 
 startCamera();
 
-// TAKE PHOTO
+/* =========================
+   TAKE PHOTO
+========================= */
 
 function takePhoto(){
 
   const canvas =
   document.getElementById(
-    'snapshot'
+    "snapshot"
   );
 
   const context =
   canvas.getContext(
-    '2d'
+    "2d"
   );
 
   canvas.width =
@@ -256,22 +268,27 @@ function takePhoto(){
 
 }
 
-// LIVE CLOCK
+/* =========================
+   LIVE CLOCK
+========================= */
 
 setInterval(()=>{
 
-  const now = new Date();
+  const now =
+  new Date();
 
   document.getElementById(
-    'liveClock'
+    "liveClock"
   ).innerText =
   now.toLocaleString(
-    'id-ID'
+    "id-ID"
   );
 
 },1000);
 
-// GPS VALIDATION
+/* =========================
+   GPS VALIDATION
+========================= */
 
 navigator.geolocation.getCurrentPosition(
 
@@ -284,31 +301,33 @@ navigator.geolocation.getCurrentPosition(
     position.coords.longitude;
 
     document.getElementById(
-      'lat'
+      "lat"
     ).innerText =
     lat;
 
     document.getElementById(
-      'lng'
+      "lng"
     ).innerText =
     lng;
 
     const distance =
     calculateDistance(
+
       lat,
       lng,
       airportLat,
       airportLng
+
     );
 
     document.getElementById(
-      'distance'
+      "distance"
     ).innerText =
     distance.toFixed(2) + " KM";
 
     const gpsStatus =
     document.getElementById(
-      'gps-status'
+      "gps-status"
     );
 
     if(distance <= 5){
@@ -341,7 +360,9 @@ navigator.geolocation.getCurrentPosition(
 
 );
 
-// DISTANCE FUNCTION
+/* =========================
+   DISTANCE CALCULATOR
+========================= */
 
 function calculateDistance(
   lat1,
@@ -379,7 +400,9 @@ function calculateDistance(
 
 }
 
-// UPLOAD SELFIE
+/* =========================
+   UPLOAD SELFIE
+========================= */
 
 const uploadBtn =
 document.getElementById(
@@ -415,23 +438,21 @@ uploadBtn.addEventListener(
 
         async(blob)=>{
 
-          const fileName =
-          "selfie-" +
-          new Date().toISOString() +
-          ".jpg";
+          const file =
+          new File(
 
-          const result =
-          await uploadSelfieToDrive(
+            [blob],
 
-            blob,
-            fileName
+            `selfie-${Date.now()}.jpg`,
+
+            {
+              type:"image/jpeg"
+            }
 
           );
 
-          console.log(result);
-
-          alert(
-            "Selfie berhasil upload ke Google Drive"
+          await uploadFileToDrive(
+            file
           );
 
         },
@@ -454,7 +475,9 @@ uploadBtn.addEventListener(
 
 );
 
-// SUBMIT ATTENDANCE
+/* =========================
+   SUBMIT ATTENDANCE
+========================= */
 
 function submitAttendance(){
 
@@ -474,7 +497,9 @@ function submitAttendance(){
 
 }
 
-// LOGOUT
+/* =========================
+   LOGOUT
+========================= */
 
 function logout(){
 
