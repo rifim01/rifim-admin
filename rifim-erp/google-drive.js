@@ -14,7 +14,9 @@ const FOLDER_ID =
 "1Ejaz210g3TeM46W6up5BtgHNzEWwOnRQ";
 
 let tokenClient;
+
 let gapiInited = false;
+
 let gisInited = false;
 
 /* =========================
@@ -31,7 +33,7 @@ function gapiLoaded(){
 }
 
 /* =========================
-   INIT GAPI
+   INIT GAPI CLIENT
 ========================= */
 
 async function initializeGapiClient(){
@@ -51,14 +53,14 @@ async function initializeGapiClient(){
     gapiInited = true;
 
     console.log(
-      "GAPI initialized"
+      "✅ GAPI initialized"
     );
 
-  }catch(err){
+  }catch(error){
 
     console.error(
-      "GAPI INIT ERROR",
-      err
+      "❌ GAPI INIT ERROR",
+      error
     );
 
   }
@@ -66,7 +68,7 @@ async function initializeGapiClient(){
 }
 
 /* =========================
-   LOAD GIS
+   LOAD GOOGLE GIS
 ========================= */
 
 function gisLoaded(){
@@ -87,14 +89,14 @@ function gisLoaded(){
     gisInited = true;
 
     console.log(
-      "GIS initialized"
+      "✅ GIS initialized"
     );
 
-  }catch(err){
+  }catch(error){
 
     console.error(
-      "GIS ERROR",
-      err
+      "❌ GIS ERROR",
+      error
     );
 
   }
@@ -115,6 +117,7 @@ async function authenticateGoogle(){
       if(resp.error){
 
         reject(resp);
+
         return;
 
       }
@@ -148,17 +151,27 @@ async function authenticateGoogle(){
 }
 
 /* =========================
-   UPLOAD FILE
+   UPLOAD FILE TO DRIVE
 ========================= */
 
 async function uploadFileToDrive(file){
 
   try{
 
-    if(!gapiInited || !gisInited){
+    if(!gapiInited){
 
       alert(
         "Google API belum siap"
+      );
+
+      return;
+
+    }
+
+    if(!gisInited){
+
+      alert(
+        "Google Auth belum siap"
       );
 
       return;
@@ -173,7 +186,9 @@ async function uploadFileToDrive(file){
 
       mimeType:file.type,
 
-      parents:[FOLDER_ID]
+      parents:[
+        FOLDER_ID
+      ]
 
     };
 
@@ -202,7 +217,9 @@ async function uploadFileToDrive(file){
     );
 
     const accessToken =
-    gapi.client.getToken().access_token;
+    gapi.client
+    .getToken()
+    .access_token;
 
     const response =
     await fetch(
@@ -234,7 +251,7 @@ async function uploadFileToDrive(file){
     if(result.id){
 
       alert(
-        "✅ Upload berhasil ke Google Drive"
+        "✅ Selfie berhasil upload ke Google Drive"
       );
 
     }else{
@@ -247,26 +264,14 @@ async function uploadFileToDrive(file){
 
     }
 
-  }catch(err){
+  }catch(error){
 
-    console.error(err);
+    console.error(error);
 
     alert(
-      "❌ Error upload"
+      "❌ Error upload Google Drive"
     );
 
   }
 
 }
-
-/* =========================
-   WAIT LOAD
-========================= */
-
-window.onload = ()=>{
-
-  gapiLoaded();
-
-  gisLoaded();
-
-};
