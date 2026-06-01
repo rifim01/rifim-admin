@@ -6,19 +6,18 @@
   <title>Attendance - RIFIM ERP</title>
   <link rel="stylesheet" href="style.css" />
 
-  <!-- Firebase untuk simpan data absensi -->
+  <!-- Firebase -->
   <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-auth-compat.js"></script>
 
-  <!-- ✅ TIDAK ADA googleapis.com/js/api.js -->
+  <!-- ✅ TIDAK ADA googleapis.com/js/api.js — penyebab error sebelumnya -->
   <!-- ✅ TIDAK ADA accounts.google.com/gsi/client -->
 </head>
 
 <body>
 <div class="dashboard">
 
-  <!-- SIDEBAR -->
   <aside class="sidebar">
     <div class="sidebar-logo">
       <img src="assets/logo.png" alt="Logo" />
@@ -32,9 +31,7 @@
     </nav>
   </aside>
 
-  <!-- MAIN -->
   <main class="main-content">
-
     <div class="topbar">
       <div>
         <h2>Attendance Verification</h2>
@@ -45,30 +42,26 @@
 
     <div class="attendance-grid">
 
-      <!-- ── SELFIE CARD ── -->
+      <!-- SELFIE CARD -->
       <div class="attendance-card">
         <h2>📸 Selfie Verification</h2>
 
         <video id="camera" autoplay playsinline></video>
         <canvas id="snapshot" style="display:none;"></canvas>
-
-        <!-- Preview setelah foto diambil -->
         <img id="preview-img"
           style="display:none;width:100%;border-radius:15px;margin-bottom:12px;" />
 
         <button class="primary-btn" onclick="takePhoto()">
           📷 Ambil Foto
         </button>
-
         <button id="uploadBtn" class="primary-btn"
           style="margin-top:10px;background:#15803d;" onclick="doUpload()">
           ☁️ Upload Selfie ke Drive
         </button>
-
         <div id="upload-status"></div>
       </div>
 
-      <!-- ── GPS CARD ── -->
+      <!-- GPS CARD -->
       <div class="attendance-card">
         <h2>📍 GPS Validation</h2>
 
@@ -81,14 +74,11 @@
             <span id="accuracy">-</span> meter</p>
         </div>
 
-        <div id="gps-status" class="gps-valid">
-          ⏳ Memuat GPS...
-        </div>
+        <div id="gps-status" class="gps-valid">⏳ Memuat GPS...</div>
 
         <button class="primary-btn" onclick="submitAttendance()">
           🚀 Kirim Absensi
         </button>
-
         <div id="submit-status" style="margin-top:10px;"></div>
       </div>
 
@@ -96,13 +86,10 @@
   </main>
 </div>
 
-<!-- google-drive.js BARU (tanpa gapi/OAuth) -->
 <script src="google-drive.js"></script>
 
 <script>
-// ============================================================
-// FIREBASE CONFIG (sama dengan index.html)
-// ============================================================
+// ── Firebase ──────────────────────────────────────────────
 const firebaseConfig = {
   apiKey:            "AIzaSyCROrmmx9cxlAeMEobuT9DAWmVuF1oZrG4",
   authDomain:        "gen-lang-client-0837778946.firebaseapp.com",
@@ -111,30 +98,21 @@ const firebaseConfig = {
   messagingSenderId: "984064974556",
   appId:             "1:984064974556:web:42e4771e687590b2595e19",
 };
-
-// Init Firebase (cegah double-init)
-if (!firebase.apps.length) {
-  firebase.initializeApp(firebaseConfig);
-}
+if (!firebase.apps.length) firebase.initializeApp(firebaseConfig);
 const db   = firebase.firestore();
 const auth = firebase.auth();
 
-// ============================================================
-// KOORDINAT BANDARA (Hang Nadim, Batam)
-// ============================================================
+// ── Konstanta GPS (Hang Nadim Batam) ─────────────────────
 const AIRPORT_LAT = 1.1210;
 const AIRPORT_LNG = 104.1186;
 const RADIUS_KM   = 2.0;
 
-// State
 let selfieBlob = null;
 let selfieFile = null;
 let gpsLat     = null;
 let gpsLng     = null;
 
-// ============================================================
-// CLOCK
-// ============================================================
+// ── Clock ─────────────────────────────────────────────────
 function updateClock() {
   document.getElementById("clock").textContent =
     new Date().toLocaleString("id-ID", {
@@ -145,35 +123,26 @@ function updateClock() {
 setInterval(updateClock, 1000);
 updateClock();
 
-// ============================================================
-// AUTH GUARD
-// ============================================================
+// ── Auth guard ────────────────────────────────────────────
 auth.onAuthStateChanged(user => {
   if (!user) window.location.href = "index.html";
 });
 
-// ============================================================
-// CAMERA
-// ============================================================
+// ── Kamera ────────────────────────────────────────────────
 const videoEl = document.getElementById("camera");
-
 (async function startCamera() {
   try {
-    const stream = await navigator.mediaDevices.getUserMedia({ video: true });
-    videoEl.srcObject = stream;
-  } catch (err) {
+    videoEl.srcObject = await navigator.mediaDevices.getUserMedia({ video: true });
+  } catch {
     showStatus("upload-status",
-      "❌ Kamera tidak dapat diakses — izinkan akses kamera di browser", "error");
+      "❌ Kamera tidak dapat diakses — izinkan di browser", "error");
   }
 })();
 
-// ============================================================
-// AMBIL FOTO
-// ============================================================
+// ── Ambil foto ────────────────────────────────────────────
 function takePhoto() {
-  const canvas  = document.getElementById("snapshot");
-  const ctx     = canvas.getContext("2d");
-
+  const canvas = document.getElementById("snapshot");
+  const ctx    = canvas.getContext("2d");
   canvas.width  = videoEl.videoWidth  || 640;
   canvas.height = videoEl.videoHeight || 480;
   ctx.drawImage(videoEl, 0, 0);
@@ -183,98 +152,70 @@ function takePhoto() {
     const ts   = new Date().toISOString().replace(/[:.]/g, "-");
     selfieFile = new File([blob], `selfie-${ts}.jpg`, { type:"image/jpeg" });
 
-    // Tampilkan preview, sembunyikan video
-    const preview = document.getElementById("preview-img");
-    preview.src   = URL.createObjectURL(blob);
-    preview.style.display = "block";
+    const prev = document.getElementById("preview-img");
+    prev.src   = URL.createObjectURL(blob);
+    prev.style.display   = "block";
     videoEl.style.display = "none";
 
     showStatus("upload-status", "✅ Foto berhasil diambil — siap diupload", "success");
   }, "image/jpeg", 0.85);
 }
 
-// ============================================================
-// UPLOAD KE DRIVE
-// ============================================================
+// ── Upload ke Drive ───────────────────────────────────────
 async function doUpload() {
-  if (!selfieFile) {
-    alert("⚠️ Ambil foto selfie terlebih dahulu");
-    return;
-  }
-  await uploadFileToDrive(selfieFile); // dari google-drive.js
+  if (!selfieFile) { alert("⚠️ Ambil foto selfie terlebih dahulu"); return; }
+  await uploadFileToDrive(selfieFile);
 }
 
-// ============================================================
-// GPS
-// ============================================================
+// ── GPS ───────────────────────────────────────────────────
 navigator.geolocation.getCurrentPosition(
   pos => {
     gpsLat = pos.coords.latitude;
     gpsLng = pos.coords.longitude;
-    const acc = pos.coords.accuracy;
-
     document.getElementById("lat").textContent      = gpsLat.toFixed(7);
     document.getElementById("lng").textContent      = gpsLng.toFixed(7);
-    document.getElementById("accuracy").textContent = Math.round(acc);
-
+    document.getElementById("accuracy").textContent = Math.round(pos.coords.accuracy);
     validateGPS(gpsLat, gpsLng);
   },
-  err => {
-    document.getElementById("gps-status").innerHTML    = "❌ GPS gagal — izinkan akses lokasi";
-    document.getElementById("gps-status").className    = "";
-    document.getElementById("gps-status").style.cssText =
+  () => {
+    const el = document.getElementById("gps-status");
+    el.textContent = "❌ GPS gagal — izinkan akses lokasi di browser";
+    el.style.cssText =
       "background:#fee2e2;color:#991b1b;padding:14px;border-radius:12px;font-weight:600;margin-bottom:20px;";
   },
   { enableHighAccuracy: true, timeout: 15000 }
 );
 
 function validateGPS(lat, lng) {
-  const dist   = haversineKm(lat, lng, AIRPORT_LAT, AIRPORT_LNG);
-  const el     = document.getElementById("gps-status");
-  const distTxt = dist.toFixed(2);
-
+  const dist = haversineKm(lat, lng, AIRPORT_LAT, AIRPORT_LNG);
+  const el   = document.getElementById("gps-status");
   if (dist <= RADIUS_KM) {
     el.className = "gps-valid";
-    el.innerHTML = `✅ Dalam Radius Bandara (${distTxt} km dari bandara)`;
+    el.textContent = `✅ Dalam Radius Bandara (${dist.toFixed(2)} km)`;
   } else {
-    el.className = "";
+    el.className   = "";
     el.style.cssText =
       "background:#fee2e2;color:#991b1b;padding:14px;border-radius:12px;font-weight:600;margin-bottom:20px;";
-    el.innerHTML = `❌ Di Luar Radius Bandara (${distTxt} km dari bandara)`;
+    el.textContent = `❌ Di Luar Radius Bandara (${dist.toFixed(2)} km)`;
   }
 }
 
-function haversineKm(lat1, lon1, lat2, lon2) {
-  const R = 6371;
-  const dL = r(lat2-lat1), dO = r(lon2-lon1);
-  const a  = Math.sin(dL/2)**2 +
-             Math.cos(r(lat1))*Math.cos(r(lat2))*Math.sin(dO/2)**2;
-  return R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
+function haversineKm(a, b, c, d) {
+  const R = 6371, r = x => x*Math.PI/180;
+  const dL = r(c-a), dO = r(d-b);
+  const x  = Math.sin(dL/2)**2 + Math.cos(r(a))*Math.cos(r(c))*Math.sin(dO/2)**2;
+  return R * 2 * Math.atan2(Math.sqrt(x), Math.sqrt(1-x));
 }
-const r = deg => deg * Math.PI / 180;
 
-// ============================================================
-// SUBMIT ABSENSI → SIMPAN KE FIRESTORE
-// ============================================================
+// ── Submit absensi → Firestore ────────────────────────────
 async function submitAttendance() {
-  if (!gpsLat) {
-    alert("⚠️ Tunggu GPS selesai memuat");
-    return;
-  }
-  if (!selfieBlob) {
-    alert("⚠️ Ambil foto selfie terlebih dahulu");
-    return;
-  }
+  if (!gpsLat)     { alert("⚠️ Tunggu GPS selesai memuat"); return; }
+  if (!selfieBlob) { alert("⚠️ Ambil foto selfie terlebih dahulu"); return; }
 
   const user = auth.currentUser;
-  if (!user) {
-    alert("Sesi habis — silakan login ulang");
-    window.location.href = "index.html";
-    return;
-  }
+  if (!user) { window.location.href = "index.html"; return; }
 
   showStatus("submit-status", "⏳ Menyimpan absensi...", "info");
-
   try {
     await db.collection("absensi").add({
       email:     user.email,
@@ -284,26 +225,18 @@ async function submitAttendance() {
       timestamp: firebase.firestore.FieldValue.serverTimestamp(),
       status:    "hadir",
     });
-
     showStatus("submit-status", "✅ Absensi berhasil disimpan!", "success");
   } catch (err) {
-    showStatus("submit-status", "❌ Gagal menyimpan: " + err.message, "error");
-    console.error(err);
+    showStatus("submit-status", "❌ Gagal: " + err.message, "error");
   }
 }
 
-// ============================================================
-// HELPERS
-// ============================================================
-function showStatus(elId, msg, type) {
-  const el = document.getElementById(elId);
+// ── Helpers ───────────────────────────────────────────────
+function showStatus(id, msg, type) {
+  const el = document.getElementById(id);
   if (!el) return;
-  const map = {
-    success: ["#dcfce7","#166534"],
-    error:   ["#fee2e2","#991b1b"],
-    info:    ["#dbeafe","#1e40af"],
-  };
-  const [bg, color] = map[type] || map.info;
+  const m = { success:["#dcfce7","#166534"], error:["#fee2e2","#991b1b"], info:["#dbeafe","#1e40af"] };
+  const [bg, color] = m[type] || m.info;
   el.style.cssText =
     `display:block;background:${bg};color:${color};padding:12px 16px;` +
     `border-radius:12px;font-weight:600;font-size:15px;margin-top:10px;`;
@@ -311,10 +244,7 @@ function showStatus(elId, msg, type) {
 }
 
 function logout() {
-  auth.signOut().then(() => {
-    localStorage.clear();
-    window.location.href = "index.html";
-  });
+  auth.signOut().then(() => { localStorage.clear(); window.location.href = "index.html"; });
 }
 </script>
 </body>
