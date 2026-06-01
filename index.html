@@ -171,7 +171,8 @@ function Toast({toasts,remove}){
 
 // ── SAL INPUT DOCK ───────────────────────────────────────────────────────────
 function SalDock({toast}){
-  const [paste,setPaste]=useState("");
+  const EMPTY=()=>({credit:"",sum:"",tgl:""});
+  const [lines,setLines]=useState(Array.from({length:10},EMPTY));
   const [rows,setRows]=useState([]);
   const [dockNo,setDockNo]=useState("1");
   const [sending,setSending]=useState(false);
@@ -179,7 +180,6 @@ function SalDock({toast}){
   const [dbDriver,setDbDriver]=useState({});
   const [dbLoading,setDbLoading]=useState(false);
 
-  // Load DB_DRIVER sekali saat mount
   useEffect(()=>{
     setDbLoading(true);
     gasGet({action:"dbdriver"}).then(d=>{
@@ -188,35 +188,53 @@ function SalDock({toast}){
     }).catch(()=>setDbLoading(false));
   },[]);
 
-  function parseAIST(text){
-    const lines=text.split(/\r?\n/).map(l=>l.trim()).filter(Boolean);
-    const out=[];let i=0;
-    while(i<lines.length){
-      const m1=lines[i].match(/^(\d{6,12}):\s*(.+)$/);
-      const rawNom=(lines[i+1]||"").replace(/\s/g,"").replace(/\./g,"").replace(/,/g,"");
-      const sum=parseInt(rawNom)||0;
-      const m3=(lines[i+2]||"").match(/^(\d{2})\.(\d{2})\.(\d{4})\s+(\d{2}):(\d{2}):(\d{2})$/);
-      if(m1&&sum>0&&m3){
-        const loginId=m1[1].trim();
-        const namaAIST=m1[2].trim();
-        const dbEntry=dbDriver[loginId]||{};
-        const nama=dbEntry.nama||namaAIST;
-        const cabang=dbEntry.cabang||CABANG[0]; // AUTO dari DB_DRIVER
-        const tglDisp=`${m3[1]}.${m3[2]}.${m3[3]} ${m3[4]}:${m3[5]}:${m3[6]}`;
-        out.push({loginId,nama,sum,nomTag:nomTagihan(sum),tglDisp,cabang,creditRaw:lines[i]});
-        i+=3;
-      } else i++;
-    }
-    return out;
+  function updateLine(idx,key,val){
+    setLines(prev=>{
+      const next=[...prev];
+      next[idx]={...next[idx],[key]:val};
+      if(key==="credit"){
+        const m=val.match(/^(\d{6,12})(?::\s*(.+))?$/);
+        if(m){
+          const lid=m[1].trim();
+          const db=dbDriver[lid];
+          if(db) next[idx]={...next[idx],_lid:lid,_nama:db.nama,_cab:db.cabang,_ok:true};
+          else next[idx]={...next[idx],_lid:lid,_nama:m[2]?.trim()||"",_cab:"",_ok:false};
+        } else {
+          next[idx]={...next[idx],_lid:"",_nama:"",_cab:"",_ok:false};
+        }
+      }
+      return next;
+    });
   }
 
   function handleParse(){
-    if(!paste.trim()){toast("Paste data AIST dulu!","error");return}
-    if(dbLoading){toast("Tunggu DB_DRIVER selesai loading...","warn");return}
-    const p=parseAIST(paste);
-    if(!p.length){toast("Format tidak dikenali. Cek 3 baris per transaksi.","error");return}
-    setRows(p);setResults([]);
-    toast(`${p.length} transaksi diparse!`,"success");
+    if(dbLoading){toast("Tunggu DB Driver loading...","warn");return}
+    const out=[];
+    lines.forEach((l,i)=>{
+      if(!l.credit.trim()&&!l.sum.trim()) return;
+      const mc=l.credit.match(/^(\d{6,12})(?::\s*(.+))?$/);
+      if(!mc){toast("Baris "+(i+1)+": Format Credit Account salah","error");return}
+      const loginId=mc[1].trim();
+      const rawNom=l.sum.replace(/\s/g,"").replace(/\./g,"").replace(/,/g,"");
+      const sum=parseInt(rawNom)||0;
+      if(!sum){toast("Baris "+(i+1)+": SUM tidak valid","error");return}
+      let tglDisp=l.tgl.trim();
+      if(tglDisp){
+        if(!/^\d{2}\.\d{2}\.\d{4}\s+\d{2}:\d{2}:\d{2}$/.test(tglDisp)){
+          toast("Baris "+(i+1)+": Format tanggal salah (dd.MM.yyyy HH:mm:ss)","error");return;
+        }
+      } else {
+        const n=new Date();
+        tglDisp=[String(n.getDate()).padStart(2,"0"),String(n.getMonth()+1).padStart(2,"0"),n.getFullYear()].join(".")+" "+[String(n.getHours()).padStart(2,"0"),String(n.getMinutes()).padStart(2,"0"),String(n.getSeconds()).padStart(2,"0")].join(":");
+      }
+      const db=dbDriver[loginId]||{};
+      const nama=l._nama||db.nama||mc[2]?.trim()||"-";
+      const cabang=l._cab||db.cabang||CABANG[0];
+      out.push({loginId,nama,sum,nomTag:nomTagihan(sum),tglDisp,cabang});
+    });
+    if(!out.length){toast("Tidak ada baris yang terisi","error");return}
+    setRows(out);setResults([]);
+    toast(out.length+" transaksi siap!","success");
   }
 
   async function handleKirim(){
@@ -229,52 +247,91 @@ function SalDock({toast}){
       }catch(e){res.push({...r,result:"❌ "+e.message})}
     }
     setResults(res);setRows([]);setSending(false);
+    setLines(Array.from({length:10},EMPTY));
     const ok=res.filter(r=>r.result.startsWith("✅")).length;
-    toast(`${ok}/${res.length} berhasil dikirim!`,ok===res.length?"success":"error");
+    toast(ok+"/"+res.length+" berhasil!",ok===res.length?"success":"error");
   }
 
   const totalSum=rows.reduce((s,r)=>s+r.sum,0);
   const totalTag=rows.reduce((s,r)=>s+r.nomTag,0);
+  const filled=lines.filter(l=>l.credit.trim()||l.sum.trim()).length;
 
   return(
     <div className="fade" style={{display:"flex",flexDirection:"column",gap:20}}>
-      {/* Header card */}
       <div className="card-premium" style={{padding:"20px 24px"}}>
-        <div style={{display:"flex",alignItems:"center",justifyContent:"space-between",marginBottom:20}}>
-          <div style={{display:"flex",alignItems:"center",gap:14}}>
-            <div style={{width:44,height:44,borderRadius:12,background:"var(--red)",display:"flex",alignItems:"center",justifyContent:"center",color:"#fff",fontSize:20,fontWeight:900,boxShadow:"0 4px 12px rgba(198,40,40,.3)"}}>S</div>
+        {/* TOP BAR */}
+        <div style={{display:"flex",alignItems:"center",justifyContent:"space-between",marginBottom:14}}>
+          <div style={{display:"flex",alignItems:"center",gap:12}}>
+            <div style={{width:44,height:44,borderRadius:12,background:"var(--red)",display:"flex",alignItems:"center",justifyContent:"center",color:"#fff",fontSize:20,fontWeight:900}}>S</div>
             <div>
-              <div style={{fontSize:16,fontWeight:800,color:"#1E293B"}}>SAL Input Dock</div>
-              <div style={{fontSize:12,color:"#94A3B8",marginTop:2}}>
-                {dbLoading?"⏳ Memuat DB Driver...":(`✅ DB Driver: ${Object.keys(dbDriver).length} driver`)}
-              </div>
+              <div style={{fontSize:16,fontWeight:800}}>SAL Input Dock</div>
+              <div style={{fontSize:12,color:"#94A3B8",marginTop:1}}>{dbLoading?"⏳ Memuat DB Driver...":"✅ DB Driver: "+Object.keys(dbDriver).length+" driver"}</div>
             </div>
           </div>
-          <div style={{display:"flex",gap:10,alignItems:"center"}}>
-            <a href={`https://docs.google.com/spreadsheets/d/${SAL_ID}/edit`} target="_blank" className="btn-gray" style={{fontSize:12}}>📊 Buka Sheet</a>
+          <div style={{display:"flex",gap:8}}>
+            <a href={"https://docs.google.com/spreadsheets/d/"+SAL_ID+"/edit"} target="_blank" className="btn-gray" style={{fontSize:12}}>📊 Sheet</a>
             <a href={DRIVE_ROOT} target="_blank" className="btn-gray" style={{fontSize:12}}>📁 Drive</a>
           </div>
         </div>
-        <div style={{display:"grid",gridTemplateColumns:"160px 160px 1fr",gap:16,marginBottom:20}}>
-          <div>
-            <div style={{fontSize:11,fontWeight:700,color:"#94A3B8",textTransform:"uppercase",marginBottom:6}}>Input Dock #</div>
-            <select value={dockNo} onChange={e=>setDockNo(e.target.value)} className="inp">
+        {/* CONTROLS */}
+        <div style={{display:"flex",alignItems:"center",gap:12,marginBottom:12,padding:"10px 14px",background:"#F8FAFC",borderRadius:10,border:"1px solid #E2E8F0",flexWrap:"wrap"}}>
+          <div style={{display:"flex",alignItems:"center",gap:8}}>
+            <span style={{fontSize:12,fontWeight:700,color:"#64748B"}}>DOCK #</span>
+            <select value={dockNo} onChange={e=>setDockNo(e.target.value)} style={{border:"1.5px solid #E2E8F0",borderRadius:8,padding:"5px 10px",fontSize:13,fontWeight:600,outline:"none"}}>
               <option value="1">Dock 1</option><option value="2">Dock 2</option><option value="3">Dock 3</option>
             </select>
           </div>
-          <div style={{gridColumn:"3",display:"flex",alignItems:"flex-end",gap:8}}>
-            <button onClick={handleParse} className="btn-red">🔍 Parse Data</button>
-            <button onClick={()=>{setPaste("");setRows([]);setResults([])}} className="btn-gray">↺ Reset</button>
+          <span style={{color:"#CBD5E1"}}>|</span>
+          <span style={{fontSize:12,color:"#94A3B8"}}>{filled} baris terisi dari {lines.length}</span>
+          <div style={{marginLeft:"auto",display:"flex",gap:8}}>
+            <button onClick={()=>{setLines(Array.from({length:10},EMPTY));setRows([]);setResults([])}} className="btn-gray" style={{fontSize:12,padding:"7px 14px"}}>↺ Reset</button>
+            <button onClick={()=>setLines(p=>[...p,EMPTY()])} className="btn-gray" style={{fontSize:12,padding:"7px 14px"}}>+ Baris</button>
+            <button onClick={handleParse} className="btn-red" style={{padding:"7px 18px"}}>▶ Proses{filled>0?" ("+filled+")":""}</button>
           </div>
         </div>
-        <div>
-          <div style={{fontSize:11,fontWeight:700,color:"#94A3B8",textTransform:"uppercase",marginBottom:6}}>
-            Paste Data AIST — Format 3 baris per transaksi
-          </div>
-          <textarea value={paste} onChange={e=>setPaste(e.target.value)} rows={7} className="inp mono" style={{resize:"vertical",fontSize:12,lineHeight:1.6}} placeholder={"204910728: Steven Semuel N\n95 000\n31.05.2026 13:52:16\n\n212830120: Achmadi Achmad\n95 000\n31.05.2026 13:33:16"}/>
+        {/* INPUT GRID — 1 baris = 1 transaksi */}
+        <div className="tbl-wrap">
+          <table>
+            <thead>
+              <tr>
+                <th style={{width:32,textAlign:"center"}}>#</th>
+                <th style={{width:240}}>Credit Account</th>
+                <th style={{width:110,textAlign:"right"}}>SUM</th>
+                <th style={{width:180}}>Tanggal (dd.MM.yyyy HH:mm:ss)</th>
+                <th style={{width:90,textAlign:"right"}}>Tagihan</th>
+                <th style={{width:160}}>Nama Driver</th>
+                <th>ID Cabang</th>
+                <th style={{width:28}}></th>
+              </tr>
+            </thead>
+            <tbody>
+              {lines.map((l,i)=>{
+                const has=l.credit.trim()||l.sum.trim();
+                const s=parseInt(l.sum.replace(/\s/g,"").replace(/\./g,"").replace(/,/g,""))||0;
+                const bg=!has?"#fff":l._ok?"#F0FFF4":l._lid?"#FFFDE7":"#fff";
+                return(
+                  <tr key={i} style={{background:bg}}>
+                    <td style={{textAlign:"center",color:"#94A3B8",fontWeight:700,fontSize:11}}>{i+1}</td>
+                    <td><input value={l.credit} onChange={e=>updateLine(i,"credit",e.target.value)} placeholder="204910728: Nama Driver" className="mono" style={{width:"100%",fontSize:11,border:"none",background:"transparent",outline:"none",padding:"4px 6px"}}/></td>
+                    <td><input value={l.sum} onChange={e=>updateLine(i,"sum",e.target.value)} placeholder="95 000" className="mono" style={{width:"100%",fontSize:12,border:"none",background:"transparent",outline:"none",padding:"4px 6px",textAlign:"right"}}/></td>
+                    <td><input value={l.tgl} onChange={e=>updateLine(i,"tgl",e.target.value)} placeholder="31.05.2026 13:52:16" className="mono" style={{width:"100%",fontSize:11,border:"none",background:"transparent",outline:"none",padding:"4px 6px"}}/></td>
+                    <td style={{textAlign:"right",fontWeight:700,color:"var(--red)",fontSize:12}}>{s>0?rp(nomTagihan(s)):"—"}</td>
+                    <td style={{fontSize:11,color:l._ok?"#15803D":l._lid?"#D97706":"#94A3B8",fontWeight:l._ok?700:400}}>
+                      {l._nama||""}{l._lid&&!l._ok&&<span style={{fontSize:9,marginLeft:4}}>⚠️</span>}
+                    </td>
+                    <td style={{fontSize:10,color:"#64748B"}}>{l._cab||""}</td>
+                    <td><button onClick={()=>setLines(p=>p.filter((_,j)=>j!==i))} style={{background:"none",border:"none",color:"#E2E8F0",cursor:"pointer",fontSize:13}} onMouseOver={e=>e.target.style.color="#DC2626"} onMouseOut={e=>e.target.style.color="#E2E8F0"}>✕</button></td>
+                  </tr>
+                );
+              })}
+            </tbody>
+          </table>
+        </div>
+        <div style={{marginTop:8,fontSize:10,color:"#94A3B8",display:"flex",justifyContent:"space-between",alignItems:"center",padding:"0 4px"}}>
+          <span>🟢 Nama ditemukan otomatis &nbsp;🟡 ID dikenal, nama manual &nbsp;⚠️ Tidak ada di DB Driver</span>
+          <button onClick={()=>setLines(p=>[...p,EMPTY()])} style={{background:"none",border:"1px dashed #CBD5E1",borderRadius:6,padding:"3px 10px",fontSize:10,color:"#94A3B8",cursor:"pointer"}}>+ Tambah Baris</button>
         </div>
       </div>
-
       {/* TABEL PREVIEW — baris lurus seperti spreadsheet */}
       {rows.length>0&&(
         <div className="card-premium" style={{padding:"20px 24px"}}>
