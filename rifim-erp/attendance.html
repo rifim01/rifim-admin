@@ -1,3 +1,4 @@
+```html
 <!DOCTYPE html>
 <html lang="id">
 
@@ -94,7 +95,7 @@
 
     </div>
 
-    <!-- GRID -->
+    <!-- ATTENDANCE GRID -->
 
     <div class="attendance-grid">
 
@@ -178,40 +179,85 @@
 
     </div>
 
+    <!-- LIVE TABLE -->
+
+    <div class="attendance-table-card">
+
+      <h2>
+        📋 Live Attendance Table
+      </h2>
+
+      <table class="attendance-table">
+
+        <thead>
+
+          <tr>
+
+            <th>Photo</th>
+            <th>Nama</th>
+            <th>Jam</th>
+            <th>Status</th>
+
+          </tr>
+
+        </thead>
+
+        <tbody id="attendanceTable">
+
+        </tbody>
+
+      </table>
+
+    </div>
+
   </main>
 
 </div>
 
 <!-- GOOGLE API -->
 
-<script src="https://apis.google.com/js/api.js"></script>
+<script
+  async
+  defer
+  src="https://apis.google.com/js/api.js"
+  onload="gapiLoaded()"
+></script>
 
-<script src="https://accounts.google.com/gsi/client"></script>
+<script
+  async
+  defer
+  src="https://accounts.google.com/gsi/client"
+  onload="gisLoaded()"
+></script>
 
 <script src="google-drive.js"></script>
 
 <script>
+
+/* =========================
+   CAMERA
+========================= */
 
 const camera =
 document.getElementById(
   "camera"
 );
 
-const airportLat = 1.1433;
-const airportLng = 104.0150;
+const snapshot =
+document.getElementById(
+  "snapshot"
+);
 
 let selfieTaken = false;
-
-/* =========================
-   START CAMERA
-========================= */
 
 async function startCamera(){
 
   try{
 
     const stream =
-    await navigator.mediaDevices.getUserMedia({
+    await navigator
+    .mediaDevices
+    .getUserMedia({
 
       video:true
 
@@ -220,7 +266,9 @@ async function startCamera(){
     camera.srcObject =
     stream;
 
-  }catch(err){
+  }catch(error){
+
+    console.error(error);
 
     alert(
       "Camera tidak tersedia"
@@ -238,20 +286,15 @@ startCamera();
 
 function takePhoto(){
 
-  const canvas =
-  document.getElementById(
-    "snapshot"
-  );
-
   const context =
-  canvas.getContext(
+  snapshot.getContext(
     "2d"
   );
 
-  canvas.width =
+  snapshot.width =
   camera.videoWidth;
 
-  canvas.height =
+  snapshot.height =
   camera.videoHeight;
 
   context.drawImage(
@@ -263,7 +306,7 @@ function takePhoto(){
   selfieTaken = true;
 
   alert(
-    "Foto berhasil diambil"
+    "✅ Foto berhasil diambil"
   );
 
 }
@@ -279,7 +322,7 @@ setInterval(()=>{
 
   document.getElementById(
     "liveClock"
-  ).innerText =
+  ).innerHTML =
   now.toLocaleString(
     "id-ID"
   );
@@ -289,6 +332,9 @@ setInterval(()=>{
 /* =========================
    GPS VALIDATION
 ========================= */
+
+const airportLat = 1.1433;
+const airportLng = 104.0150;
 
 navigator.geolocation.getCurrentPosition(
 
@@ -302,12 +348,12 @@ navigator.geolocation.getCurrentPosition(
 
     document.getElementById(
       "lat"
-    ).innerText =
+    ).innerHTML =
     lat;
 
     document.getElementById(
       "lng"
-    ).innerText =
+    ).innerHTML =
     lng;
 
     const distance =
@@ -322,8 +368,9 @@ navigator.geolocation.getCurrentPosition(
 
     document.getElementById(
       "distance"
-    ).innerText =
-    distance.toFixed(2) + " KM";
+    ).innerHTML =
+    distance.toFixed(2) +
+    " KM";
 
     const gpsStatus =
     document.getElementById(
@@ -361,7 +408,7 @@ navigator.geolocation.getCurrentPosition(
 );
 
 /* =========================
-   DISTANCE CALCULATOR
+   DISTANCE FUNCTION
 ========================= */
 
 function calculateDistance(
@@ -374,24 +421,31 @@ function calculateDistance(
   const R = 6371;
 
   const dLat =
-  (lat2-lat1) * Math.PI/180;
+  (lat2-lat1) *
+  Math.PI / 180;
 
   const dLon =
-  (lon2-lon1) * Math.PI/180;
+  (lon2-lon1) *
+  Math.PI / 180;
 
   const a =
 
     Math.sin(dLat/2) *
-    Math.sin(dLat/2) +
+    Math.sin(dLat/2)
+
+    +
 
     Math.cos(lat1*Math.PI/180) *
-    Math.cos(lat2*Math.PI/180) *
+    Math.cos(lat2*Math.PI/180)
+
+    *
 
     Math.sin(dLon/2) *
     Math.sin(dLon/2);
 
   const c =
-  2 * Math.atan2(
+  2 *
+  Math.atan2(
     Math.sqrt(a),
     Math.sqrt(1-a)
   );
@@ -427,8 +481,6 @@ uploadBtn.addEventListener(
 
     try{
 
-      await authenticateGoogle();
-
       const canvas =
       document.getElementById(
         "snapshot"
@@ -455,6 +507,10 @@ uploadBtn.addEventListener(
             file
           );
 
+          addAttendanceRow(
+            URL.createObjectURL(blob)
+          );
+
         },
 
         "image/jpeg"
@@ -466,7 +522,7 @@ uploadBtn.addEventListener(
       console.error(error);
 
       alert(
-        "Upload gagal"
+        "❌ Upload gagal"
       );
 
     }
@@ -474,6 +530,54 @@ uploadBtn.addEventListener(
   }
 
 );
+
+/* =========================
+   LIVE TABLE
+========================= */
+
+function addAttendanceRow(photo){
+
+  const table =
+  document.getElementById(
+    "attendanceTable"
+  );
+
+  const row =
+  document.createElement(
+    "tr"
+  );
+
+  const now =
+  new Date();
+
+  row.innerHTML = `
+
+    <td>
+      <img
+        src="${photo}"
+        class="table-photo"
+      >
+    </td>
+
+    <td>
+      Staff RIFIM
+    </td>
+
+    <td>
+      ${now.toLocaleTimeString("id-ID")}
+    </td>
+
+    <td>
+      <span class="status-success">
+        Hadir
+      </span>
+    </td>
+
+  `;
+
+  table.prepend(row);
+
+}
 
 /* =========================
    SUBMIT ATTENDANCE
@@ -492,7 +596,7 @@ function submitAttendance(){
   }
 
   alert(
-    "Absensi berhasil dikirim"
+    "✅ Absensi berhasil dikirim"
   );
 
 }
@@ -514,3 +618,4 @@ function logout(){
 
 </body>
 </html>
+```
