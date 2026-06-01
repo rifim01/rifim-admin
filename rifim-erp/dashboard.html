@@ -1,175 +1,137 @@
 <!DOCTYPE html>
 <html lang="id">
-
 <head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Dashboard - RIFIM ERP</title>
+  <link rel="stylesheet" href="style.css" />
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700;800&display=swap" rel="stylesheet" />
 
-  <meta charset="UTF-8">
-
-  <meta
-    name="viewport"
-    content="width=device-width, initial-scale=1.0"
-  >
-
-  <title>
-    Dashboard - RIFIM ERP
-  </title>
-
-  <link
-    rel="stylesheet"
-    href="style.css"
-  >
-
+  <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-auth-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 </head>
 
 <body>
-
 <div class="dashboard">
 
   <aside class="sidebar">
-
-   <div class="sidebar-logo">
-
-  <img
-    src="assets/logo.png"
-    alt="RIFIM Logo"
-  >
-
-  <h1>
-    RIFIM ERP
-  </h1>
-
-</div>
-
+    <div class="sidebar-logo">
+      <img src="assets/logo.png" alt="RIFIM Logo" />
+      <h1>RIFIM ERP</h1>
+    </div>
     <nav>
-
-      <a href="dashboard.html">
-        📊 Dashboard
-      </a>
-
-      <a href="attendance.html">
-        📍 Attendance
-      </a>
-
-      <a href="jadwal.html">
-        🗓 Jadwal Shift
-      </a>
-
-      <a href="rekap.html">
-        📈 Rekap
-      </a>
-
+      <a href="dashboard.html" class="active">📊 Dashboard</a>
+      <a href="attendance.html">📍 Attendance</a>
+      <a href="jadwal.html">🗓 Jadwal Shift</a>
+      <a href="rekap.html">📈 Rekap</a>
     </nav>
-
   </aside>
 
   <main class="main-content">
-
     <div class="topbar">
-
-      <h2>
-        Dashboard Overview
-      </h2>
-
-      <button onclick="logout()">
-        Logout
-      </button>
-
+      <div>
+        <h2>Dashboard Overview</h2>
+        <div id="userInfo" style="color:#64748b;font-size:13px;margin-top:2px;"></div>
+      </div>
+      <button onclick="logout()">Logout</button>
     </div>
 
     <div class="cards">
-
       <div class="card">
         <h3>Total Staff</h3>
-        <h1>145</h1>
+        <h1 id="totalStaff">—</h1>
       </div>
-
       <div class="card">
         <h3>Hadir Hari Ini</h3>
-        <h1>120</h1>
+        <h1 id="hadirHariIni" style="color:#16a34a;">—</h1>
       </div>
-
       <div class="card">
         <h3>Belum Absen</h3>
-        <h1>25</h1>
+        <h1 id="belumAbsen" style="color:#d97706;">—</h1>
       </div>
-
       <div class="card">
         <h3>Terlambat</h3>
-        <h1>8</h1>
+        <h1 id="terlambat" style="color:#ef4444;">—</h1>
       </div>
-
     </div>
 
     <div class="chart-box">
-
-      <h2>
-        📈 Grafik Kehadiran
-      </h2>
-
+      <h2>📈 Grafik Kehadiran Minggu Ini</h2>
       <canvas id="attendanceChart"></canvas>
-
     </div>
-
   </main>
-
 </div>
 
-<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-
 <script>
+  // ── Firebase ──────────────────────────────────────────
+  if (!firebase.apps.length) {
+    firebase.initializeApp({
+      apiKey:            "AIzaSyCROrmmx9cxlAeMEobuT9DAWmVuF1oZrG4",
+      authDomain:        "gen-lang-client-0837778946.firebaseapp.com",
+      projectId:         "gen-lang-client-0837778946",
+      storageBucket:     "gen-lang-client-0837778946.firebasestorage.app",
+      messagingSenderId: "984064974556",
+      appId:             "1:984064974556:web:42e4771e687590b2595e19",
+    });
+  }
+  const auth = firebase.auth();
+  const db   = firebase.firestore();
 
-const ctx =
-document.getElementById(
-  'attendanceChart'
-);
+  // ── Auth guard ────────────────────────────────────────
+  auth.onAuthStateChanged(user => {
+    if (!user) {
+      window.location.href = "index.html";
+      return;
+    }
+    document.getElementById("userInfo").textContent =
+      "Login sebagai: " + user.email;
+    loadDashboard();
+  });
 
-new Chart(ctx, {
+  // ── Load data dari Firestore ──────────────────────────
+  async function loadDashboard() {
+    const today = new Date();
+    today.setHours(0,0,0,0);
 
-  type: 'bar',
+    try {
+      const snap = await db.collection("absensi")
+        .where("timestamp", ">=", today)
+        .get();
 
-  data: {
-
-    labels: [
-      'Sen',
-      'Sel',
-      'Rab',
-      'Kam',
-      'Jum'
-    ],
-
-    datasets: [{
-
-      label: 'Attendance',
-
-      data: [
-        120,
-        130,
-        125,
-        140,
-        138
-      ],
-
-      backgroundColor:
-      '#ef4444',
-
-      borderRadius: 10
-
-    }]
-
+      document.getElementById("hadirHariIni").textContent = snap.size;
+      document.getElementById("terlambat").textContent    = 0;
+    } catch(e) {
+      console.log("Firestore:", e.message);
+    }
   }
 
-});
+  // ── Chart ─────────────────────────────────────────────
+  new Chart(document.getElementById("attendanceChart"), {
+    type: "bar",
+    data: {
+      labels: ["Sen","Sel","Rab","Kam","Jum","Sab"],
+      datasets: [{
+        label: "Kehadiran",
+        data: [0,0,0,0,0,0],
+        backgroundColor: "#ef4444",
+        borderRadius: 10,
+      }]
+    },
+    options: {
+      responsive: true,
+      plugins: { legend: { display: false } },
+      scales: { y: { beginAtZero: true } }
+    }
+  });
 
-function logout(){
-
-  localStorage.clear();
-
-  window.location =
-  "index.html";
-
-}
-
+  function logout() {
+    auth.signOut().then(() => {
+      localStorage.clear();
+      window.location.href = "index.html";
+    });
+  }
 </script>
-
 </body>
 </html>
