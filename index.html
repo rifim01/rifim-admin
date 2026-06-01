@@ -41,6 +41,9 @@
 .login-bg{background:linear-gradient(135deg,#1a1a2e,#16213e,#0f3460)}
 .dash-inp { width: 100%; border: 1px solid #E2E8F0; border-radius: 8px; padding: 6px 10px; font-size: 13px; color: #1E293B; outline: none; transition: all 0.2s; }
 .dash-inp:focus { border-color: #818CF8; box-shadow: 0 0 0 3px rgba(129, 140, 248, 0.1); }
+/* Chart Styles */
+.chart-bar-bg { background: #F1F5F9; border-radius: 99px; height: 8px; width: 100%; overflow: hidden; margin-top: 6px;}
+.chart-bar-fill { background: var(--red); height: 100%; transition: width 0.8s ease-out; border-radius: 99px;}
 </style>
 </head>
 <body style="background:var(--bg);min-height:100vh">
@@ -60,6 +63,9 @@ const OWNER_PASS="owner2024";
 
 const CABANG=["ID Rifim Airport Batam","ID Rifim Airport Balikpapan","ID Rifim Airport Manado","ID Rifim Airport Pekanbaru","ID Rifim Airport Jambi","ID Rifim Batam","ID Rifim Jambi Luar"];
 const CABANG_FOLDER={"ID Rifim Airport Batam":"1WEWHJetDvxvUOIDdv7ypou2xUnCCGWw3","ID Rifim Airport Balikpapan":"1dZWNkiSalumDeZADlnzBR_E1MomHAQpz","ID Rifim Airport Manado":"1lZSWi-pmJeFWBkRh7QRxWjPYe5ERE3XN","ID Rifim Airport Pekanbaru":"1pEmjAAhXtIm5m2wv51tv1li8XtMeXJfW","ID Rifim Airport Jambi":"1O1hb4tSvRra-8U-eNyS5Ba-sF24D_Kng","ID Rifim Batam":"1yHNwFpFJZwNdBktcTtqjAZA5SH6_4kJ0","ID Rifim Jambi Luar":"1xyHHdebV67ygnNFFPXL895o-MKIhkVTI"};
+
+// Hardcoded for Dashboard requirements
+const DASH_CABANG = ["ID Rifim Airport Batam", "ID Rifim Airport Jambi", "ID Rifim Airport Balikpapan", "ID Rifim Airport Manado", "ID Rifim Airport Pekanbaru", "ID Rifim Batam", "ID Rifim Jambi Luar", "ID Kantor"];
 
 const FILES=[
   {id:1,nm:"SAL>INPUT DOCK",u:"Govind/Tasya",lnk:`https://docs.google.com/spreadsheets/d/${SAL_ID}/edit`},
@@ -163,6 +169,58 @@ async function gasGet(params){
   const p=new URLSearchParams(params);
   const r=await fetch(GAS+"?"+p.toString());
   return r.json();
+}
+
+// ── LOGIN ────────────────────────────────────────────────────────────────────
+function Login({onLogin}){
+  const [pw,setPw]=useState(""),err=useState("")[0];
+  const [e2,setE2]=useState(""),show=useState(false)[0],[sh,setSh]=useState(false);
+  const go=()=>{
+    if(pw===ADMIN_PASS||pw===OWNER_PASS){onLogin(pw===OWNER_PASS?"owner":"admin")}
+    else{setE2("Password salah");setTimeout(()=>setE2(""),2500)}
+  };
+  return(
+    <div className="login-bg" style={{minHeight:"100vh",display:"flex",alignItems:"center",justifyContent:"center",padding:16}}>
+      <div style={{width:"100%",maxWidth:380}}>
+        <div style={{textAlign:"center",marginBottom:32}}>
+          <div style={{width:80,height:80,borderRadius:20,background:"var(--red)",color:"#fff",fontSize:36,fontWeight:900,display:"flex",alignItems:"center",justifyContent:"center",margin:"0 auto 16px",boxShadow:"0 8px 32px rgba(0,0,0,.4)"}}>RI</div>
+          <div style={{color:"#fff",fontSize:24,fontWeight:900,letterSpacing:"-.5px"}}>RIFIM ERP</div>
+          <div style={{color:"#94A3B8",fontSize:13,marginTop:4}}>PT. Rifim International Gemilang</div>
+          <div style={{color:"#64748B",fontSize:11,marginTop:2}}>Airport Operations & Administration</div>
+        </div>
+        <div style={{background:"rgba(255,255,255,.05)",backdropFilter:"blur(12px)",border:"1px solid rgba(255,255,255,.1)",borderRadius:20,padding:28,display:"flex",flexDirection:"column",gap:16}}>
+          <div>
+            <div style={{color:"#94A3B8",fontSize:11,fontWeight:700,textTransform:"uppercase",letterSpacing:".5px",marginBottom:8}}>Password Admin / Owner</div>
+            <div style={{position:"relative"}}>
+              <input type={sh?"text":"password"} value={pw} onChange={e=>setPw(e.target.value)} onKeyDown={e=>e.key==="Enter"&&go()} placeholder="Masukkan password..." style={{width:"100%",background:"rgba(255,255,255,.08)",border:"1.5px solid rgba(255,255,255,.1)",borderRadius:12,padding:"11px 44px 11px 14px",color:"#fff",fontSize:14,outline:"none"}}/>
+              <button onClick={()=>setSh(!sh)} style={{position:"absolute",right:12,top:"50%",transform:"translateY(-50%)",background:"none",border:"none",color:"#64748B",cursor:"pointer",fontSize:16}}>{sh?"🙈":"👁"}</button>
+            </div>
+          </div>
+          {e2&&<div style={{background:"rgba(220,38,38,.15)",border:"1px solid rgba(220,38,38,.3)",borderRadius:8,padding:"8px 12px",color:"#FCA5A5",fontSize:12,fontWeight:600}}>{e2}</div>}
+          <button onClick={go} className="btn-red" style={{justifyContent:"center",width:"100%",padding:"12px",fontSize:14}}>
+            🔐 Masuk ke Sistem
+          </button>
+        </div>
+      </div>
+    </div>
+  )
+}
+
+// ── TOAST ────────────────────────────────────────────────────────────────────
+function Toast({toasts,remove}){
+  const colors={success:"#15803D",error:"#DC2626",info:"#1D4ED8",warn:"#D97706"};
+  const icons={success:"✅",error:"❌",info:"ℹ️",warn:"⚠️"};
+  return(
+    <div style={{position:"fixed",bottom:24,right:24,zIndex:9999,display:"flex",flexDirection:"column",gap:8}}>
+      {toasts.map(t=>(
+        <div key={t.id} className="fade" style={{background:"#1E293B",border:`1.5px solid ${colors[t.type]||colors.info}40`,borderLeft:`4px solid ${colors[t.type]||colors.info}`,borderRadius:12,padding:"12px 16px",color:"#F1F5F9",fontSize:13,fontWeight:600,display:"flex",alignItems:"center",gap:10,boxShadow:"0 8px 32px rgba(0,0,0,.3)",maxWidth:320}}>
+          <span style={{fontSize:16}}>{icons[t.type]||"ℹ️"}</span>
+          <span style={{flex:1}}>{t.msg}</span>
+          <button onClick={()=>remove(t.id)} style={{background:"none",border:"none",color:"#64748B",cursor:"pointer",fontSize:14}}>✕</button>
+        </div>
+      ))}
+    </div>
+  )
 }
 
 // ── JADWAL SHIFT COMPONENT ───────────────────────────────────────────────────
@@ -569,7 +627,7 @@ function JadwalShift({ toast }) {
             <div className="th" style={{textAlign:"left",paddingLeft:14}}>STAFF</div>
             <div className="th libur-th">LIBUR<br/>/BLN</div>
             <div className="th">SEN</div><div className="th">SEL</div><div className="th">RAB</div>
-            <div className="th">KAM</div><div class="th">JUM</div>
+            <div className="th">KAM</div><div className="th">JUM</div>
             <div className="th weekend">SAB</div><div className="th weekend">MIN</div>
           </div>
           <div>
@@ -690,73 +748,47 @@ function JadwalShift({ toast }) {
   );
 }
 
-// ── LOGIN ────────────────────────────────────────────────────────────────────
-function Login({onLogin}){
-  const [pw,setPw]=useState(""),err=useState("")[0];
-  const [e2,setE2]=useState(""),show=useState(false)[0],[sh,setSh]=useState(false);
-  const go=()=>{
-    if(pw===ADMIN_PASS||pw===OWNER_PASS){onLogin(pw===OWNER_PASS?"owner":"admin")}
-    else{setE2("Password salah");setTimeout(()=>setE2(""),2500)}
-  };
-  return(
-    <div className="login-bg" style={{minHeight:"100vh",display:"flex",alignItems:"center",justifyContent:"center",padding:16}}>
-      <div style={{width:"100%",maxWidth:380}}>
-        <div style={{textAlign:"center",marginBottom:32}}>
-          <div style={{width:80,height:80,borderRadius:20,background:"var(--red)",color:"#fff",fontSize:36,fontWeight:900,display:"flex",alignItems:"center",justifyContent:"center",margin:"0 auto 16px",boxShadow:"0 8px 32px rgba(0,0,0,.4)"}}>RI</div>
-          <div style={{color:"#fff",fontSize:24,fontWeight:900,letterSpacing:"-.5px"}}>RIFIM ERP</div>
-          <div style={{color:"#94A3B8",fontSize:13,marginTop:4}}>PT. Rifim International Gemilang</div>
-          <div style={{color:"#64748B",fontSize:11,marginTop:2}}>Airport Operations & Administration</div>
-        </div>
-        <div style={{background:"rgba(255,255,255,.05)",backdropFilter:"blur(12px)",border:"1px solid rgba(255,255,255,.1)",borderRadius:20,padding:28,display:"flex",flexDirection:"column",gap:16}}>
-          <div>
-            <div style={{color:"#94A3B8",fontSize:11,fontWeight:700,textTransform:"uppercase",letterSpacing:".5px",marginBottom:8}}>Password Admin / Owner</div>
-            <div style={{position:"relative"}}>
-              <input type={sh?"text":"password"} value={pw} onChange={e=>setPw(e.target.value)} onKeyDown={e=>e.key==="Enter"&&go()} placeholder="Masukkan password..." style={{width:"100%",background:"rgba(255,255,255,.08)",border:"1.5px solid rgba(255,255,255,.1)",borderRadius:12,padding:"11px 44px 11px 14px",color:"#fff",fontSize:14,outline:"none"}}/>
-              <button onClick={()=>setSh(!sh)} style={{position:"absolute",right:12,top:"50%",transform:"translateY(-50%)",background:"none",border:"none",color:"#64748B",cursor:"pointer",fontSize:16}}>{sh?"🙈":"👁"}</button>
-            </div>
-          </div>
-          {e2&&<div style={{background:"rgba(220,38,38,.15)",border:"1px solid rgba(220,38,38,.3)",borderRadius:8,padding:"8px 12px",color:"#FCA5A5",fontSize:12,fontWeight:600}}>{e2}</div>}
-          <button onClick={go} className="btn-red" style={{justifyContent:"center",width:"100%",padding:"12px",fontSize:14}}>
-            🔐 Masuk ke Sistem
-          </button>
-        </div>
-      </div>
-    </div>
-  )
-}
-
-// ── TOAST ────────────────────────────────────────────────────────────────────
-function Toast({toasts,remove}){
-  const colors={success:"#15803D",error:"#DC2626",info:"#1D4ED8",warn:"#D97706"};
-  const icons={success:"✅",error:"❌",info:"ℹ️",warn:"⚠️"};
-  return(
-    <div style={{position:"fixed",bottom:24,right:24,zIndex:9999,display:"flex",flexDirection:"column",gap:8}}>
-      {toasts.map(t=>(
-        <div key={t.id} className="fade" style={{background:"#1E293B",border:`1.5px solid ${colors[t.type]||colors.info}40`,borderLeft:`4px solid ${colors[t.type]||colors.info}`,borderRadius:12,padding:"12px 16px",color:"#F1F5F9",fontSize:13,fontWeight:600,display:"flex",alignItems:"center",gap:10,boxShadow:"0 8px 32px rgba(0,0,0,.3)",maxWidth:320}}>
-          <span style={{fontSize:16}}>{icons[t.type]||"ℹ️"}</span>
-          <span style={{flex:1}}>{t.msg}</span>
-          <button onClick={()=>remove(t.id)} style={{background:"none",border:"none",color:"#64748B",cursor:"pointer",fontSize:14}}>✕</button>
-        </div>
-      ))}
-    </div>
-  )
-}
-
 // ── DASHBOARD ──────────────────────────────────────────────────────────
-function Dashboard({toast}) {
+function Dashboard({toast, refresh}) {
   const [tgl, setTgl] = useState(today());
   
   const initialCabang = [
-    { name: "Airport Batam", staf: 0, saldo: 0, pengeluaran: 0, order: 0, driver: 0 },
-    { name: "Batam", staf: 0, saldo: 0, pengeluaran: 0, order: 0, driver: 0 },
-    { name: "Airport Jambi", staf: 0, saldo: 0, pengeluaran: 0, order: 0, driver: 0 },
-    { name: "Pekanbaru", staf: 0, saldo: 0, pengeluaran: 0, order: 0, driver: 0 },
-    { name: "Airport Balikpapan", staf: 0, saldo: 0, pengeluaran: 0, order: 0, driver: 0 },
-    { name: "Airport Manado", staf: 0, saldo: 0, pengeluaran: 0, order: 0, driver: 0 },
+    { name: "ID Rifim Airport Batam", staf: 0, saldo: 0, pengeluaran: 0, order: 0, driver: 0 },
+    { name: "ID Rifim Airport Jambi", staf: 0, saldo: 0, pengeluaran: 0, order: 0, driver: 0 },
+    { name: "ID Rifim Airport Balikpapan", staf: 0, saldo: 0, pengeluaran: 0, order: 0, driver: 0 },
+    { name: "ID Rifim Airport Manado", staf: 0, saldo: 0, pengeluaran: 0, order: 0, driver: 0 },
+    { name: "ID Rifim Airport Pekanbaru", staf: 0, saldo: 0, pengeluaran: 0, order: 0, driver: 0 },
+    { name: "ID Rifim Batam", staf: 0, saldo: 0, pengeluaran: 0, order: 0, driver: 0 },
+    { name: "ID Rifim Jambi Luar", staf: 0, saldo: 0, pengeluaran: 0, order: 0, driver: 0 },
+    { name: "ID Kantor", staf: 0, saldo: 0, pengeluaran: 0, order: 0, driver: 0 },
   ];
+  
   const [tableData, setTableData] = useState(initialCabang);
   const [fees, setFees] = useState({ batam: 0, manado: 0, jambi: 0, surcharge: 0, akun: 0, potongan: 0, askBaru: 0, perpanjangan: 0, komunitas: 0 });
   const [catatan, setCatatan] = useState("");
+  const [dashHistory, setDashHistory] = useState([]);
+
+  useEffect(() => {
+    DB.get("rifim_dash_aggr").then(agg => {
+      if(agg) {
+        setTableData(prev => prev.map(row => {
+          if(agg[row.name]) {
+            return { ...row, saldo: agg[row.name].saldo || 0, driver: agg[row.name].driver || 0 };
+          }
+          return row;
+        }));
+      }
+    });
+
+    DB.get("rifim_dash_history").then(hist => {
+      if(hist) {
+        const now = new Date().getTime();
+        const valid = hist.filter(h => (now - new Date(h.date).getTime()) <= 2592000000);
+        setDashHistory(valid);
+        if(valid.length !== hist.length) DB.set("rifim_dash_history", valid);
+      }
+    });
+  }, [refresh]);
 
   const handleTableChange = (idx, field, val) => {
     const newVal = parseInt(val) || 0;
@@ -768,6 +800,31 @@ function Dashboard({toast}) {
   const totalPengeluaran = tableData.reduce((acc, curr) => acc + curr.pengeluaran, 0);
   const balanceOp = totalSaldoMasuk - totalPengeluaran;
   const totalFee = fees.batam + fees.manado + fees.jambi + fees.surcharge + fees.akun + fees.potongan + (fees.askBaru * 550000) + (fees.perpanjangan * 350000) + (fees.komunitas * 500000);
+
+  const handleSimpanLaporan = async () => {
+    if(confirm("Simpan Laporan Harian ini? (Data Saldo & Driver harian juga akan di-reset untuk pencatatan besok)")){
+      const report = {
+        id: genId("RPT"),
+        date: new Date().toISOString(),
+        tgl: tgl,
+        totalSaldo: totalSaldoMasuk,
+        totalPengeluaran: totalPengeluaran,
+        totalDriver: tableData.reduce((acc, curr) => acc + curr.driver, 0),
+        catatan: catatan
+      };
+      
+      const newHist = [report, ...dashHistory];
+      setDashHistory(newHist);
+      DB.set("rifim_dash_history", newHist);
+      
+      DB.set("rifim_dash_aggr", {});
+      setTableData(initialCabang);
+      
+      toast("Laporan Keuangan & Driver berhasil disimpan ke Riwayat!", "success");
+    }
+  };
+
+  const maxSaldo = Math.max(...tableData.map(d => d.saldo), 1);
 
   return (
     <div className="fade" style={{display:"flex",flexDirection:"column",gap:20}}>
@@ -799,7 +856,10 @@ function Dashboard({toast}) {
         <div style={{display:"flex",alignItems:"center",justifyContent:"space-between",marginBottom:20}}>
           <div style={{display:"flex",alignItems:"center",gap:12}}>
             <div style={{width:40,height:40,borderRadius:10,background:"#EEF2FF",color:"#4F46E5",display:"flex",alignItems:"center",justifyContent:"center",fontSize:18}}>🏪</div>
-            <div style={{fontSize:16,fontWeight:800,color:"#1E293B"}}>Laporan Keuangan & Driver Cabang</div>
+            <div>
+               <div style={{fontSize:16,fontWeight:800,color:"#1E293B"}}>Laporan Keuangan & Driver Cabang</div>
+               <div style={{fontSize:11,color:"#64748B",marginTop:2}}>Data Saldo & Driver akan terisi otomatis bila ada Input Saldo</div>
+            </div>
           </div>
           <div>
             <div style={{fontSize:10,fontWeight:700,color:"#94A3B8",textTransform:"uppercase",marginBottom:4}}>Tanggal</div>
@@ -813,10 +873,10 @@ function Dashboard({toast}) {
               <tr style={{background:"transparent", borderBottom:"2px solid #E2E8F0"}}>
                 <th style={{background:"transparent", color:"#64748B", paddingBottom:12}}>CABANG</th>
                 <th style={{background:"transparent", color:"#64748B", paddingBottom:12, textAlign:"right"}}>STAF</th>
-                <th style={{background:"transparent", color:"#64748B", paddingBottom:12, textAlign:"right"}}>SALDO MASUK</th>
+                <th style={{background:"transparent", color:"var(--red)", paddingBottom:12, textAlign:"right"}}>SALDO MASUK</th>
                 <th style={{background:"transparent", color:"#64748B", paddingBottom:12, textAlign:"right"}}>PENGELUARAN</th>
                 <th style={{background:"transparent", color:"#64748B", paddingBottom:12, textAlign:"right"}}>ORDER</th>
-                <th style={{background:"transparent", color:"#64748B", paddingBottom:12, textAlign:"right"}}>DRIVER</th>
+                <th style={{background:"transparent", color:"var(--red)", paddingBottom:12, textAlign:"right"}}>DRIVER</th>
               </tr>
             </thead>
             <tbody>
@@ -824,15 +884,38 @@ function Dashboard({toast}) {
                 <tr key={i} style={{borderBottom:"1px solid #F1F5F9"}}>
                   <td style={{fontWeight:600, color:"#334155", padding:"12px"}}>{row.name}</td>
                   <td style={{padding:"8px 12px"}}><input type="number" value={row.staf||""} onChange={e=>handleTableChange(i, 'staf', e.target.value)} placeholder="0" className="dash-inp" style={{textAlign:"right"}}/></td>
-                  <td style={{padding:"8px 12px"}}><input type="number" value={row.saldo||""} onChange={e=>handleTableChange(i, 'saldo', e.target.value)} placeholder="0" className="dash-inp" style={{textAlign:"right"}}/></td>
+                  <td style={{padding:"8px 12px"}}><input type="number" value={row.saldo||""} onChange={e=>handleTableChange(i, 'saldo', e.target.value)} placeholder="0" className="dash-inp" style={{textAlign:"right",fontWeight:700,color:"var(--red)",background:"#FFF5F5"}}/></td>
                   <td style={{padding:"8px 12px"}}><input type="number" value={row.pengeluaran||""} onChange={e=>handleTableChange(i, 'pengeluaran', e.target.value)} placeholder="0" className="dash-inp" style={{textAlign:"right"}}/></td>
                   <td style={{padding:"8px 12px"}}><input type="number" value={row.order||""} onChange={e=>handleTableChange(i, 'order', e.target.value)} placeholder="0" className="dash-inp" style={{textAlign:"right"}}/></td>
-                  <td style={{padding:"8px 12px"}}><input type="number" value={row.driver||""} onChange={e=>handleTableChange(i, 'driver', e.target.value)} placeholder="0" className="dash-inp" style={{textAlign:"right"}}/></td>
+                  <td style={{padding:"8px 12px"}}><input type="number" value={row.driver||""} onChange={e=>handleTableChange(i, 'driver', e.target.value)} placeholder="0" className="dash-inp" style={{textAlign:"right",fontWeight:700,color:"var(--red)",background:"#FFF5F5"}}/></td>
                 </tr>
               ))}
             </tbody>
           </table>
         </div>
+      </div>
+
+      <div className="card-premium" style={{padding:"24px"}}>
+         <div style={{display:"flex",alignItems:"center",gap:12,marginBottom:20}}>
+            <div style={{width:40,height:40,borderRadius:10,background:"#FFF5F5",color:"var(--red)",display:"flex",alignItems:"center",justifyContent:"center",fontSize:18}}>📊</div>
+            <div style={{fontSize:16,fontWeight:800,color:"#1E293B"}}>Grafik Pendapatan Saldo Masuk</div>
+         </div>
+         <div style={{display:"flex",flexDirection:"column",gap:12}}>
+            {tableData.map((row, i) => {
+               const percentage = maxSaldo > 0 ? Math.round((row.saldo / maxSaldo) * 100) : 0;
+               return (
+                  <div key={i} style={{display:"flex",alignItems:"center",gap:16}}>
+                     <div style={{width:160,fontSize:12,fontWeight:600,color:"#334155"}}>{row.name}</div>
+                     <div style={{flex:1}}>
+                        <div className="chart-bar-bg">
+                           <div className="chart-bar-fill" style={{width: `${percentage}%`}}></div>
+                        </div>
+                     </div>
+                     <div style={{width:100,textAlign:"right",fontSize:13,fontWeight:800,color:"var(--red)"}} className="mono">{rp(row.saldo)}</div>
+                  </div>
+               )
+            })}
+         </div>
       </div>
 
       <div className="card-premium" style={{padding:"24px"}}>
@@ -867,9 +950,42 @@ function Dashboard({toast}) {
          <div style={{fontSize:12,fontWeight:700,color:"#64748B",marginBottom:10,textTransform:"uppercase"}}>Catatan Urgent Untuk Pak Bobby</div>
          <textarea value={catatan} onChange={e=>setCatatan(e.target.value)} placeholder="Tulis kendala krusial atau update penting..." className="dash-inp" style={{minHeight:100, resize:"vertical", fontSize:14}}></textarea>
          <div style={{display:"flex",justifyContent:"flex-end",marginTop:16}}>
-            <button className="btn-blue" onClick={()=>toast("Data Dashboard Disimpan!", "success")}>💾 Simpan Draft Dashboard</button>
+            <button className="btn-red" onClick={handleSimpanLaporan}>💾 Kirim & Simpan Laporan Harian</button>
          </div>
       </div>
+
+      {dashHistory.length > 0 && (
+         <div className="card-premium" style={{padding:"24px"}}>
+            <div style={{display:"flex",alignItems:"center",justifyContent:"space-between",marginBottom:16}}>
+               <div style={{fontSize:16,fontWeight:800,color:"#1E293B"}}>Riwayat Laporan Keuangan</div>
+               <div style={{fontSize:11,color:"#94A3B8"}}>Dihapus otomatis setelah 30 Hari</div>
+            </div>
+            <div className="tbl-wrap">
+               <table>
+                  <thead>
+                     <tr>
+                        <th>TANGGAL LAPORAN</th>
+                        <th style={{textAlign:"right"}}>TOTAL SALDO</th>
+                        <th style={{textAlign:"right"}}>TOTAL PENGELUARAN</th>
+                        <th style={{textAlign:"right"}}>TOTAL DRIVER</th>
+                        <th>CATATAN</th>
+                     </tr>
+                  </thead>
+                  <tbody>
+                     {dashHistory.map((h, i) => (
+                        <tr key={h.id}>
+                           <td style={{fontWeight:600,fontSize:12}}>{fmtD(h.tgl)}</td>
+                           <td style={{textAlign:"right",color:"var(--red)",fontWeight:700}} className="mono">{rp(h.totalSaldo)}</td>
+                           <td style={{textAlign:"right"}} className="mono">{rp(h.totalPengeluaran)}</td>
+                           <td style={{textAlign:"right",fontWeight:700}}>{h.totalDriver}</td>
+                           <td style={{fontSize:11,color:"#64748B",maxWidth:250,overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap"}}>{h.catatan || "-"}</td>
+                        </tr>
+                     ))}
+                  </tbody>
+               </table>
+            </div>
+         </div>
+      )}
     </div>
   )
 }
@@ -956,7 +1072,7 @@ function SalDock({toast, role}){
     });
     
     if(!out.length){toast("Tidak ada baris yang terisi","error");return}
-    updatePending([...pendingRows, ...out]);
+    updatePending([...out, ...pendingRows]); 
     setLines(Array.from({length:10},EMPTY));
     toast(out.length+" transaksi dipindahkan ke Preview!","success");
   }
@@ -997,6 +1113,18 @@ function SalDock({toast, role}){
     updatePending(failedList); 
     if(successList.length > 0) {
       updateHistory([...successList, ...historyRows]);
+      
+      DB.get("rifim_dash_aggr").then(agg => {
+        const currentAgg = agg || {};
+        successList.forEach(r => {
+          if(!currentAgg[r.cabang]) {
+             currentAgg[r.cabang] = { saldo: 0, driver: 0 };
+          }
+          currentAgg[r.cabang].saldo += r.nomTag; 
+          currentAgg[r.cabang].driver += 1;
+        });
+        DB.set("rifim_dash_aggr", currentAgg);
+      });
     }
     
     setSending(false);
@@ -1106,7 +1234,7 @@ function SalDock({toast, role}){
               <tbody>
                 {pendingRows.map((r, i) => (
                   <tr key={`p-${r.id}`} style={{background:"#fff"}}>
-                    <td><span className="badge badge-warn">⏳ PENDING</span></td>
+                    <td><span className="badge badge-warn">⏳ MENUNGGU DIKIRIM</span></td>
                     <td className="mono" style={{fontSize:11}}>{r.tglDisp}</td>
                     <td className="mono" style={{fontWeight:700,color:"#1E293B"}}>{r.loginId}</td>
                     <td>
