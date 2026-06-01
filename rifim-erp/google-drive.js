@@ -1,105 +1,90 @@
 // ============================================================
-// RIFIM ERP - Google Drive Upload
-// FIXED: Tidak lagi pakai OAuth popup (penyebab origin_mismatch)
-// Upload via Google Apps Script Web App sebagai proxy
+// RIFIM ERP — google-drive.js v2
+// Upload via Apps Script proxy — TANPA gapi, TANPA OAuth popup
 // ============================================================
 
-// ⚠️ GANTI dengan URL Apps Script Web App milik Anda
-// Cara deploy: buka script.google.com → Deploy → Web App → Anyone
+// ⚠️ Ganti dengan URL Apps Script Web App Anda setelah deploy
+// Cara deploy: script.google.com → Deploy → Web App → Anyone
 const APPS_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbyrUp1IVAOrHpXpDrpOvK4W6J0w6Ky9aI0T5TDTwHbCn7sUBu1U-8laJ5LfPU5Gy-Rd/exec";
 
-// Folder Drive tujuan upload selfie
-const FOLDER_ID = "1Ejaz210g3TeM46W6up5BtgHNzEWwOnRQ";
+const DRIVE_FOLDER_ID = "1Ejaz210g3TeM46W6up5BtgHNzEWwOnRQ";
 
 /**
- * Upload file ke Google Drive via Apps Script proxy
- * Tidak perlu OAuth popup — aman dari origin_mismatch
- * @param {File} file - File object (gambar selfie)
- * @returns {Promise<string>} - File ID jika sukses
+ * Upload file selfie ke Google Drive via Apps Script proxy
  */
 async function uploadFileToDrive(file) {
+  const statusEl = document.getElementById("upload-status");
+
+  // Cek apakah Apps Script URL sudah dikonfigurasi
+  if (APPS_SCRIPT_URL.includes("GANTI_DENGAN_URL_ANDA")) {
+    setStatus(statusEl,
+      "⚠️ Apps Script URL belum dikonfigurasi. Lihat PANDUAN_PERBAIKAN.md",
+      "#fef9c3", "#854d0e"
+    );
+    console.warn("https://script.google.com/macros/s/AKfycbyrUp1IVAOrHpXpDrpOvK4W6J0w6Ky9aI0T5TDTwHbCn7sUBu1U-8laJ5LfPU5Gy-Rd/exec");
+    return null;
+  }
+
   try {
-    showUploadStatus("⏳ Mengupload selfie...", "info");
+    setStatus(statusEl, "⏳ Mengupload selfie ke Drive...", "#dbeafe", "#1e40af");
 
-    // Konversi file ke base64
     const base64 = await fileToBase64(file);
-
-    const payload = {
-      fileName: file.name,
-      mimeType: file.type,
-      base64Data: base64,
-      folderId: FOLDER_ID,
-    };
 
     const response = await fetch(APPS_SCRIPT_URL, {
       method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify(payload),
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        fileName:  file.name,
+        mimeType:  file.type,
+        base64Data: base64,
+        folderId:  DRIVE_FOLDER_ID,
+      }),
     });
 
     const result = await response.json();
 
     if (result.success && result.fileId) {
-      showUploadStatus("✅ Selfie berhasil diupload ke Google Drive", "success");
-      console.log("File ID:", result.fileId);
+      setStatus(statusEl,
+        "✅ Selfie berhasil diupload ke Google Drive",
+        "#dcfce7", "#166534"
+      );
       return result.fileId;
     } else {
-      throw new Error(result.error || "Upload gagal");
+      throw new Error(result.error || "Respons tidak valid dari server");
     }
+
   } catch (err) {
-    console.error("Upload error:", err);
-    showUploadStatus("❌ Upload gagal: " + err.message, "error");
-    throw err;
+    setStatus(statusEl,
+      "❌ Upload gagal: " + err.message,
+      "#fee2e2", "#991b1b"
+    );
+    console.error("Drive upload error:", err);
+    return null;
   }
 }
 
-/**
- * Konversi File ke base64 string
- */
+// Konversi File → base64 string (tanpa prefix data:...)
 function fileToBase64(file) {
   return new Promise((resolve, reject) => {
     const reader = new FileReader();
-    reader.onload = () => {
-      // Hapus prefix "data:image/jpeg;base64," — kirim data saja
-      const base64 = reader.result.split(",")[1];
-      resolve(base64);
-    };
+    reader.onload  = () => resolve(reader.result.split(",")[1]);
     reader.onerror = () => reject(new Error("Gagal membaca file"));
     reader.readAsDataURL(file);
   });
 }
 
-/**
- * Tampilkan status upload di UI
- */
-function showUploadStatus(message, type) {
-  let el = document.getElementById("upload-status");
-  if (!el) {
-    el = document.createElement("div");
-    el.id = "upload-status";
-    el.style.cssText = `
-      padding: 12px 18px;
-      border-radius: 12px;
-      margin-top: 12px;
-      font-weight: 600;
-      font-size: 15px;
-    `;
-    // Sisipkan setelah tombol upload jika ada
-    const btn = document.getElementById("uploadBtn");
-    if (btn) btn.parentNode.insertBefore(el, btn.nextSibling);
-    else document.body.appendChild(el);
-  }
-
-  const styles = {
-    info:    { bg: "#dbeafe", color: "#1e40af" },
-    success: { bg: "#dcfce7", color: "#166534" },
-    error:   { bg: "#fee2e2", color: "#991b1b" },
-  };
-
-  const s = styles[type] || styles.info;
-  el.style.background = s.bg;
-  el.style.color = s.color;
-  el.textContent = message;
+// Helper set status box
+function setStatus(el, msg, bg, color) {
+  if (!el) return;
+  Object.assign(el.style, {
+    display: "block",
+    background: bg,
+    color: color,
+    padding: "12px 16px",
+    borderRadius: "12px",
+    fontWeight: "600",
+    fontSize: "15px",
+    marginTop: "10px",
+  });
+  el.textContent = msg;
 }
