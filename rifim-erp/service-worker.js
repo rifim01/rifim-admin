@@ -1,19 +1,36 @@
-self.addEventListener('install',e=>{
+const CACHE_NAME = "rifim-erp-v2";
+const ASSETS = [
+  "./",
+  "./index.html",
+  "./dashboard.html",
+  "./attendance.html",
+  "./jadwal.html",
+  "./rekap.html",
+  "./style.css",
+  "./google-drive.js",
+  "./manifest.json",
+];
 
+self.addEventListener("install", e => {
   e.waitUntil(
-
-    caches.open('rifim-cache')
-    .then(cache=>{
-
-      return cache.addAll([
-        '/',
-        '/index.html',
-        '/style.css',
-        '/app.js'
-      ]);
-
-    })
-
+    caches.open(CACHE_NAME)
+      .then(cache => cache.addAll(ASSETS))
+      .then(() => self.skipWaiting())
   );
+});
 
+self.addEventListener("activate", e => {
+  e.waitUntil(
+    caches.keys().then(keys =>
+      Promise.all(keys.filter(k => k !== CACHE_NAME).map(k => caches.delete(k)))
+    )
+  );
+});
+
+self.addEventListener("fetch", e => {
+  e.respondWith(
+    caches.match(e.request)
+      .then(cached => cached || fetch(e.request))
+      .catch(() => caches.match("./index.html"))
+  );
 });
