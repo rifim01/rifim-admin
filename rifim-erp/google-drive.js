@@ -1,181 +1,105 @@
-const CLIENT_ID =
-"181935617941-5d0cspgdt39kdog72fetn7js0oksskee.apps.googleusercontent.com";
+// ============================================================
+// RIFIM ERP - Google Drive Upload
+// FIXED: Tidak lagi pakai OAuth popup (penyebab origin_mismatch)
+// Upload via Google Apps Script Web App sebagai proxy
+// ============================================================
 
-const API_KEY =
-"AIzaSyArvTvSNtZK5dlVq1acC9wN9emn9oVQpN8";
+// ⚠️ GANTI dengan URL Apps Script Web App milik Anda
+// Cara deploy: buka script.google.com → Deploy → Web App → Anyone
+const APPS_SCRIPT_URL = "https://script.google.com/macros/s/YOUR_DEPLOYED_SCRIPT_ID/exec";
 
-const DISCOVERY_DOC =
-"https://www.googleapis.com/discovery/v1/apis/drive/v3/rest";
+// Folder Drive tujuan upload selfie
+const FOLDER_ID = "1Ejaz210g3TeM46W6up5BtgHNzEWwOnRQ";
 
-const SCOPES =
-"https://www.googleapis.com/auth/drive";
+/**
+ * Upload file ke Google Drive via Apps Script proxy
+ * Tidak perlu OAuth popup — aman dari origin_mismatch
+ * @param {File} file - File object (gambar selfie)
+ * @returns {Promise<string>} - File ID jika sukses
+ */
+async function uploadFileToDrive(file) {
+  try {
+    showUploadStatus("⏳ Mengupload selfie...", "info");
 
-const FOLDER_ID =
-"1Ejaz210g3TeM46W6up5BtgHNzEWwOnRQ";
+    // Konversi file ke base64
+    const base64 = await fileToBase64(file);
 
-let tokenClient;
-
-/* INIT */
-
-window.onload = () => {
-
-  gapi.load(
-    "client",
-    async()=>{
-
-      await gapi.client.init({
-
-        apiKey: API_KEY,
-
-        discoveryDocs:[
-          DISCOVERY_DOC
-        ]
-
-      });
-
-    }
-
-  );
-
-  tokenClient =
-  google.accounts.oauth2.initTokenClient({
-
-    client_id: CLIENT_ID,
-
-    scope: SCOPES,
-
-    callback:""
-
-  });
-
-};
-
-/* AUTH */
-
-async function authenticateGoogle(){
-
-  return new Promise((resolve,reject)=>{
-
-    tokenClient.callback = (resp)=>{
-
-      if(resp.error){
-
-        reject(resp);
-
-        return;
-
-      }
-
-      resolve(resp);
-
+    const payload = {
+      fileName: file.name,
+      mimeType: file.type,
+      base64Data: base64,
+      folderId: FOLDER_ID,
     };
 
-    tokenClient.requestAccessToken({
-
-      prompt:"consent"
-
+    const response = await fetch(APPS_SCRIPT_URL, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify(payload),
     });
 
-  });
+    const result = await response.json();
 
+    if (result.success && result.fileId) {
+      showUploadStatus("✅ Selfie berhasil diupload ke Google Drive", "success");
+      console.log("File ID:", result.fileId);
+      return result.fileId;
+    } else {
+      throw new Error(result.error || "Upload gagal");
+    }
+  } catch (err) {
+    console.error("Upload error:", err);
+    showUploadStatus("❌ Upload gagal: " + err.message, "error");
+    throw err;
+  }
 }
 
-/* UPLOAD */
-
-async function uploadFileToDrive(file){
-
-  try{
-
-    await authenticateGoogle();
-
-    const metadata = {
-
-      name:file.name,
-
-      mimeType:file.type,
-
-      parents:[FOLDER_ID]
-
+/**
+ * Konversi File ke base64 string
+ */
+function fileToBase64(file) {
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onload = () => {
+      // Hapus prefix "data:image/jpeg;base64," — kirim data saja
+      const base64 = reader.result.split(",")[1];
+      resolve(base64);
     };
+    reader.onerror = () => reject(new Error("Gagal membaca file"));
+    reader.readAsDataURL(file);
+  });
+}
 
-    const form =
-    new FormData();
-
-    form.append(
-
-      "metadata",
-
-      new Blob(
-
-        [JSON.stringify(metadata)],
-
-        {
-          type:"application/json"
-        }
-
-      )
-
-    );
-
-    form.append(
-      "file",
-      file
-    );
-
-    const accessToken =
-    gapi.client.getToken().access_token;
-
-    const response =
-    await fetch(
-
-      "https://www.googleapis.com/upload/drive/v3/files?uploadType=multipart",
-
-      {
-
-        method:"POST",
-
-        headers:{
-
-          Authorization:
-          "Bearer " + accessToken
-
-        },
-
-        body:form
-
-      }
-
-    );
-
-    const result =
-    await response.json();
-
-    console.log(result);
-
-    if(result.id){
-
-      alert(
-        "✅ Selfie berhasil upload ke Google Drive"
-      );
-
-    }else{
-
-      alert(
-        "❌ Upload gagal"
-      );
-
-      console.log(result);
-
-    }
-
-  }catch(err){
-
-    console.error(err);
-
-    alert(
-      "❌ Error upload Google Drive"
-    );
-
+/**
+ * Tampilkan status upload di UI
+ */
+function showUploadStatus(message, type) {
+  let el = document.getElementById("upload-status");
+  if (!el) {
+    el = document.createElement("div");
+    el.id = "upload-status";
+    el.style.cssText = `
+      padding: 12px 18px;
+      border-radius: 12px;
+      margin-top: 12px;
+      font-weight: 600;
+      font-size: 15px;
+    `;
+    // Sisipkan setelah tombol upload jika ada
+    const btn = document.getElementById("uploadBtn");
+    if (btn) btn.parentNode.insertBefore(el, btn.nextSibling);
+    else document.body.appendChild(el);
   }
 
+  const styles = {
+    info:    { bg: "#dbeafe", color: "#1e40af" },
+    success: { bg: "#dcfce7", color: "#166534" },
+    error:   { bg: "#fee2e2", color: "#991b1b" },
+  };
+
+  const s = styles[type] || styles.info;
+  el.style.background = s.bg;
+  el.style.color = s.color;
+  el.textContent = message;
 }
