@@ -1,0 +1,74 @@
+```html
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Attendance - RIFIM ERP</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+
+<body class="dark">
+
+<div class="dashboard">
+
+  <aside class="sidebar">
+    <h2>🔴 RIFIM ERP</h2>
+
+    <ul>
+      <li><a href="dashboard.html">📊 Dashboard</a></li>
+      <li class="active">📍 Attendance</li>
+      <li><a href="jadwal.html">📅 Jadwal Shift</a></li>
+      <li><a href="rekap.html">📈 Rekap</a></li>
+    </ul>
+  </aside>
+
+  <main class="content">
+
+    <div class="card">
+
+      <h1>📸 Selfie Verification</h1>
+
+      <div class="camera-box">
+        <video id="video" autoplay playsinline></video>
+      </div>
+
+      <button onclick="capturePhoto()">
+        📷 Ambil Foto
+      </button>
+
+      <canvas id="canvas" style="display:none;"></canvas>
+
+    </div>
+
+    <div class="card">
+
+      <h1>📍 GPS Validation</h1>
+
+      <p>Latitude : <span id="lat"></span></p>
+      <p>Longitude : <span id="lng"></span></p>
+
+      <div class="status success">
+        ✅ Dalam Radius Bandara
+      </div>
+
+      <button onclick="submitAttendance()">
+        🚀 Kirim Absensi
+      </button>
+
+    </div>
+
+  </main>
+
+</div>
+
+<script src="app.js"></script>
+
+<script>
+startCamera();
+getGPS();
+</script>
+
+</body>
+</html>
+```
