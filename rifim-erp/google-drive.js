@@ -87,3 +87,5 @@ async function uploadSelfieToDrive(blob, fileName) {
 
   return await response.json();
 }
+gapiLoaded();
+gisLoaded();
