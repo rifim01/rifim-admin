@@ -1,29 +1,14 @@
 // ============================================================
-// RIFIM ERP — google-drive.js v2
+// RIFIM ERP — google-drive.js v3
 // Upload via Apps Script proxy — TANPA gapi, TANPA OAuth popup
 // ============================================================
 
-// ⚠️ Ganti dengan URL Apps Script Web App Anda setelah deploy
-// Cara deploy: script.google.com → Deploy → Web App → Anyone
 const APPS_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbyrUp1IVAOrHpXpDrpOvK4W6J0w6Ky9aI0T5TDTwHbCn7sUBu1U-8laJ5LfPU5Gy-Rd/exec";
 
 const DRIVE_FOLDER_ID = "1Ejaz210g3TeM46W6up5BtgHNzEWwOnRQ";
 
-/**
- * Upload file selfie ke Google Drive via Apps Script proxy
- */
 async function uploadFileToDrive(file) {
   const statusEl = document.getElementById("upload-status");
-
-  // Cek apakah Apps Script URL sudah dikonfigurasi
-  if (APPS_SCRIPT_URL.includes("GANTI_DENGAN_URL_ANDA")) {
-    setStatus(statusEl,
-      "⚠️ Apps Script URL belum dikonfigurasi. Lihat PANDUAN_PERBAIKAN.md",
-      "#fef9c3", "#854d0e"
-    );
-    console.warn("https://script.google.com/macros/s/AKfycbyrUp1IVAOrHpXpDrpOvK4W6J0w6Ky9aI0T5TDTwHbCn7sUBu1U-8laJ5LfPU5Gy-Rd/exec");
-    return null;
-  }
 
   try {
     setStatus(statusEl, "⏳ Mengupload selfie ke Drive...", "#dbeafe", "#1e40af");
@@ -34,10 +19,10 @@ async function uploadFileToDrive(file) {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
-        fileName:  file.name,
-        mimeType:  file.type,
+        fileName:   file.name,
+        mimeType:   file.type,
         base64Data: base64,
-        folderId:  DRIVE_FOLDER_ID,
+        folderId:   DRIVE_FOLDER_ID,
       }),
     });
 
@@ -63,7 +48,6 @@ async function uploadFileToDrive(file) {
   }
 }
 
-// Konversi File → base64 string (tanpa prefix data:...)
 function fileToBase64(file) {
   return new Promise((resolve, reject) => {
     const reader = new FileReader();
@@ -73,7 +57,6 @@ function fileToBase64(file) {
   });
 }
 
-// Helper set status box
 function setStatus(el, msg, bg, color) {
   if (!el) return;
   Object.assign(el.style, {
