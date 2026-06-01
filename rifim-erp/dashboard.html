@@ -3,233 +3,35 @@
 
 <head>
 
-  <meta charset="UTF-8" />
+  <meta charset="UTF-8">
 
   <meta
     name="viewport"
     content="width=device-width, initial-scale=1.0"
-  />
+  >
 
-  <title>RIFIM ERP Dashboard</title>
-
-  <!-- FONT -->
+  <title>
+    Dashboard - RIFIM ERP
+  </title>
 
   <link
-    href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700;800&display=swap"
     rel="stylesheet"
-  />
-
-  <!-- CHART JS -->
-
-  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-
-  <style>
-
-    *{
-      margin:0;
-      padding:0;
-      box-sizing:border-box;
-      font-family:'Poppins',sans-serif;
-    }
-
-    body{
-
-      background:
-      #f5f7fb;
-
-      display:flex;
-
-      min-height:100vh;
-    }
-
-    /* SIDEBAR */
-
-    .sidebar{
-
-      width:260px;
-
-      background:
-      linear-gradient(
-        180deg,
-        #ef4444,
-        #dc2626
-      );
-
-      color:white;
-
-      padding:30px 20px;
-    }
-
-    .logo{
-
-      font-size:32px;
-      font-weight:800;
-
-      margin-bottom:40px;
-    }
-
-    .menu a{
-
-      display:flex;
-      align-items:center;
-      gap:12px;
-
-      text-decoration:none;
-
-      color:white;
-
-      padding:15px 18px;
-
-      border-radius:15px;
-
-      margin-bottom:10px;
-
-      transition:.3s;
-    }
-
-    .menu a:hover{
-
-      background:
-      rgba(255,255,255,.15);
-    }
-
-    /* MAIN */
-
-    .main{
-
-      flex:1;
-
-      padding:30px;
-    }
-
-    .topbar{
-
-      display:flex;
-      justify-content:space-between;
-      align-items:center;
-
-      margin-bottom:30px;
-    }
-
-    .topbar h1{
-
-      font-size:32px;
-      color:#1e293b;
-    }
-
-    .logout-btn{
-
-      border:none;
-
-      background:#ef4444;
-
-      color:white;
-
-      padding:12px 20px;
-
-      border-radius:12px;
-
-      cursor:pointer;
-
-      font-weight:600;
-    }
-
-    /* CARDS */
-
-    .cards{
-
-      display:grid;
-
-      grid-template-columns:
-      repeat(auto-fit,minmax(220px,1fr));
-
-      gap:20px;
-
-      margin-bottom:30px;
-    }
-
-    .card{
-
-      background:white;
-
-      padding:25px;
-
-      border-radius:22px;
-
-      box-shadow:
-      0 10px 30px rgba(0,0,0,.05);
-    }
-
-    .card h3{
-
-      color:#64748b;
-
-      font-size:16px;
-
-      margin-bottom:15px;
-    }
-
-    .card .number{
-
-      font-size:42px;
-      font-weight:800;
-
-      color:#ef4444;
-    }
-
-    /* CHART */
-
-    .chart-box{
-
-      background:white;
-
-      padding:30px;
-
-      border-radius:22px;
-
-      box-shadow:
-      0 10px 30px rgba(0,0,0,.05);
-    }
-
-    .chart-title{
-
-      font-size:26px;
-      font-weight:700;
-
-      margin-bottom:20px;
-
-      color:#1e293b;
-    }
-
-    /* MOBILE */
-
-    @media(max-width:768px){
-
-      body{
-        flex-direction:column;
-      }
-
-      .sidebar{
-        width:100%;
-      }
-
-    }
-
-  </style>
+    href="style.css"
+  >
 
 </head>
 
 <body>
 
-  <!-- SIDEBAR -->
+<div class="dashboard">
 
-  <div class="sidebar">
+  <aside class="sidebar">
 
-    <div class="logo">
+    <h1>
       🔴 RIFIM ERP
-    </div>
+    </h1>
 
-    <div class="menu">
+    <nav>
 
       <a href="dashboard.html">
         📊 Dashboard
@@ -240,171 +42,125 @@
       </a>
 
       <a href="jadwal.html">
-        📅 Jadwal Shift
+        🗓 Jadwal Shift
       </a>
 
       <a href="rekap.html">
         📈 Rekap
       </a>
 
-    </div>
+    </nav>
 
-  </div>
+  </aside>
 
-  <!-- MAIN -->
-
-  <div class="main">
-
-    <!-- TOPBAR -->
+  <main class="main-content">
 
     <div class="topbar">
 
-      <h1>
-        Dashboard
-      </h1>
+      <h2>
+        Dashboard Overview
+      </h2>
 
-      <button
-        class="logout-btn"
-        onclick="logout()"
-      >
+      <button onclick="logout()">
         Logout
       </button>
 
     </div>
 
-    <!-- CARDS -->
-
     <div class="cards">
 
       <div class="card">
-
         <h3>Total Staff</h3>
-
-        <div class="number">
-          145
-        </div>
-
+        <h1>145</h1>
       </div>
 
       <div class="card">
-
         <h3>Hadir Hari Ini</h3>
-
-        <div class="number">
-          120
-        </div>
-
+        <h1>120</h1>
       </div>
 
       <div class="card">
-
         <h3>Belum Absen</h3>
-
-        <div class="number">
-          25
-        </div>
-
+        <h1>25</h1>
       </div>
 
       <div class="card">
-
         <h3>Terlambat</h3>
-
-        <div class="number">
-          8
-        </div>
-
+        <h1>8</h1>
       </div>
 
     </div>
 
-    <!-- CHART -->
-
     <div class="chart-box">
 
-      <div class="chart-title">
+      <h2>
         📈 Grafik Kehadiran
-      </div>
+      </h2>
 
       <canvas id="attendanceChart"></canvas>
 
     </div>
 
-  </div>
+  </main>
 
-  <script>
+</div>
 
-    // CHART
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 
-    const ctx =
-    document
-    .getElementById(
-      'attendanceChart'
-    );
+<script>
 
-    new Chart(ctx,{
+const ctx =
+document.getElementById(
+  'attendanceChart'
+);
 
-      type:'bar',
+new Chart(ctx, {
 
-      data:{
+  type: 'bar',
 
-        labels:[
-          'Senin',
-          'Selasa',
-          'Rabu',
-          'Kamis',
-          'Jumat'
-        ],
+  data: {
 
-        datasets:[{
+    labels: [
+      'Sen',
+      'Sel',
+      'Rab',
+      'Kam',
+      'Jum'
+    ],
 
-          label:'Attendance',
+    datasets: [{
 
-          data:[
-            120,
-            130,
-            125,
-            140,
-            138
-          ],
+      label: 'Attendance',
 
-          backgroundColor:
-          '#ef4444',
+      data: [
+        120,
+        130,
+        125,
+        140,
+        138
+      ],
 
-          borderRadius:10
+      backgroundColor:
+      '#ef4444',
 
-        }]
+      borderRadius: 10
 
-      },
+    }]
 
-      options:{
+  }
 
-        responsive:true,
+});
 
-        plugins:{
+function logout(){
 
-          legend:{
-            display:true
-          }
+  localStorage.clear();
 
-        }
+  window.location =
+  "index.html";
 
-      }
+}
 
-    });
-
-    // LOGOUT
-
-    function logout(){
-
-      localStorage.clear();
-
-      window.location.href =
-      "index.html";
-    }
-
-  </script>
+</script>
 
 </body>
 </html>
-```
