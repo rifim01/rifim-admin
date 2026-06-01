@@ -1,5 +1,5 @@
 const CLIENT_ID = "GANTI_DENGAN_CLIENT_ID";
-const API_KEY = "GANTI_DENGAN_API_KEY";
+const API_KEY = "AIzaSyBh5SWdw7EUhu7Akcqy6TvF7wP86ZSiddc";
 
 const DISCOVERY_DOC =
   "https://www.googleapis.com/discovery/v1/apis/drive/v3/rest";
