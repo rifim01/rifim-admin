@@ -6,7 +6,7 @@
 
 // ⚠️ GANTI dengan URL Apps Script Web App milik Anda
 // Cara deploy: buka script.google.com → Deploy → Web App → Anyone
-const APPS_SCRIPT_URL = "https://script.google.com/macros/s/YOUR_DEPLOYED_SCRIPT_ID/exec";
+const APPS_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbyrUp1IVAOrHpXpDrpOvK4W6J0w6Ky9aI0T5TDTwHbCn7sUBu1U-8laJ5LfPU5Gy-Rd/exec";
 
 // Folder Drive tujuan upload selfie
 const FOLDER_ID = "1Ejaz210g3TeM46W6up5BtgHNzEWwOnRQ";
