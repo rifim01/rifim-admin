@@ -1,98 +1,367 @@
-```html id="jyn6vf"
 <!DOCTYPE html>
 <html lang="id">
-
 <head>
 
-<meta charset="UTF-8">
+  <meta charset="UTF-8" />
 
-<meta
-name="viewport"
-content="width=device-width, initial-scale=1.0"
-/>
+  <meta
+    name="viewport"
+    content="width=device-width, initial-scale=1.0"
+  />
 
-<title>RIFIM ERP</title>
+  <title>RIFIM ERP</title>
 
-<link
-rel="stylesheet"
-href="style.css"
-/>
+  <!-- PWA -->
+  <link rel="manifest" href="manifest.json" />
 
-<link
-rel="manifest"
-href="manifest.json"
-/>
+  <!-- ICON -->
+  <link
+    rel="icon"
+    href="assets/icons/icon-192.png"
+  />
 
-<link
-href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap"
-rel="stylesheet"
-/>
+  <!-- GOOGLE FONT -->
+  <link
+    href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap"
+    rel="stylesheet"
+  />
+
+  <!-- FIREBASE -->
+  <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
+
+  <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-auth-compat.js"></script>
+
+  <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
+
+  <style>
+
+    *{
+      margin:0;
+      padding:0;
+      box-sizing:border-box;
+      font-family:'Poppins',sans-serif;
+    }
+
+    body{
+
+      width:100%;
+      min-height:100vh;
+
+      display:flex;
+      justify-content:center;
+      align-items:center;
+
+      background:
+      linear-gradient(
+        135deg,
+        rgba(255,255,255,.95),
+        rgba(255,230,230,.95)
+      ),
+      url('assets/bg.jpg');
+
+      background-size:cover;
+      background-position:center;
+
+      overflow:hidden;
+    }
+
+    .container{
+
+      width:100%;
+      max-width:420px;
+
+      padding:20px;
+      text-align:center;
+    }
+
+    .logo{
+
+      width:120px;
+      height:120px;
+
+      object-fit:cover;
+
+      border-radius:24px;
+
+      box-shadow:
+      0 10px 30px rgba(0,0,0,.15);
+
+      margin-bottom:25px;
+    }
+
+    .title{
+
+      font-size:52px;
+      font-weight:800;
+
+      color:#1f2937;
+
+      margin-bottom:10px;
+
+      letter-spacing:1px;
+    }
+
+    .subtitle{
+
+      color:#ef4444;
+      font-weight:700;
+
+      margin-bottom:6px;
+
+      font-size:20px;
+    }
+
+    .desc{
+
+      color:#64748b;
+      font-size:15px;
+
+      margin-bottom:35px;
+    }
+
+    .login-card{
+
+      background:rgba(255,255,255,.95);
+
+      backdrop-filter:blur(15px);
+
+      padding:35px;
+
+      border-radius:30px;
+
+      box-shadow:
+      0 15px 40px rgba(0,0,0,.08);
+    }
+
+    .form-group{
+
+      text-align:left;
+      margin-bottom:22px;
+    }
+
+    .form-group label{
+
+      display:block;
+
+      margin-bottom:10px;
+
+      font-size:14px;
+      font-weight:700;
+
+      color:#475569;
+
+      text-transform:uppercase;
+    }
+
+    .input-box{
+
+      position:relative;
+    }
+
+    .input-box input,
+    .input-box select{
+
+      width:100%;
+
+      height:60px;
+
+      border-radius:18px;
+
+      border:2px solid #e2e8f0;
+
+      padding:0 18px;
+
+      font-size:17px;
+
+      background:#fff;
+
+      transition:.3s;
+    }
+
+    .input-box input:focus,
+    .input-box select:focus{
+
+      border-color:#ef4444;
+
+      outline:none;
+
+      box-shadow:
+      0 0 0 4px rgba(239,68,68,.1);
+    }
+
+    .toggle-password{
+
+      position:absolute;
+
+      right:18px;
+      top:50%;
+
+      transform:translateY(-50%);
+
+      cursor:pointer;
+
+      font-size:20px;
+    }
+
+    .login-btn{
+
+      width:100%;
+      height:60px;
+
+      border:none;
+
+      border-radius:18px;
+
+      background:
+      linear-gradient(
+        135deg,
+        #ef4444,
+        #ff3b3b
+      );
+
+      color:#fff;
+
+      font-size:20px;
+      font-weight:700;
+
+      cursor:pointer;
+
+      transition:.3s;
+
+      box-shadow:
+      0 10px 25px rgba(239,68,68,.25);
+
+      margin-top:10px;
+    }
+
+    .login-btn:hover{
+
+      transform:translateY(-2px);
+
+      box-shadow:
+      0 15px 35px rgba(239,68,68,.35);
+    }
+
+    .reset-btn{
+
+      margin-top:15px;
+
+      background:none;
+      border:none;
+
+      color:#64748b;
+
+      cursor:pointer;
+
+      font-size:14px;
+    }
+
+    .footer{
+
+      margin-top:25px;
+
+      font-size:13px;
+      font-weight:600;
+
+      color:#94a3b8;
+
+      letter-spacing:1px;
+    }
+
+    .loading{
+
+      display:none;
+
+      margin-top:20px;
+
+      color:#ef4444;
+      font-weight:600;
+    }
+
+    @media(max-width:768px){
+
+      .title{
+        font-size:42px;
+      }
+
+      .login-card{
+        padding:25px;
+      }
+
+    }
+
+  </style>
 
 </head>
 
 <body>
 
-<div class="login-wrapper">
+  <div class="container">
 
-  <div class="login-container fade">
+    <!-- LOGO -->
 
-    <div class="brand-area">
+    <img
+      src="assets/logo.png"
+      class="logo"
+    />
 
-      <img
-        src="assets/logo.png"
-        class="logo"
-      >
+    <!-- TITLE -->
 
-      <h1>RIFIM ERP</h1>
+    <h1 class="title">
+      RIFIM ERP
+    </h1>
 
-      <h3>
-        PT. RIFIM INTERNATIONAL GEMILANG
-      </h3>
-
-      <p>
-        Airport Operations & Administration
-      </p>
-
+    <div class="subtitle">
+      PT. RIFIM INTERNATIONAL GEMILANG
     </div>
+
+    <div class="desc">
+      Airport Operations & Administration
+    </div>
+
+    <!-- LOGIN CARD -->
 
     <div class="login-card">
 
+      <!-- EMAIL -->
+
       <div class="form-group">
 
-        <label>LOGIN SEBAGAI</label>
+        <label>
+          Login Sebagai
+        </label>
 
-        <select id="email">
+        <div class="input-box">
 
-          <option>
-            rifim01@adminrifim.org
-          </option>
+          <input
+            type="email"
+            id="email"
+            placeholder="Masukkan email..."
+            value="rifim01@adminrifim.org"
+          />
 
-          <option>
-            supervisor@rifim.org
-          </option>
-
-          <option>
-            staff@rifim.org
-          </option>
-
-        </select>
+        </div>
 
       </div>
 
+      <!-- PASSWORD -->
+
       <div class="form-group">
 
-        <label>PASSWORD AKSES</label>
+        <label>
+          Password Akses
+        </label>
 
-        <div class="password-wrapper">
+        <div class="input-box">
 
           <input
             type="password"
             id="password"
             placeholder="Masukkan password..."
-          >
+          />
 
           <span
-            class="eye"
+            class="toggle-password"
             onclick="togglePassword()"
           >
             👁️
@@ -102,6 +371,8 @@ rel="stylesheet"
 
       </div>
 
+      <!-- BUTTON -->
+
       <button
         class="login-btn"
         onclick="login()"
@@ -109,10 +380,23 @@ rel="stylesheet"
         🔐 Masuk ke Sistem
       </button>
 
-      <div class="footer-text">
+      <button
+        class="reset-btn"
+        onclick="resetPassword()"
+      >
+        Reset Password
+      </button>
 
-        INTEGRITAS • INOVASI •
-        KUALITAS • KEBERLANJUTAN
+      <div class="loading" id="loading">
+        Memproses login...
+      </div>
+
+      <!-- FOOTER -->
+
+      <div class="footer">
+
+        INTEGRITAS • INOVASI • KUALITAS •
+        KEBERLANJUTAN
 
       </div>
 
@@ -120,41 +404,230 @@ rel="stylesheet"
 
   </div>
 
-</div>
+  <!-- APP JS -->
 
-<script src="app.js"></script>
+  <script>
 
-<script>
+    // =========================
+    // FIREBASE CONFIG
+    // =========================
 
-function togglePassword(){
+    const firebaseConfig = {
 
-  const password =
-  document.getElementById(
-    'password'
-  );
+      apiKey: "ISI_API_KEY",
 
-  if(password.type === 'password'){
+      authDomain:
+      "ISI_AUTH_DOMAIN",
 
-    password.type = 'text';
+      projectId:
+      "ISI_PROJECT_ID",
 
-  }else{
+      storageBucket:
+      "ISI_BUCKET",
 
-    password.type = 'password';
+      messagingSenderId:
+      "ISI_SENDER_ID",
 
-  }
+      appId:
+      "ISI_APP_ID"
 
-}
+    };
 
-if('serviceWorker' in navigator){
+    // =========================
+    // FIREBASE INIT
+    // =========================
 
-  navigator.serviceWorker.register(
-    'service-worker.js'
-  );
+    firebase.initializeApp(
+      firebaseConfig
+    );
 
-}
+    const auth =
+      firebase.auth();
 
-</script>
+    // =========================
+    // TOGGLE PASSWORD
+    // =========================
+
+    function togglePassword(){
+
+      const password =
+      document.getElementById(
+        'password'
+      );
+
+      if(
+        password.type === "password"
+      ){
+
+        password.type = "text";
+
+      }else{
+
+        password.type = "password";
+
+      }
+
+    }
+
+    // =========================
+    // LOGIN
+    // =========================
+
+    async function login(){
+
+      const email =
+      document.getElementById(
+        'email'
+      ).value;
+
+      const password =
+      document.getElementById(
+        'password'
+      ).value;
+
+      const loading =
+      document.getElementById(
+        'loading'
+      );
+
+      if(
+        !email || !password
+      ){
+
+        alert(
+          "Email & password wajib diisi"
+        );
+
+        return;
+      }
+
+      loading.style.display =
+      "block";
+
+      try{
+
+        const userCredential =
+        await auth
+        .signInWithEmailAndPassword(
+          email,
+          password
+        );
+
+        const user =
+        userCredential.user;
+
+        console.log(
+          "Login sukses",
+          user.email
+        );
+
+        localStorage.setItem(
+          "rifim_user",
+          JSON.stringify(user)
+        );
+
+        window.location =
+        "dashboard.html";
+
+      }catch(error){
+
+        console.log(error);
+
+        alert(
+          error.message
+        );
+
+      }
+
+      loading.style.display =
+      "none";
+
+    }
+
+    // =========================
+    // RESET PASSWORD
+    // =========================
+
+    async function resetPassword(){
+
+      const email =
+      document.getElementById(
+        'email'
+      ).value;
+
+      if(!email){
+
+        alert(
+          "Masukkan email dulu"
+        );
+
+        return;
+      }
+
+      try{
+
+        await auth
+        .sendPasswordResetEmail(
+          email
+        );
+
+        alert(
+          "Reset password dikirim ke email"
+        );
+
+      }catch(error){
+
+        alert(
+          error.message
+        );
+
+      }
+
+    }
+
+    // =========================
+    // CHECK LOGIN
+    // =========================
+
+    auth.onAuthStateChanged(
+      (user)=>{
+
+      if(user){
+
+        console.log(
+          "User login:",
+          user.email
+        );
+
+      }
+
+    });
+
+    // =========================
+    // SERVICE WORKER
+    // =========================
+
+    if(
+      'serviceWorker'
+      in navigator
+    ){
+
+      navigator.serviceWorker
+      .register(
+        'service-worker.js'
+      )
+
+      .then(()=>{
+
+        console.log(
+          "Service Worker Active"
+        );
+
+      });
+
+    }
+
+  </script>
 
 </body>
 </html>
-```
