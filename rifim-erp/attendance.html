@@ -3,25 +3,12 @@
 
 <head>
   <meta charset="UTF-8" />
-
-  <meta
-    name="viewport"
-    content="width=device-width, initial-scale=1.0"
-  />
-
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Attendance - RIFIM ERP</title>
+  <link rel="stylesheet" href="style.css" />
 
-  <link
-    rel="stylesheet"
-    href="style.css"
-  />
-
-  <!-- GOOGLE API -->
-
-  <script src="https://apis.google.com/js/api.js"></script>
-
-  <script src="https://accounts.google.com/gsi/client"></script>
-
+  <!-- ✅ DIHAPUS: googleapis & gsi/client (penyebab origin_mismatch)
+       Tidak lagi diperlukan karena upload via Apps Script proxy -->
 </head>
 
 <body>
@@ -29,413 +16,262 @@
 <div class="dashboard">
 
   <!-- SIDEBAR -->
-
   <aside class="sidebar">
-
     <div class="sidebar-logo">
-
-      <img
-        src="assets/logo.png"
-        alt="Logo"
-      />
-
+      <img src="assets/logo.png" alt="Logo" />
       <h1>RIFIM ERP</h1>
-
     </div>
-
     <nav>
-
-      <a href="dashboard.html">
-        📊 Dashboard
-      </a>
-
-      <a href="attendance.html">
-        📍 Attendance
-      </a>
-
-      <a href="jadwal.html">
-        🗓 Jadwal Shift
-      </a>
-
-      <a href="rekap.html">
-        📈 Rekap
-      </a>
-
+      <a href="dashboard.html">📊 Dashboard</a>
+      <a href="attendance.html">📍 Attendance</a>
+      <a href="jadwal.html">🗓 Jadwal Shift</a>
+      <a href="rekap.html">📈 Rekap</a>
     </nav>
-
   </aside>
 
   <!-- MAIN -->
-
   <main class="main-content">
 
     <div class="topbar">
-
       <div>
-
         <h2>Attendance Verification</h2>
-
-        <div id="clock"></div>
-
+        <div id="clock" style="color:#64748b; font-size:15px; margin-top:4px;"></div>
       </div>
-
-      <button onclick="logout()">
-        Logout
-      </button>
-
+      <button onclick="logout()">Logout</button>
     </div>
 
-    <!-- ATTENDANCE -->
-
+    <!-- ATTENDANCE GRID -->
     <div class="attendance-grid">
 
       <!-- SELFIE -->
-
       <div class="attendance-card">
+        <h2>📸 Selfie Verification</h2>
 
-        <h2>
-          📸 Selfie Verification
-        </h2>
+        <video id="camera" autoplay playsinline></video>
+        <canvas id="snapshot" style="display:none;"></canvas>
 
-        <video
-          id="camera"
-          autoplay
-          playsinline
-        ></video>
-
-        <canvas
-          id="snapshot"
-          style="display:none;"
-        ></canvas>
-
-        <button
-          class="primary-btn"
-          onclick="takePhoto()"
-        >
+        <button class="primary-btn" onclick="takePhoto()">
           📷 Ambil Foto
         </button>
 
-        <button
-          id="uploadBtn"
-          class="primary-btn"
-        >
-          🚀 Upload Selfie
+        <button id="uploadBtn" class="primary-btn" style="margin-top:10px; background:#16a34a;">
+          ☁️ Upload Selfie ke Drive
         </button>
 
+        <div id="upload-status"></div>
+
+        <div id="preview-box" style="margin-top:15px; display:none;">
+          <p style="font-weight:600; color:#374151; margin-bottom:8px;">Preview Selfie:</p>
+          <img id="preview-img" style="width:100%; border-radius:15px;" />
+        </div>
       </div>
 
       <!-- GPS -->
-
       <div class="attendance-card">
-
-        <h2>
-          📍 GPS Validation
-        </h2>
+        <h2>📍 GPS Validation</h2>
 
         <div class="gps-info">
-
-          <p>
-            <strong>Latitude:</strong>
-            <span id="lat">-</span>
-          </p>
-
-          <p>
-            <strong>Longitude:</strong>
-            <span id="lng">-</span>
-          </p>
-
+          <p><strong>Latitude:</strong> <span id="lat">⏳ Memuat...</span></p>
+          <p><strong>Longitude:</strong> <span id="lng">⏳ Memuat...</span></p>
+          <p><strong>Akurasi:</strong> <span id="accuracy">-</span> meter</p>
         </div>
 
-        <div
-          id="gps-status"
-          class="gps-valid"
-        >
+        <div id="gps-status" class="gps-valid">
           ⏳ Validasi GPS...
         </div>
 
-        <button
-          class="primary-btn"
-          onclick="submitAttendance()"
-        >
+        <button class="primary-btn" onclick="submitAttendance()">
           🚀 Kirim Absensi
         </button>
 
+        <div id="submit-status" style="margin-top:12px;"></div>
       </div>
 
     </div>
-
   </main>
-
 </div>
 
-<!-- GOOGLE DRIVE SCRIPT -->
-
+<!-- ✅ google-drive.js versi baru (tanpa OAuth popup) -->
 <script src="google-drive.js"></script>
 
 <script>
 
-const airportLat = 1.1433;
-const airportLng = 104.0150;
+// ============================================================
+// KONSTANTA
+// Koordinat bandara Hang Nadim Batam
+// ============================================================
+const AIRPORT_LAT = 1.1210;
+const AIRPORT_LNG = 104.1186;
+const RADIUS_KM   = 1.5; // radius toleransi dalam km
 
 let selfieBlob = null;
+let selfieFile = null;
 
-/* CLOCK */
-
-function updateClock(){
-
-  const now = new Date();
-
-  document.getElementById(
-    "clock"
-  ).innerHTML =
-  now.toLocaleString(
-    "id-ID"
-  );
-
+// ============================================================
+// CLOCK
+// ============================================================
+function updateClock() {
+  document.getElementById("clock").textContent =
+    new Date().toLocaleString("id-ID", {
+      weekday: "long", year: "numeric",
+      month: "long", day: "numeric",
+      hour: "2-digit", minute: "2-digit", second: "2-digit"
+    });
 }
-
-setInterval(updateClock,1000);
-
+setInterval(updateClock, 1000);
 updateClock();
 
-/* CAMERA */
+// ============================================================
+// CAMERA
+// ============================================================
+const videoEl = document.getElementById("camera");
 
-const camera =
-document.getElementById(
-  "camera"
-);
-
-async function startCamera(){
-
-  try{
-
-    const stream =
-    await navigator.mediaDevices.getUserMedia({
-
-      video:true
-
-    });
-
-    camera.srcObject =
-    stream;
-
-  }catch(err){
-
-    alert(
-      "Camera tidak tersedia"
-    );
-
+async function startCamera() {
+  try {
+    const stream = await navigator.mediaDevices.getUserMedia({ video: true });
+    videoEl.srcObject = stream;
+  } catch (err) {
+    alert("❌ Kamera tidak dapat diakses.\nPastikan izin kamera sudah diberikan.");
+    console.error(err);
   }
-
 }
-
 startCamera();
 
-/* TAKE PHOTO */
+// ============================================================
+// AMBIL FOTO
+// ============================================================
+function takePhoto() {
+  const canvas  = document.getElementById("snapshot");
+  const context = canvas.getContext("2d");
 
-function takePhoto(){
+  canvas.width  = videoEl.videoWidth;
+  canvas.height = videoEl.videoHeight;
+  context.drawImage(videoEl, 0, 0);
 
-  const canvas =
-  document.getElementById(
-    "snapshot"
-  );
-
-  const context =
-  canvas.getContext("2d");
-
-  canvas.width =
-  camera.videoWidth;
-
-  canvas.height =
-  camera.videoHeight;
-
-  context.drawImage(
-    camera,
-    0,
-    0
-  );
-
-  canvas.toBlob((blob)=>{
-
+  canvas.toBlob((blob) => {
     selfieBlob = blob;
+    const timestamp = new Date().toISOString().replace(/[:.]/g, "-");
+    selfieFile = new File([blob], `selfie-${timestamp}.jpg`, { type: "image/jpeg" });
 
-    alert(
-      "✅ Foto berhasil diambil"
-    );
+    // Tampilkan preview
+    const previewBox = document.getElementById("preview-box");
+    const previewImg = document.getElementById("preview-img");
+    previewImg.src = URL.createObjectURL(blob);
+    previewBox.style.display = "block";
 
-  },"image/jpeg");
-
+    showStatusMsg("submit-status", "✅ Foto berhasil diambil", "success");
+  }, "image/jpeg");
 }
 
-/* GPS VALIDATION */
-
+// ============================================================
+// GPS VALIDATION
+// ============================================================
 navigator.geolocation.getCurrentPosition(
+  (position) => {
+    const lat = position.coords.latitude;
+    const lng = position.coords.longitude;
+    const acc = position.coords.accuracy;
 
-  (position)=>{
+    document.getElementById("lat").textContent = lat.toFixed(6);
+    document.getElementById("lng").textContent = lng.toFixed(6);
+    document.getElementById("accuracy").textContent = Math.round(acc);
 
-    const lat =
-    position.coords.latitude;
-
-    const lng =
-    position.coords.longitude;
-
-    document.getElementById(
-      "lat"
-    ).innerText = lat;
-
-    document.getElementById(
-      "lng"
-    ).innerText = lng;
-
-    validateGPS(lat,lng);
-
+    validateGPS(lat, lng);
   },
-
-  ()=>{
-
-    alert(
-      "GPS gagal diakses"
-    );
-
-  }
-
+  (err) => {
+    document.getElementById("gps-status").innerHTML = "❌ GPS gagal diakses";
+    document.getElementById("gps-status").className = "";
+    document.getElementById("gps-status").style.cssText =
+      "background:#fee2e2; color:#991b1b; padding:14px; border-radius:12px; font-weight:600;";
+    console.error(err);
+  },
+  { enableHighAccuracy: true, timeout: 10000 }
 );
 
-function validateGPS(lat,lng){
+function validateGPS(lat, lng) {
+  const distance = getDistanceKm(lat, lng, AIRPORT_LAT, AIRPORT_LNG);
+  const statusEl = document.getElementById("gps-status");
 
-  const distance =
-  getDistanceFromLatLonInKm(
-    lat,
-    lng,
-    airportLat,
-    airportLng
-  );
-
-  const status =
-  document.getElementById(
-    "gps-status"
-  );
-
-  if(distance <= 1){
-
-    status.innerHTML =
-    "✅ Dalam Radius Bandara";
-
-    status.className =
-    "gps-valid";
-
-  }else{
-
-    status.innerHTML =
-    "❌ Diluar Radius Bandara";
-
-    status.className =
-    "gps-invalid";
-
+  if (distance <= RADIUS_KM) {
+    statusEl.innerHTML = `✅ Dalam Radius Bandara (${distance.toFixed(2)} km)`;
+    statusEl.className = "gps-valid";
+  } else {
+    statusEl.innerHTML = `❌ Di Luar Radius Bandara (${distance.toFixed(2)} km)`;
+    statusEl.className = "";
+    statusEl.style.cssText =
+      "background:#fee2e2; color:#991b1b; padding:14px; border-radius:12px; font-weight:600; margin-bottom:20px;";
   }
-
 }
 
-function getDistanceFromLatLonInKm(
-  lat1,
-  lon1,
-  lat2,
-  lon2
-){
-
+function getDistanceKm(lat1, lon1, lat2, lon2) {
   const R = 6371;
-
-  const dLat =
-  deg2rad(lat2-lat1);
-
-  const dLon =
-  deg2rad(lon2-lon1);
-
+  const dLat = deg2rad(lat2 - lat1);
+  const dLon = deg2rad(lon2 - lon1);
   const a =
-    Math.sin(dLat/2) *
-    Math.sin(dLat/2) +
-
-    Math.cos(deg2rad(lat1)) *
-    Math.cos(deg2rad(lat2)) *
-
-    Math.sin(dLon/2) *
-    Math.sin(dLon/2);
-
-  const c =
-  2 * Math.atan2(
-    Math.sqrt(a),
-    Math.sqrt(1-a)
-  );
-
-  return R * c;
-
+    Math.sin(dLat / 2) ** 2 +
+    Math.cos(deg2rad(lat1)) * Math.cos(deg2rad(lat2)) * Math.sin(dLon / 2) ** 2;
+  return R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
 }
 
-function deg2rad(deg){
+function deg2rad(deg) { return deg * (Math.PI / 180); }
 
-  return deg * (
-    Math.PI/180
-  );
+// ============================================================
+// UPLOAD SELFIE (via Apps Script proxy — tanpa OAuth popup)
+// ============================================================
+document.getElementById("uploadBtn").addEventListener("click", async () => {
+  if (!selfieFile) {
+    alert("⚠️ Ambil foto selfie terlebih dahulu");
+    return;
+  }
+  await uploadFileToDrive(selfieFile); // fungsi dari google-drive.js
+});
 
-}
+// ============================================================
+// SUBMIT ABSENSI
+// ============================================================
+function submitAttendance() {
+  const lat = document.getElementById("lat").textContent;
+  const lng = document.getElementById("lng").textContent;
 
-/* UPLOAD SELFIE */
-
-document.getElementById(
-  "uploadBtn"
-).addEventListener(
-
-  "click",
-
-  async()=>{
-
-    if(!selfieBlob){
-
-      alert(
-        "Ambil foto terlebih dahulu"
-      );
-
-      return;
-
-    }
-
-    const file = new File(
-
-      [selfieBlob],
-
-      `selfie-${Date.now()}.jpg`,
-
-      {
-        type:"image/jpeg"
-      }
-
-    );
-
-    await uploadFileToDrive(file);
-
+  if (lat === "⏳ Memuat..." || lat === "-") {
+    alert("⚠️ Tunggu GPS selesai memuat");
+    return;
   }
 
-);
+  if (!selfieBlob) {
+    alert("⚠️ Ambil foto selfie terlebih dahulu");
+    return;
+  }
 
-/* SUBMIT */
+  showStatusMsg("submit-status", "✅ Absensi berhasil dikirim!", "success");
 
-function submitAttendance(){
-
-  alert(
-    "✅ Absensi berhasil dikirim"
-  );
-
+  console.log("Absensi terkirim:", {
+    lat, lng,
+    waktu: new Date().toISOString()
+  });
 }
 
-/* LOGOUT */
+// ============================================================
+// HELPER
+// ============================================================
+function showStatusMsg(elId, msg, type) {
+  const el = document.getElementById(elId);
+  if (!el) return;
+  const styles = {
+    success: "background:#dcfce7; color:#166534;",
+    error:   "background:#fee2e2; color:#991b1b;",
+    info:    "background:#dbeafe; color:#1e40af;",
+  };
+  el.style.cssText = `${styles[type] || styles.info} padding:12px 16px; border-radius:12px; font-weight:600; font-size:15px;`;
+  el.textContent = msg;
+}
 
-function logout(){
-
+// ============================================================
+// LOGOUT
+// ============================================================
+function logout() {
   localStorage.clear();
-
-  window.location =
-  "index.html";
-
+  window.location = "index.html";
 }
 
 </script>
