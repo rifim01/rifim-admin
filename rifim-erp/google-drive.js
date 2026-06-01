@@ -15,104 +15,48 @@ const FOLDER_ID =
 
 let tokenClient;
 
-let gapiInited = false;
+/* INIT */
 
-let gisInited = false;
-
-/* =========================
-   LOAD GAPI
-========================= */
-
-function gapiLoaded(){
+window.onload = () => {
 
   gapi.load(
     "client",
-    initializeGapiClient
+    async()=>{
+
+      await gapi.client.init({
+
+        apiKey: API_KEY,
+
+        discoveryDocs:[
+          DISCOVERY_DOC
+        ]
+
+      });
+
+    }
+
   );
 
-}
+  tokenClient =
+  google.accounts.oauth2.initTokenClient({
 
-/* =========================
-   INIT GAPI CLIENT
-========================= */
+    client_id: CLIENT_ID,
 
-async function initializeGapiClient(){
+    scope: SCOPES,
 
-  try{
+    callback:""
 
-    await gapi.client.init({
+  });
 
-      apiKey: API_KEY,
+};
 
-      discoveryDocs:[
-        DISCOVERY_DOC
-      ]
-
-    });
-
-    gapiInited = true;
-
-    console.log(
-      "✅ GAPI initialized"
-    );
-
-  }catch(error){
-
-    console.error(
-      "❌ GAPI INIT ERROR",
-      error
-    );
-
-  }
-
-}
-
-/* =========================
-   LOAD GOOGLE GIS
-========================= */
-
-function gisLoaded(){
-
-  try{
-
-    tokenClient =
-    google.accounts.oauth2.initTokenClient({
-
-      client_id: CLIENT_ID,
-
-      scope: SCOPES,
-
-      callback:""
-
-    });
-
-    gisInited = true;
-
-    console.log(
-      "✅ GIS initialized"
-    );
-
-  }catch(error){
-
-    console.error(
-      "❌ GIS ERROR",
-      error
-    );
-
-  }
-
-}
-
-/* =========================
-   AUTH GOOGLE
-========================= */
+/* AUTH */
 
 async function authenticateGoogle(){
 
   return new Promise((resolve,reject)=>{
 
-    tokenClient.callback =
-    async(resp)=>{
+    tokenClient.callback = (resp)=>{
 
       if(resp.error){
 
@@ -126,57 +70,21 @@ async function authenticateGoogle(){
 
     };
 
-    if(
-      gapi.client.getToken() === null
-    ){
+    tokenClient.requestAccessToken({
 
-      tokenClient.requestAccessToken({
+      prompt:"consent"
 
-        prompt:"consent"
-
-      });
-
-    }else{
-
-      tokenClient.requestAccessToken({
-
-        prompt:""
-
-      });
-
-    }
+    });
 
   });
 
 }
 
-/* =========================
-   UPLOAD FILE TO DRIVE
-========================= */
+/* UPLOAD */
 
 async function uploadFileToDrive(file){
 
   try{
-
-    if(!gapiInited){
-
-      alert(
-        "Google API belum siap"
-      );
-
-      return;
-
-    }
-
-    if(!gisInited){
-
-      alert(
-        "Google Auth belum siap"
-      );
-
-      return;
-
-    }
 
     await authenticateGoogle();
 
@@ -186,9 +94,7 @@ async function uploadFileToDrive(file){
 
       mimeType:file.type,
 
-      parents:[
-        FOLDER_ID
-      ]
+      parents:[FOLDER_ID]
 
     };
 
@@ -217,9 +123,7 @@ async function uploadFileToDrive(file){
     );
 
     const accessToken =
-    gapi.client
-    .getToken()
-    .access_token;
+    gapi.client.getToken().access_token;
 
     const response =
     await fetch(
@@ -256,17 +160,17 @@ async function uploadFileToDrive(file){
 
     }else{
 
-      console.error(result);
-
       alert(
         "❌ Upload gagal"
       );
 
+      console.log(result);
+
     }
 
-  }catch(error){
+  }catch(err){
 
-    console.error(error);
+    console.error(err);
 
     alert(
       "❌ Error upload Google Drive"
