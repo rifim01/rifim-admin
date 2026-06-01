@@ -1,59 +1,152 @@
 <!DOCTYPE html>
 <html lang="id">
+
 <head>
+
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Attendance - RIFIM ERP</title>
-  <link rel="stylesheet" href="style.css">
+
+  <meta
+    name="viewport"
+    content="width=device-width, initial-scale=1.0"
+  >
+
+  <title>
+    Attendance - RIFIM ERP
+  </title>
+
+  <link
+    rel="stylesheet"
+    href="style.css"
+  >
+
 </head>
 
-<body class="dark">
+<body>
 
 <div class="dashboard">
 
+  <!-- SIDEBAR -->
+
   <aside class="sidebar">
-    <h2>🔴 RIFIM ERP</h2>
 
-    <ul>
-      <li><a href="dashboard.html">📊 Dashboard</a></li>
-      <li class="active">📍 Attendance</li>
-      <li><a href="jadwal.html">📅 Jadwal Shift</a></li>
-      <li><a href="rekap.html">📈 Rekap</a></li>
-    </ul>
-  </aside>
+    <div class="sidebar-logo">
 
-  <main class="content">
+      <img
+        src="assets/logo.png"
+        alt="Logo"
+      >
 
-    <div class="card">
-
-      <h1>📸 Selfie Verification</h1>
-
-      <div class="camera-box">
-        <video id="video" autoplay playsinline></video>
-      </div>
-
-      <button onclick="capturePhoto()">
-        📷 Ambil Foto
-      </button>
-
-      <canvas id="canvas" style="display:none;"></canvas>
+      <h1>
+        RIFIM ERP
+      </h1>
 
     </div>
 
-    <div class="card">
+    <nav>
 
-      <h1>📍 GPS Validation</h1>
+      <a href="dashboard.html">
+        📊 Dashboard
+      </a>
 
-      <p>Latitude : <span id="lat"></span></p>
-      <p>Longitude : <span id="lng"></span></p>
+      <a href="attendance.html">
+        📍 Attendance
+      </a>
 
-      <div class="status success">
-        ✅ Dalam Radius Bandara
+      <a href="jadwal.html">
+        🗓 Jadwal Shift
+      </a>
+
+      <a href="rekap.html">
+        📈 Rekap
+      </a>
+
+    </nav>
+
+  </aside>
+
+  <!-- CONTENT -->
+
+  <main class="main-content">
+
+    <div class="topbar">
+
+      <h2>
+        Attendance Verification
+      </h2>
+
+      <button onclick="logout()">
+        Logout
+      </button>
+
+    </div>
+
+    <!-- SELFIE -->
+
+    <div class="attendance-grid">
+
+      <div class="attendance-card">
+
+        <h2>
+          📸 Selfie Verification
+        </h2>
+
+        <video
+          id="camera"
+          autoplay
+          playsinline
+        ></video>
+
+        <canvas
+          id="snapshot"
+          style="display:none;"
+        ></canvas>
+
+        <button
+          class="primary-btn"
+          onclick="takePhoto()"
+        >
+          📷 Ambil Foto
+        </button>
+
       </div>
 
-      <button onclick="submitAttendance()">
-        🚀 Kirim Absensi
-      </button>
+      <!-- GPS -->
+
+      <div class="attendance-card">
+
+        <h2>
+          📍 GPS Validation
+        </h2>
+
+        <div class="gps-info">
+
+          <p>
+            <strong>Latitude:</strong>
+            <span id="lat">-</span>
+          </p>
+
+          <p>
+            <strong>Longitude:</strong>
+            <span id="lng">-</span>
+          </p>
+
+        </div>
+
+        <div
+          id="gps-status"
+          class="gps-valid"
+        >
+          ✅ Dalam Radius Bandara
+        </div>
+
+        <button
+          class="primary-btn"
+          onclick="submitAttendance()"
+        >
+          🚀 Kirim Absensi
+        </button>
+
+      </div>
 
     </div>
 
@@ -61,13 +154,113 @@
 
 </div>
 
-<script src="app.js"></script>
-
 <script>
+
+const camera =
+document.getElementById(
+  'camera'
+);
+
+async function startCamera(){
+
+  try{
+
+    const stream =
+    await navigator.mediaDevices.getUserMedia({
+
+      video:true
+
+    });
+
+    camera.srcObject =
+    stream;
+
+  }catch(err){
+
+    alert(
+      "Camera tidak tersedia"
+    );
+
+  }
+
+}
+
 startCamera();
-getGPS();
+
+function takePhoto(){
+
+  const canvas =
+  document.getElementById(
+    'snapshot'
+  );
+
+  const context =
+  canvas.getContext(
+    '2d'
+  );
+
+  canvas.width =
+  camera.videoWidth;
+
+  canvas.height =
+  camera.videoHeight;
+
+  context.drawImage(
+    camera,
+    0,
+    0
+  );
+
+  alert(
+    "Foto berhasil diambil"
+  );
+
+}
+
+navigator.geolocation.getCurrentPosition(
+
+  (position)=>{
+
+    document.getElementById(
+      'lat'
+    ).innerText =
+    position.coords.latitude;
+
+    document.getElementById(
+      'lng'
+    ).innerText =
+    position.coords.longitude;
+
+  },
+
+  ()=>{
+
+    alert(
+      "GPS gagal diakses"
+    );
+
+  }
+
+);
+
+function submitAttendance(){
+
+  alert(
+    "Absensi berhasil dikirim"
+  );
+
+}
+
+function logout(){
+
+  localStorage.clear();
+
+  window.location =
+  "index.html";
+
+}
+
 </script>
 
 </body>
 </html>
-```
