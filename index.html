@@ -185,15 +185,19 @@ function Login({onLogin}){
   const [sh,setSh]=useState(false);
 
   const go=()=>{
-    if(pw===ADMIN_PASS) {
-      onLogin("admin", adminName);
-    } else if (pw===OWNER_PASS) {
-      onLogin("owner", "Direktur Utama");
-    } else {
-      setE2("Password salah");
-      setTimeout(()=>setE2(""),2500);
-    }
-  };
+    if(pw===ADMIN_PASS){
+
+   saveLogin(adminName);
+
+   onLogin("admin", adminName);
+
+} else if (pw===OWNER_PASS) {
+
+   saveLogin("Direktur Utama");
+
+   onLogin("owner", "Direktur Utama");
+
+}
 
   return(
     <div className="login-bg" style={{minHeight:"100vh",display:"flex",alignItems:"center",justifyContent:"center",padding:16}}>
@@ -2028,6 +2032,86 @@ function App(){
 }
 
 ReactDOM.createRoot(document.getElementById("root")).render(<App/>);
+// ======================================================
+// AUTO LOGIN SESSION — RIFIM ERP
+// ======================================================
+
+// CHECK SESSION SAAT PAGE DIBUKA
+window.addEventListener("load",()=>{
+
+  const savedLogin =
+    localStorage.getItem("rifim_logged_in");
+
+  const savedUser =
+    localStorage.getItem("rifim_user");
+
+  console.log(
+    "SESSION:",
+    savedLogin,
+    savedUser
+  );
+
+  // jika login masih aktif
+  if(savedLogin==="true"){
+
+    console.log(
+      "✅ Session aktif:",
+      savedUser
+    );
+
+    // AUTO LOGIN
+    if(typeof setCurrentUser==="function"){
+      setCurrentUser(savedUser);
+    }
+
+    if(typeof setIsLoggedIn==="function"){
+      setIsLoggedIn(true);
+    }
+
+  }
+
+});
+
+// ======================================================
+// SAVE LOGIN
+// ======================================================
+
+function saveLogin(user){
+
+  localStorage.setItem(
+    "rifim_logged_in",
+    "true"
+  );
+
+  localStorage.setItem(
+    "rifim_user",
+    user
+  );
+
+  console.log(
+    "💾 Login disimpan:",
+    user
+  );
+
+}
+
+// ======================================================
+// LOGOUT
+// ======================================================
+
+function logout(){
+
+  localStorage.removeItem(
+    "rifim_logged_in"
+  );
+
+  localStorage.removeItem(
+    "rifim_user"
+  );
+
+  location.reload();
+
+}
 </script>
 </body>
 </html>
