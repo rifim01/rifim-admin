@@ -178,11 +178,19 @@ async function gasGet(params){
 }
 
 // ── LOGIN ────────────────────────────────────────────────────────────────────
-function Login({onLogin}){
-  const [pw,setPw]=useState("");
-  const [adminName, setAdminName] = useState(ADMIN_LIST[0]);
-  const [e2,setE2]=useState("");
-  const [sh,setSh]=useState(false);
+function saveLogin(user){
+
+  localStorage.setItem(
+    "rifim_logged_in",
+    "true"
+  );
+
+  localStorage.setItem(
+    "rifim_user",
+    user
+  );
+
+};
 
   const go=()=>{
     if(pw===ADMIN_PASS){
