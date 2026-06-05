@@ -667,8 +667,13 @@ function renderSAL(){
 // ── SAVE POT & SAL ───────────────────────────────────────
 async function savePOT(){
   if(!canEdit()){alert('Hanya Nabilla dan Owner!');return;}
-  if(!STATE.potFiltered.length){al('alPOT',' Muat data dulu!','wn');return;}
-  al('alPOT','⏳ Menyimpan ke Sheet INPUT_DOCK 1...','in');
+  if(!STATE.salFiltered.length){
+  al('alSAL','Muat data dulu!','wn');
+  return;
+}
+ al('alPOT',
+'Sedang menyimpan ke Sheet INPUT_DOCK 1...',
+'in');
   try{
     const rows=STATE.potFiltered.map(r=>Object.values(r));
     const res=await fetch(GAS_URL,{method:'POST',headers:{'Content-Type':'text/plain'},
@@ -682,7 +687,9 @@ async function savePOT(){
 async function saveSAL(){
   if(!canEdit()){alert('Hanya Nabilla dan Owner!');return;}
   if(!STATE.salFiltered.length){al('alSAL',Muat data dulu!','wn');return;}
-  al('alSAL','⏳ Menyimpan ke Sheet DB_TRANSAKSI...','in');
+ al('alSAL',
+'Sedang menyimpan ke Sheet DB_TRANSAKSI...',
+'in');
   try{
     const rows=STATE.salFiltered.map(r=>Object.values(r));
     const res=await fetch(GAS_URL,{method:'POST',headers:{'Content-Type':'text/plain'},
