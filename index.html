@@ -477,7 +477,7 @@ function doLogin(){
   CU=u;lsSet('rifim_admin_s',u.nama);showApp();
 }
 function doLogout(){if(!confirm('Yakin logout?'))return;CU=null;localStorage.removeItem('rifim_admin_s');showLogin();}
-function showLgnErr(m){const e=g('lgnErr');e.textContent='❌ '+m;e.style.display='block';setTimeout(()=>e.style.display='none',3000);}
+function showLgnErr(m){const e=g('lgnErr');e.textContent=+m;e.style.display='block';setTimeout(()=>e.style.display='none',3000);}
 function togglePw(){const e=g('pwIn');e.type=e.type==='password'?'text':'password';}
 
 function updateUI(){
@@ -531,9 +531,9 @@ async function checkAll(){
       const url=`https://opensheet.elk.sh/${sheetId}/${encodeURIComponent(sheetName)}`;
       const r=await fetch(url,{signal:AbortSignal.timeout(8000)});
       const d=await r.json();
-      if(el){el.textContent=Array.isArray(d)?'✅ OK':'⚠️ Error';el.className='chip '+(Array.isArray(d)?'chip-ok':'chip-warn');}
+      if(el){el.textContent=Array.isArray(d)?' OK':'Error';el.className='chip '+(Array.isArray(d)?'chip-ok':'chip-warn');}
       return Array.isArray(d)?d:[];
-    }catch(e){if(el){el.textContent='❌ Gagal';el.className='chip chip-err';}return[];}
+    }catch(e){if(el){el.textContent='Gagal';el.className='chip chip-err';}return[];}
   };
   check(SHEET_POT,'DB_DRIVER','stPOT');
   check(SHEET_SAL,'DB_DRIVER','stSAL');
@@ -667,7 +667,7 @@ function renderSAL(){
 // ── SAVE POT & SAL ───────────────────────────────────────
 async function savePOT(){
   if(!canEdit()){alert('Hanya Nabilla dan Owner!');return;}
-  if(!STATE.potFiltered.length){al('alPOT','⚠️ Muat data dulu!','wn');return;}
+  if(!STATE.potFiltered.length){al('alPOT',' Muat data dulu!','wn');return;}
   al('alPOT','⏳ Menyimpan ke Sheet INPUT_DOCK 1...','in');
   try{
     const rows=STATE.potFiltered.map(r=>Object.values(r));
@@ -675,13 +675,13 @@ async function savePOT(){
       body:JSON.stringify({action:'appendRows',sheetId:SHEET_POT,sheetName:'INPUT_DOCK 1',rows,clearFirst:false})});
     const d=await res.json();
     if(d.error)throw new Error(d.error);
-    al('alPOT','✅ '+STATE.potFiltered.length+' baris berhasil disimpan ke File POT!','ok');
-  }catch(e){al('alPOT','❌ Gagal: '+e.message,'er');}
+    al('alPOT',''+STATE.potFiltered.length+' baris berhasil disimpan ke File POT!','ok');
+  }catch(e){al('alPOT','Gagal: '+e.message,'er');}
 }
 
 async function saveSAL(){
   if(!canEdit()){alert('Hanya Nabilla dan Owner!');return;}
-  if(!STATE.salFiltered.length){al('alSAL','⚠️ Muat data dulu!','wn');return;}
+  if(!STATE.salFiltered.length){al('alSAL',Muat data dulu!','wn');return;}
   al('alSAL','⏳ Menyimpan ke Sheet DB_TRANSAKSI...','in');
   try{
     const rows=STATE.salFiltered.map(r=>Object.values(r));
@@ -689,8 +689,8 @@ async function saveSAL(){
       body:JSON.stringify({action:'appendRows',sheetId:SHEET_SAL,sheetName:'DB_TRANSAKSI',rows,clearFirst:false})});
     const d=await res.json();
     if(d.error)throw new Error(d.error);
-    al('alSAL','✅ '+STATE.salFiltered.length+' baris berhasil disimpan ke File SAL!','ok');
-  }catch(e){al('alSAL','❌ Gagal: '+e.message,'er');}
+    al('alSAL',''+STATE.salFiltered.length+' baris berhasil disimpan ke File SAL!','ok');
+  }catch(e){al('alSAL','Gagal: '+e.message,'er');}
 }
 
 // ── RESET ─────────────────────────────────────────────────
@@ -703,7 +703,11 @@ function resetPOT(){
   g('potHead').innerHTML='';
   const sr=g('potStatRow');if(sr)sr.style.display='none';
   st('potCnt',0);st('potDrv',0);st('potDup',0);
-  al('alPOT','✅ Data POT direset','ok');
+  al(
+'alPOT',
+'SUCCESS Data POT direset',
+'ok'
+);
 }
 function resetSAL(){
   if(!canEdit()){alert('Hanya Nabilla dan Owner!');return;}
@@ -714,7 +718,11 @@ function resetSAL(){
   g('salHead').innerHTML='';
   const sr=g('salStatRow');if(sr)sr.style.display='none';
   st('salCnt',0);st('salDrv',0);st('salDup',0);
-  al('alSAL','✅ Data SAL direset','ok');
+  al(
+'alSAL',
+'SUCCESS Data SAL direset',
+'ok'
+);
 }
 function resetRiwayat(){
   if(!canEdit()){alert('Hanya Nabilla dan Owner!');return;}
@@ -722,7 +730,7 @@ function resetRiwayat(){
   STATE.rwData=[];
   g('rwBody').innerHTML='<tr><td colspan="8" class="tbl-empty">Data direset</td></tr>';
   st('rwTotal',0);st('rwPOT',0);st('rwSAL',0);
-  al('alRW','✅ Riwayat direset','ok');
+  al('alRW',' Riwayat direset','ok');
 }
 function resetInvoice(){
   if(!canEdit()){alert('Hanya Nabilla dan Owner!');return;}
@@ -730,7 +738,7 @@ function resetInvoice(){
   STATE.invData=null;
   const ip=g('invPreview');if(ip)ip.style.display='none';
   const ie=g('invEmpty');if(ie)ie.style.display='block';
-  al('alInv','✅ Invoice direset','ok');
+  al('alInv','Invoice direset','ok');
 }
 
 // ── RIWAYAT TRANSAKSI ────────────────────────────────────
@@ -762,7 +770,7 @@ function buildRiwayat(){
   combined.sort((a,b)=>(b.tgl||'').localeCompare(a.tgl||''));
   STATE.rwData=combined;
   renderRiwayat();
-  al('alRW','✅ '+combined.length+' transaksi dari POT+SAL','ok');
+  al('alRW',' '+combined.length+' transaksi dari POT+SAL','ok');
 }
 
 function renderRiwayat(){
@@ -790,7 +798,7 @@ function renderRiwayat(){
 
 async function saveRiwayatToSheet(){
   if(!canEdit()){alert('Hanya Nabilla dan Owner!');return;}
-  if(!STATE.rwData.length){al('alRW','⚠️ Gabungkan data dulu!','wn');return;}
+  if(!STATE.rwData.length){al('alRW',' Gabungkan data dulu!','wn');return;}
   al('alRW','⏳ Menyimpan riwayat ke kedua sheet...','in');
   try{
     const potRows=STATE.rwData.filter(r=>r.sumber==='POT').map(r=>[r.tgl,r.idDriver,r.nama,r.cabang,r.nominal,r.status,r.ket]);
@@ -803,16 +811,16 @@ async function saveRiwayatToSheet(){
       await fetch(GAS_URL,{method:'POST',headers:{'Content-Type':'text/plain'},
         body:JSON.stringify({action:'appendRows',sheetId:SHEET_SAL,sheetName:'RIWAYAT',rows:salRows,clearFirst:false})});
     }
-    al('alRW','✅ Tersimpan: '+potRows.length+' ke File POT · '+salRows.length+' ke File SAL','ok');
-  }catch(e){al('alRW','❌ Gagal: '+e.message,'er');}
+    al('alRW',' Tersimpan: '+potRows.length+' ke File POT · '+salRows.length+' ke File SAL','ok');
+  }catch(e){al('alRW',' Gagal: '+e.message,'er');}
 }
 
 // ── INVOICE ──────────────────────────────────────────────
 function generateInvoice(){
   const cab=g('invCabang')?.value;
   const bln=g('invBulan')?.value;
-  if(!cab){al('alInv','⚠️ Pilih cabang dulu!','wn');return;}
-  if(!bln){al('alInv','⚠️ Pilih bulan dulu!','wn');return;}
+  if(!cab){al('alInv',' Pilih cabang dulu!','wn');return;}
+  if(!bln){al('alInv','Pilih bulan dulu!','wn');return;}
   // Ambil data dari POT dan SAL berdasarkan cabang
   const potData=STATE.potRaw.filter(r=>Object.values(r).join(' ').includes(cab));
   const salData=STATE.salRaw.filter(r=>Object.values(r).join(' ').includes(cab));
@@ -841,12 +849,12 @@ function generateInvoice(){
   STATE.invData={cab,bln,bulanStr,potData,salData};
   g('invPreview').style.display='block';
   g('invEmpty').style.display='none';
-  al('alInv','✅ Invoice '+cab+' periode '+bulanStr+' berhasil di-generate!','ok');
+  al('alInv','Invoice '+cab+' periode '+bulanStr+' berhasil di-generate!','ok');
 }
 
 async function saveInvoiceSheet(){
   if(!canEdit()){alert('Hanya Nabilla dan Owner!');return;}
-  if(!STATE.invData){al('alInv','⚠️ Generate invoice dulu!','wn');return;}
+  if(!STATE.invData){al('alInv',' Generate invoice dulu!','wn');return;}
   al('alInv','⏳ Menyimpan invoice ke sheet DB_LAPORAN_CABANG...','in');
   try{
     const {cab,bulanStr,potData,salData}=STATE.invData;
@@ -858,13 +866,13 @@ async function saveInvoiceSheet(){
       body:JSON.stringify({action:'appendRows',sheetId:SHEET_SAL,sheetName:'DB_LAPORAN_CABANG',rows,clearFirst:false})});
     const d=await res.json();
     if(d.error)throw new Error(d.error);
-    al('alInv','✅ Invoice tersimpan ke Sheet DB_LAPORAN_CABANG di File SAL!','ok');
-  }catch(e){al('alInv','❌ Gagal: '+e.message,'er');}
+    al('alInv','Invoice tersimpan ke Sheet DB_LAPORAN_CABANG di File SAL!','ok');
+  }catch(e){al('alInv',' Gagal: '+e.message,'er');}
 }
 
 // ── EXPORT PDF ───────────────────────────────────────────
 function exportPDF(title, tblId, alId){
-  const tbl=g(tblId);if(!tbl||!tbl.rows.length){al(g(alId),'⚠️ Tidak ada data untuk dicetak!','wn');return;}
+  const tbl=g(tblId);if(!tbl||!tbl.rows.length){al(g(alId),' Tidak ada data untuk dicetak!','wn');return;}
   const ap='<scri'+'pt>window.onload=function(){window.print();window.close();}</scri'+'pt>';
   const h='<!DOCTYPE html><html><head><meta charset="UTF-8"/><title>'+title+'</title>'
     +'<style>body{font-family:Arial;padding:14px;font-size:10px;}h2{color:#C62828;}'
@@ -879,7 +887,7 @@ function exportPOTPDF(){exportPDF('Data POT — File INPUT DOCK','potBody','alPO
 function exportSALPDF(){exportPDF('Data SAL — File SAL','salBody','alSAL');}
 function exportRiwayatPDF(){exportPDF('Riwayat Transaksi POT+SAL','rwBody','alRW');}
 function exportInvoicePDF(){
-  const doc=g('invDoc');if(!doc||!STATE.invData){al('alInv','⚠️ Generate invoice dulu!','wn');return;}
+  const doc=g('invDoc');if(!doc||!STATE.invData){al('alInv',' Generate invoice dulu!','wn');return;}
   const ap='<scri'+'pt>window.onload=function(){window.print();window.close();}</scri'+'pt>';
   const h='<!DOCTYPE html><html><head><meta charset="UTF-8"/><title>Invoice RIFIM</title>'
     +'<style>body{font-family:Arial;padding:20px;font-size:11px;}'
