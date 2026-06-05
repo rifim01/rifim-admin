@@ -580,9 +580,18 @@ async function loadPOT(){
     STATE.potRaw=d;
     renderPOT();
     const sr=g('potStatRow');if(sr)sr.style.display='flex';
-    al('alPOT','✅ '+d.length+' baris dimuat dari INPUT_DOCK 1 · '+STATE.potDrivers.length+' driver','ok');
-  }catch(e){al('alPOT','❌ Gagal: '+e.message,'er');}
-}
+   al(
+'alPOT',
+'SUCCESS : ' +
+STATE.potFiltered.length +
+' baris berhasil disimpan ke File POT!',
+'ok'
+);
+  }catch(e){al(
+'alPOT',
+'ERROR : ' + e.message,
+'er'
+);
 
 function renderPOT(){
   const srch=(g('potSrch')?.value||'').toLowerCase();
@@ -623,8 +632,18 @@ async function loadSAL(){
     STATE.salRaw=d;
     renderSAL();
     const sr=g('salStatRow');if(sr)sr.style.display='flex';
-    al('alSAL','✅ '+d.length+' baris dimuat dari DB_TRANSAKSI · '+STATE.salDrivers.length+' driver','ok');
-  }catch(e){al('alSAL','❌ Gagal: '+e.message,'er');}
+    al(
+'alSAL',
+'SUCCESS : ' +
+STATE.salFiltered.length +
+' baris berhasil disimpan ke File SAL!',
+'ok'
+);
+  }catch(e){al(
+'alSAL',
+'ERROR : ' + e.message,
+'er'
+);}
 }
 
 function renderSAL(){
