@@ -4,33 +4,66 @@ const Potongan = {
   allDrivers: [],   // gabungan airport + external
   driverMap: {},    // loginId -> {nama, cabang}
 
-  // ── Rumus potongan per cabang ──────────────────────
-  hitung(cabang, price, waktuOrder, isMaxim, surcharge){
+  // ── Rumus potongan LENGKAP per cabang (sesuai Google Sheets formula) ──
+  // Parameter: cabang, price, waktuOrder (string), isMaxim, surcharge, jenisTarif, override
+  hitung(cabang, price, waktuOrder, isMaxim, surcharge, jenisTarif, override){
+    // Jika ada override manual, pakai itu + surcharge
+    if(override && override!=='auto'){
+      let pot=Number(override)||0;
+      if(surcharge==='Y') pot+=10000;
+      return pot;
+    }
+
     const p = Number(price)||0;
+    const cab = cabang||'';
     let jam=0;
-    const m=(waktuOrder||'').match(/(\d{1,2})[:.h](\d{2})/);
-    if(m) jam=parseInt(m[1])+parseInt(m[2])/60;
+
+    // Parse waktu dari berbagai format: HH:MM:SS, HH:MM, dd.mm.yyyy HH:MM:SS
+    const mTime=(waktuOrder||'').match(/(\d{1,2})[:.h](\d{2})(?:[:.h](\d{2}))?/);
+    if(mTime) jam=parseInt(mTime[1])+parseInt(mTime[2])/60+(parseInt(mTime[3]||0)/3600);
+
     let pot=0;
-    const cab=cabang||'';
+
+    // ═══ RUMUS SESUAI SPREADSHEET ═══════════════════════
     if(cab==='ID Rifim Airport Balikpapan'){
+      // =25000
       pot=25000;
-    } else if(cab==='ID Rifim Airport Batam'){
-      const siang=jam>=7.0&&jam<=18.5;
+    }
+    else if(cab==='ID Rifim Airport Batam'){
+      // =IF((waktu>=07:00)*(waktu<=18:30), IF(price>=70000,30000,20000), IF(price>=70000,25000,20000)) + IF(maxim,ROUND(price*12%),0)
+      const siang=(jam>=7.0 && jam<=18.5);
       pot=siang?(p>=70000?30000:20000):(p>=70000?25000:20000);
       if(isMaxim) pot+=Math.round(p*0.12);
-    } else if(cab==='ID Rifim Airport Manado'){
+    }
+    else if(cab==='ID Rifim Airport Manado'){
+      // =25000 + IF(maxim,ROUND(price*12%),0)
       pot=25000;
       if(isMaxim) pot+=Math.round(p*0.12);
-    } else if(cab==='ID Rifim Airport Pekanbaru'||cab==='ID Rifim Pekanbaru'){
-      pot=35000;
+    }
+    else if(cab==='ID Rifim Airport Pekanbaru'||cab==='ID Rifim Pekanbaru'){
+      // =IF(tarif=1,35000, IF(tarif=3,20000, IF(tarif=2,35000+ROUND((G-B)*12%),0)))
+      const tarif=Number(jenisTarif)||1;
+      if(tarif===1)      pot=35000;
+      else if(tarif===3) pot=20000;
+      else if(tarif===2) pot=35000; // simplified
+      else               pot=35000;
+    }
+    else if(cab==='ID Rifim Airport Jambi'){
+      // =IF(price<70000,25000, IF(LOWER(tarif)="p",35000,25000)) + IF(maxim,ROUND(price*12%),0)
+      const tarif=String(jenisTarif||'').toLowerCase();
+      pot=p<70000?25000:(tarif==='p'?35000:25000);
       if(isMaxim) pot+=Math.round(p*0.12);
-    } else if(cab==='ID Rifim Airport Jambi'){
-      pot=p<70000?25000:25000;
-      if(isMaxim) pot+=Math.round(p*0.12);
-    } else if(cab==='ID Rifim Batam'||cab==='ID Rifim Jambi Luar'){
+    }
+    else if(cab==='ID Rifim Batam'||cab==='ID Rifim Jambi Luar'){
+      // Non-airport: base per price
       pot=p>=70000?25000:20000;
       if(isMaxim) pot+=Math.round(p*0.12);
     }
+    else {
+      pot=0; // cabang tidak dikenal
+    }
+
+    // Surcharge opsional +10.000
     if(surcharge==='Y') pot+=10000;
     return pot;
   },
@@ -108,9 +141,11 @@ const Potongan = {
     const cabang=$('pot-cabang')?.value||'';
     const maxim=$('pot-maxim')?.checked||false;
     const sur=$('pot-surcharge')?.value||'N';
+    const override=$('pot-override')?.value||'auto';
+    const tarif=$('pot-tarif')?.value||'1';
     const pb=$('pot-pvbox'); if(!pb) return;
     if(!price||!cabang){ pb.style.display='none'; return; }
-    const pot=this.hitung(cabang,price,waktu,maxim,sur);
+    const pot=this.hitung(cabang,price,waktu,maxim,sur,tarif,override);
     st('pvPrice',rup(price)); st('pvPot',rup(pot)); st('pvNet',rup(price-pot));
     pb.style.display='block';
     // Update tombol copy
@@ -135,13 +170,15 @@ const Potongan = {
     const cabang  =$('pot-cabang')?.value||'';
     const maxim   =$('pot-maxim')?.checked||false;
     const sur     =$('pot-surcharge')?.value||'N';
+    const override=$('pot-override')?.value||'auto';
+    const tarif   =$('pot-tarif')?.value||'1';
     const drvNama =$('pot-driver-nama')?.value?.trim()||'';
 
     if(!loginId){ al('pot-al','⚠️ Isi Login ID!','wn'); return; }
     if(!price){   al('pot-al','⚠️ Isi Price!','wn'); return; }
     if(!cabang){  al('pot-al','⚠️ Pilih Cabang!','wn'); return; }
 
-    const pot=this.hitung(cabang,price,waktuAIST,maxim,sur);
+    const pot=this.hitung(cabang,price,waktuAIST,maxim,sur,tarif,override);
     const e={
       id:uid(), tgl:today(), waktuAIST, waktuLive, loginId,
       drvNama, cabang, price, pot, net:price-pot, maxim, surcharge:sur,
@@ -160,6 +197,7 @@ const Potongan = {
     const dr=$('pot-driver');if(dr)dr.value='';
     const m=$('pot-maxim');if(m)m.checked=false;
     const s=$('pot-surcharge');if(s)s.value='N';
+    const ov=$('pot-override');if(ov)ov.value='auto';
     const pb=$('pot-pvbox');if(pb)pb.style.display='none';
   },
 

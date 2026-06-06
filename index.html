@@ -106,6 +106,38 @@
           <div class="stat"><div class="stat-ic">👤</div><div class="stat-val" id="d-drv-sal" style="color:var(--sky)">—</div><div class="stat-lbl">Driver SAL</div></div>
           <div class="stat"><div class="stat-ic">🔄</div><div class="stat-val" id="d-trx-sal" style="color:var(--ok)">—</div><div class="stat-lbl">Transaksi SAL</div></div>
         </div>
+        <!-- Stats SAL tambahan -->
+        <div class="sec-hdr"><div class="sec-lbl">Saldo & Transaksi</div><button class="btn btn-ghost btn-sm rh" onclick="Dashboard.loadSaldo()">🔄 Refresh</button></div>
+        <div class="stat-row">
+          <div class="stat"><div class="stat-ic">💳</div><div class="stat-val" id="d-sal-harian" style="color:var(--sky)">—</div><div class="stat-lbl">Transaksi Harian</div></div>
+          <div class="stat"><div class="stat-ic">🏆</div><div class="stat-val" id="d-rank-top" style="color:var(--gold);font-size:14px;">—</div><div class="stat-lbl">Driver Teratas</div></div>
+          <div class="stat"><div class="stat-ic">📋</div><div class="stat-val" id="d-laporan" style="color:var(--ok)">—</div><div class="stat-lbl">Laporan Cabang</div></div>
+          <div class="stat"><div class="stat-ic">✈️</div><div class="stat-val" id="d-drv-airport" style="color:var(--red)">—</div><div class="stat-lbl">Driver Airport</div></div>
+        </div>
+
+        <!-- Input Saldo Cepat -->
+        <div class="sec-hdr"><div class="sec-lbl">Input Saldo Cepat</div></div>
+        <div class="card">
+          <div class="card-body">
+            <div class="inp-row">
+              <div class="f-group"><label class="lbl">Login ID Driver</label>
+                <input id="saldo-loginid" class="inp" type="text" placeholder="ID Login driver"/>
+              </div>
+              <div class="f-group"><label class="lbl">Nominal Saldo</label>
+                <input id="saldo-nominal" class="inp" type="number" placeholder="Jumlah saldo"/>
+              </div>
+              <div class="f-group"><label class="lbl">Cabang</label>
+                <select id="saldo-cab" class="sel"><option value="">— Pilih —</option></select>
+              </div>
+            </div>
+            <div id="saldo-al" class="alert"></div>
+            <div style="display:flex;gap:8px;margin-top:10px;">
+              <button class="btn btn-blue rh" onclick="Dashboard.addSaldo()">➕ Tambah Saldo</button>
+              <button class="btn btn-ghost rh" onclick="Dashboard.clearSaldoForm()">✕ Clear</button>
+            </div>
+          </div>
+        </div>
+
         <!-- Koneksi -->
         <div class="sec-hdr"><div class="sec-lbl">Status Koneksi</div><button class="btn btn-ghost btn-sm rh" onclick="Dashboard.checkConn()">🔍 Cek</button></div>
         <div class="card">
@@ -176,13 +208,27 @@
                 </select>
               </div>
             </div>
-            <!-- Row 3: Optional + Waktu Live -->
+            <!-- Row 3: Surcharge + Potongan Kantor Override + Maxim + Waktu Live -->
             <div class="inp-row" style="align-items:flex-end;">
               <div class="f-group">
                 <label class="lbl">Surcharge <span style="color:var(--t3);font-size:9px;">(opsional +Rp 10.000)</span></label>
                 <select id="pot-surcharge" class="sel" onchange="Potongan.preview()">
                   <option value="N">N — Tidak</option>
                   <option value="Y">Y — Ya (+Rp 10.000)</option>
+                </select>
+              </div>
+              <div class="f-group">
+                <label class="lbl">Potongan Kantor <span style="color:var(--sky);font-size:9px;">(override rumus)</span></label>
+                <select id="pot-override" class="sel" onchange="Potongan.preview()"
+                  style="border-color:rgba(255,214,0,.3);">
+                  <option value="auto">🔄 Auto (rumus)</option>
+                  <option value="20000">Rp 20.000</option>
+                  <option value="25000">Rp 25.000</option>
+                  <option value="30000">Rp 30.000</option>
+                  <option value="35000">Rp 35.000</option>
+                  <option value="40000">Rp 40.000</option>
+                  <option value="45000">Rp 45.000</option>
+                  <option value="50000">Rp 50.000</option>
                 </select>
               </div>
               <div class="check-row f-group" style="align-items:center;gap:8px;padding-bottom:2px;">
