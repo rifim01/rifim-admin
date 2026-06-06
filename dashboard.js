@@ -48,17 +48,23 @@ const Dashboard = {
   // Auto-fill nama driver dari Login ID
   onLoginInput(){
     const loginEl=$('saldo-loginid'); if(!loginEl) return;
-    const val=loginEl.value.trim().toLowerCase();
+    const raw=loginEl.value.trim();
     const namaEl=$('saldo-driver-nama');
     const cabEl=$('saldo-cab');
-    if(!val){ if(namaEl)namaEl.value=''; return; }
-    // Cari di allDrivers dari Potongan module
+    if(!raw){ if(namaEl)namaEl.value=''; if(cabEl)cabEl.value=''; return; }
+    // Handle format AIST: "173140630: Hendosra" → pisahkan ID dan Nama
+    const loginId = raw.includes(':') ? raw.split(':')[0].trim() : raw.trim();
+    const namaFromAIST = raw.includes(':') ? raw.split(':').slice(1).join(':').trim() : '';
+    const val = loginId.toLowerCase();
+    // Cari di driverMap dari Potongan module
     const found=Potongan.driverMap[val];
     if(found){
       if(namaEl) namaEl.value=found.nama;
       if(cabEl&&found.cabang) cabEl.value=found.cabang;
     } else {
-      if(namaEl) namaEl.value='';
+      // Fallback: pakai nama dari paste AIST langsung
+      if(namaEl) namaEl.value=namaFromAIST||'';
+      if(cabEl) cabEl.value='';
     }
   },
 
@@ -90,7 +96,22 @@ const Dashboard = {
 
   async saveSaldoEntry(e){
     try{
-      await API.appendRows(API.SAL,'DB_TRANSAKSI',[[e.tgl,e.waktuAIST,e.loginId,e.drvNama,cabShort(e.cabang),e.nomPlus||e.nominal,'Saldo Top-Up','']],false);
+      // Kolom sesuai schema SAL>INPUT DOCK > DB_TRANSAKSI:
+      // TRX_ID | TIMESTAMP | LOGIN_ID | NAMA | CABANG | JENIS | NOMINAL | ADMIN | DOCK | HASH
+      const loginIdClean = (e.loginId||'').includes(':') ? (e.loginId||'').split(':')[0].trim() : (e.loginId||'');
+      const row = [
+        '',                           // TRX_ID (auto oleh sheet)
+        e.tgl||'',                    // TIMESTAMP
+        loginIdClean,                 // LOGIN_ID (ID saja, tanpa nama)
+        e.drvNama||'',                // NAMA
+        e.cabang||'',                 // CABANG (full name)
+        'Saldo Top-Up',               // JENIS
+        e.nomPlus||e.nominal||0,      // NOMINAL
+        e.admin||'',                  // ADMIN
+        '',                           // DOCK
+        ''                            // HASH
+      ];
+      await API.appendRows(API.SAL,'DB_TRANSAKSI',[row],false);
     }catch(err){console.warn('Saldo save:',err.message);}
   },
 
