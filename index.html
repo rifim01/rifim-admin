@@ -203,21 +203,24 @@
         <div class="sec-hdr"><div class="sec-lbl">Input Data AIST</div></div>
         <div class="card">
           <div class="card-body">
-            <!-- Row 1: Wajib -->
+           <!-- Row 1: Wajib -->
             <div class="inp-row">
               <div class="f-group" style="flex:1.5;">
                 <label class="lbl">Login ID * <span style="color:var(--sky);font-size:9px;">(auto-fill driver & cabang)</span></label>
                 <input id="pot-loginid" class="inp" type="text" placeholder="ID Login dari AIST"
+                  autocomplete="off"
                   oninput="Potongan.onLoginInput()"/>
               </div>
               <div class="f-group">
                 <label class="lbl">Price *</label>
                 <input id="pot-price" class="inp" type="number" placeholder="Nominal order"
+                  autocomplete="off"
                   oninput="Potongan.preview()"/>
               </div>
               <div class="f-group" style="flex:2;">
                 <label class="lbl">Waktu Order (paste dari AIST)</label>
                 <input id="pot-waktu-aist" class="inp" type="text" placeholder="31.05.2026 13:52:16"
+                  autocomplete="off"
                   oninput="Potongan.preview()"/>
               </div>
             </div>
