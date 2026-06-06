@@ -4,14 +4,14 @@ const Auth = {
     {nama:'Nabilla',        pw:'rifim2024', jabatan:'Admin Editor',   role:'editor'},
     {nama:'Govinda',        pw:'rifim2024', jabatan:'Admin',           role:'admin'},
     {nama:'febriany sandra',pw:'rifim2024', jabatan:'Admin',           role:'admin'},
-    {nama:'Owner / Bobby',  pw:'owner2024', jabatan:'Direktur Utama', role:'owner'},
+    {nama:'Owner / Bobby',  pw:'rifim2026', jabatan:'Direktur Utama', role:'owner'},
   ],
   current: null,
   canEdit(){ return this.current && (this.current.role==='owner'||this.current.role==='editor'); },
   isOwner(){ return this.current?.role==='owner'; },
 
   load(){
-    const s = ls.get('_ra_u');
+    const s=ls.get('_ra_u');
     if(s){ const u=this.USERS.find(x=>x.nama===s); if(u){this.current=u;return true;} }
     return false;
   },

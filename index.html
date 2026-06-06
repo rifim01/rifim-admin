@@ -14,7 +14,7 @@
 <link rel="apple-touch-icon" href="assets/icon-192.png"/>
 <link rel="preconnect" href="https://fonts.googleapis.com"/>
 <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet"/>
-<link rel="stylesheet" href="style.css">
+<link rel="stylesheet" href="css/style.css"/>
 </head>
 <body>
 
@@ -22,7 +22,10 @@
 <div id="loginWrap">
   <div class="login-box">
     <div class="lgn-brand">
-      <div class="lgn-logo"><img src="assets/logo.png" alt="RIFIM" onerror="this.style.display='none'"/></div>
+      <div class="lgn-logo" style="background:url(assets/bg.jpg) center/cover,var(--red);">
+        <img src="assets/logo.png" alt="RIFIM" style="width:100%;height:100%;object-fit:cover;border-radius:20px;"
+          onerror="this.parentElement.style.background='var(--red)'"/>
+      </div>
       <div class="lgn-title">RIFIM Admin</div>
       <div class="lgn-sub">PT. Rifim International Gemilang</div>
     </div>
@@ -49,7 +52,10 @@
   <!-- SIDEBAR -->
   <div id="sidebar">
     <div class="sb-head">
-      <div class="sb-logo"><img src="assets/logo.png" alt="R" onerror="this.style.display='none'"/></div>
+      <div class="sb-logo">
+        <img src="assets/logo.png" alt="R" style="width:100%;height:100%;object-fit:cover;"
+          onerror="this.style.display='none'"/>
+    </div>
       <div class="sb-names">
         <div class="sb-brand">RIFIM</div>
         <div class="sb-tagline">Admin Panel</div>
@@ -105,6 +111,8 @@
         <div class="card">
           <div class="li"><div class="li-av">📊</div><div class="li-main"><div class="li-title">File SAL — Google Sheets</div><div class="li-sub">DB_DRIVER · DB_TRANSAKSI · DASHBOARD_HARIAN · RANK_DRIVER</div></div><span id="conn-sal" style="font-size:12px;white-space:nowrap;"></span></div>
           <div class="li"><div class="li-av">👥</div><div class="li-main"><div class="li-title">Database Staff</div><div class="li-sub">MASTER DATA STAFF — rifim01@adminrifim.org</div></div><span id="conn-staff" style="font-size:12px;white-space:nowrap;"></span></div>
+          <div class="li"><div class="li-av">✈️</div><div class="li-main"><div class="li-title">Database Driver Airport</div><div class="li-sub">Batam · Jambi · Balikpapan · Manado · Pekanbaru</div></div><span id="conn-drvap" style="font-size:12px;white-space:nowrap;"></span></div>
+          <div class="li"><div class="li-av">🏢</div><div class="li-main"><div class="li-title">Database Driver External</div><div class="li-sub">ID Rifim Batam · ID Rifim Jambi Luar</div></div><span id="conn-drvex" style="font-size:12px;white-space:nowrap;"></span></div>
         </div>
         <!-- Quick links -->
         <div class="sec-hdr"><div class="sec-lbl">Akses Cepat</div></div>
@@ -118,9 +126,9 @@
       <!-- ▌ DATABASE POTONGAN ▌ -->
       <div class="page" id="page-potongan">
         <div class="pg-hdr">
-          <div><div class="pg-title">Database Potongan</div><div class="pg-sub">Input dari web AIST · Hitung potongan otomatis</div></div>
+          <div><div class="pg-title">Database Potongan</div><div class="pg-sub">Input AIST · Auto-detect driver & cabang · Hitung otomatis</div></div>
           <div class="pg-acts">
-            <button class="btn btn-ok rh btn-sm" onclick="Potongan.saveToSheet()" data-access="editor">💾 Save Sheet</button>
+            <button class="btn btn-ok rh btn-sm" onclick="Potongan.saveToSheet()" data-access="editor">💾 Save Semua</button>
             <button class="btn btn-info rh btn-sm" onclick="Potongan.exportPDF()">📄 PDF</button>
             <button class="btn btn-err rh btn-sm" onclick="Potongan.reset()" data-access="editor">🗑 Reset</button>
           </div>
@@ -130,74 +138,111 @@
         <div class="sec-hdr"><div class="sec-lbl">Input Data AIST</div></div>
         <div class="card">
           <div class="card-body">
+            <!-- Row 1: Wajib -->
             <div class="inp-row">
-              <div class="f-group">
-                <label class="lbl">Login ID *</label>
-                <input id="pot-loginid" class="inp" type="text" placeholder="Login ID dari AIST"/>
+              <div class="f-group" style="flex:1.5;">
+                <label class="lbl">Login ID * <span style="color:var(--sky);font-size:9px;">(auto-fill driver & cabang)</span></label>
+                <input id="pot-loginid" class="inp" type="text" placeholder="ID Login dari AIST"
+                  oninput="Potongan.onLoginInput()"/>
               </div>
               <div class="f-group">
                 <label class="lbl">Price *</label>
-                <input id="pot-price" class="inp" type="number" placeholder="Nominal order" oninput="Potongan.preview()"/>
+                <input id="pot-price" class="inp" type="number" placeholder="Nominal order"
+                  oninput="Potongan.preview()"/>
               </div>
-              <div class="f-group">
-                <label class="lbl">Waktu Order</label>
-                <input id="pot-waktu" class="inp" type="time" oninput="Potongan.preview()"/>
+              <div class="f-group" style="flex:2;">
+                <label class="lbl">Waktu Order (paste dari AIST)</label>
+                <input id="pot-waktu-aist" class="inp" type="text" placeholder="31.05.2026 13:52:16"
+                  oninput="Potongan.preview()"/>
               </div>
             </div>
+            <!-- Row 2: Auto-filled -->
             <div class="inp-row">
               <div class="f-group" style="flex:2;">
-                <label class="lbl">Driver (dari DB)</label>
-                <select id="pot-driver" class="sel" onchange="Potongan.onDriverChange()"><option value="">— Pilih Driver —</option></select>
+                <label class="lbl">Nama Driver <span style="color:var(--sky);font-size:9px;">(dari DB Driver)</span></label>
+                <input id="pot-driver-nama" class="inp" type="text" placeholder="Otomatis dari Login ID" readonly
+                  style="color:var(--sky);cursor:default;"/>
               </div>
-              <div class="f-group">
-                <label class="lbl">ID Cabang *</label>
-                <select id="pot-cabang" class="sel" onchange="Potongan.preview()"><option value="">— Pilih —</option></select>
+              <div class="f-group" style="flex:2;">
+                <label class="lbl">Pilih Driver Manual</label>
+                <select id="pot-driver" class="sel" onchange="Potongan.onDriverChange()">
+                  <option value="">— Cari driver —</option>
+                </select>
               </div>
-              <div class="f-group">
-                <label class="lbl">Jenis Tarif</label>
-                <select id="pot-tarif" class="sel" onchange="Potongan.preview()">
-                  <option value="1">1 — Standard</option>
-                  <option value="2">2 — Plus 12%</option>
-                  <option value="3">3 — Diskon</option>
-                  <option value="P">P — Prioritas</option>
+              <div class="f-group" style="flex:2;">
+                <label class="lbl">ID Cabang * <span style="color:var(--sky);font-size:9px;">(dari ID Login)</span></label>
+                <select id="pot-cabang" class="sel" onchange="Potongan.preview()">
+                  <option value="">— Pilih —</option>
                 </select>
               </div>
             </div>
-            <div class="inp-row" style="align-items:center;">
-              <div class="f-group" style="flex:1;">
-                <label class="lbl">Status</label>
-                <select id="pot-status" class="sel"><option value="Pending">Pending</option><option value="Done">Done</option></select>
+            <!-- Row 3: Optional + Waktu Live -->
+            <div class="inp-row" style="align-items:flex-end;">
+              <div class="f-group">
+                <label class="lbl">Surcharge <span style="color:var(--t3);font-size:9px;">(opsional +Rp 10.000)</span></label>
+                <select id="pot-surcharge" class="sel" onchange="Potongan.preview()">
+                  <option value="N">N — Tidak</option>
+                  <option value="Y">Y — Ya (+Rp 10.000)</option>
+                </select>
               </div>
-              <div class="check-row" style="flex:1;margin-top:8px;">
+              <div class="check-row f-group" style="align-items:center;gap:8px;padding-bottom:2px;">
                 <input type="checkbox" id="pot-maxim" onchange="Potongan.preview()"/>
-                <label for="pot-maxim" style="font-size:13px;">+12% Maxim</label>
+                <label for="pot-maxim" style="font-size:13px;white-space:nowrap;">+12% Maxim</label>
+              </div>
+              <div class="f-group" style="flex:2;">
+                <label class="lbl">Waktu Live (otomatis)</label>
+                <div class="inp" style="color:var(--gold);font-family:var(--mono);cursor:default;display:flex;align-items:center;"
+                  id="pot-waktu-live">--:--:--</div>
               </div>
             </div>
-            <!-- Preview -->
-            <div id="pot-pvbox" class="preview-box" style="display:none;">
-              <div class="preview-row"><span class="preview-lbl">Price</span><span class="preview-val" id="pvPrice" style="color:var(--t1)">—</span></div>
-              <div class="preview-row"><span class="preview-lbl">Potongan Kantor</span><span class="preview-val" id="pvPot" style="color:var(--err)">—</span></div>
-              <div class="preview-row"><span class="preview-lbl" style="font-weight:700;">Net Driver</span><span class="preview-val" id="pvNet" style="color:var(--ok);font-size:18px;">—</span></div>
+            <!-- Preview Kalkulasi -->
+            <div id="pot-pvbox" class="preview-box" style="display:none;margin-top:12px;">
+              <div class="preview-row">
+                <span class="preview-lbl">Price Order</span>
+                <span class="preview-val" id="pvPrice" style="color:var(--t1)">—</span>
+              </div>
+              <div class="preview-row">
+                <span class="preview-lbl">Potongan Kantor</span>
+                <div style="display:flex;align-items:center;gap:8px;">
+                  <span class="preview-val" id="pvPot" style="color:var(--err)">—</span>
+                  <button class="btn btn-ghost btn-sm rh" id="pot-copy" data-val="0"
+                    onclick="Potongan.copyPotongan()" style="height:26px;padding:0 10px;font-size:10px;">📋 Copy</button>
+                </div>
+              </div>
+              <div class="preview-row">
+                <span class="preview-lbl" style="font-weight:700;">Net Driver</span>
+                <span class="preview-val" id="pvNet" style="color:var(--ok);font-size:18px;">—</span>
+              </div>
             </div>
             <div id="pot-al" class="alert" style="margin-top:10px;margin-bottom:0;"></div>
             <div style="display:flex;gap:8px;margin-top:12px;flex-wrap:wrap;">
-              <button class="btn btn-red rh" onclick="Potongan.addEntry()">➕ Tambah</button>
+              <button class="btn btn-red rh btn-lg" onclick="Potongan.addEntry()">➕ Tambah ke Riwayat</button>
               <button class="btn btn-ghost rh" onclick="Potongan.clearForm()">✕ Clear</button>
             </div>
           </div>
         </div>
 
-        <!-- RIWAYAT TABLE -->
-        <div class="sec-hdr"><div class="sec-lbl">Riwayat Potongan (3 hari)</div></div>
-        <div class="card">
-          <div class="tbl-wrap">
-            <div class="tbl-scroll">
-              <table class="tbl">
-                <thead><tr><th>Tgl</th><th>Waktu</th><th>Login ID</th><th>Driver</th><th>Cabang</th><th>Price</th><th>Potongan</th><th>Net</th><th>Status</th><th></th></tr></thead>
-                <tbody id="pot-tbody"><tr><td colspan="10" class="tbl-empty">Belum ada data</td></tr></tbody>
-              </table>
-            </div>
+        <!-- FILTER RIWAYAT -->
+        <div class="sec-hdr">
+          <div class="sec-lbl">Riwayat Potongan (30 hari)</div>
+        </div>
+        <div style="padding:0 22px 10px;display:flex;gap:8px;flex-wrap:wrap;">
+          <div style="flex:1;min-width:130px;">
+            <label class="lbl">Filter Tanggal</label>
+            <input type="date" id="pot-filter-tgl" class="inp" oninput="Potongan.renderTable()"/>
           </div>
+          <div style="flex:2;min-width:180px;">
+            <label class="lbl">Filter Driver</label>
+            <input type="text" id="pot-filter-drv" class="inp" placeholder="Cari nama / Login ID..."
+              oninput="Potongan.renderTable()"/>
+          </div>
+          <div style="display:flex;align-items:flex-end;gap:6px;padding-bottom:0;">
+            <button class="btn btn-ghost rh btn-sm" onclick="$('pot-filter-tgl').value='';$('pot-filter-drv').value='';Potongan.renderTable()">✕ Reset Filter</button>
+          </div>
+        </div>
+        <!-- Riwayat grouped by cabang -->
+        <div id="pot-riwayat" style="padding:0 22px;">
+          <div class="tbl-empty">Belum ada data — isi form di atas</div>
         </div>
       </div>
 
@@ -250,8 +295,10 @@
           </div>
         </div>
         <div style="padding:0 22px 10px;display:flex;gap:10px;flex-wrap:wrap;">
-          <div style="flex:1;min-width:160px;"><label class="lbl">Cabang</label><select id="inv-cab" class="sel"><option value="">— Pilih Cabang —</option></select></div>
-          <div style="flex:1;min-width:140px;"><label class="lbl">Periode</label><input type="month" id="inv-bln" class="inp"/></div>
+          <div style="flex:2;min-width:160px;"><label class="lbl">Cabang</label><select id="inv-cab" class="sel"><option value="">— Pilih Cabang —</option></select></div>
+          <div style="flex:1;min-width:140px;"><label class="lbl">Periode Bulan</label><input type="month" id="inv-bln" class="inp"/></div>
+          <div style="flex:1;min-width:120px;"><label class="lbl">Dari Tanggal</label><input type="date" id="inv-tgl-start" class="inp"/></div>
+          <div style="flex:1;min-width:120px;"><label class="lbl">Sampai Tanggal</label><input type="date" id="inv-tgl-end" class="inp"/></div>
         </div>
         <div id="inv-al" class="alert" style="margin:0 22px 10px;"></div>
         <!-- Empty state -->
@@ -339,14 +386,14 @@
 </div><!-- /appWrap -->
 
 <!-- SCRIPTS -->
-<script src="utils.js"></script>
-<script src="api.js"></script>
-<script src="auth.js"></script>
-<script src="dashboard.js"></script>
-<script src="potongan.js"></script>
-<script src="saldo.js"></script>
-<script src="invoice.js"></script>
-<script src="setting.js"></script>
-<script src="app.js"></script>
+<script src="js/utils.js"></script>
+<script src="js/api.js"></script>
+<script src="js/auth.js"></script>
+<script src="js/dashboard.js"></script>
+<script src="js/potongan.js"></script>
+<script src="js/saldo.js"></script>
+<script src="js/invoice.js"></script>
+<script src="js/setting.js"></script>
+<script src="js/app.js"></script>
 </body>
 </html>
