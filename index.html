@@ -19,7 +19,7 @@
 <body>
 
 <!-- ══ LOGIN ══════════════════════════════════════════ -->
-<div id="loginWrap">
+<div id="loginWrap" autocomplete="off">
   <div class="login-box">
     <div class="lgn-brand">
       <div class="lgn-logo" style="background:url(assets/bg.jpg) center/cover,var(--red);">
@@ -30,6 +30,9 @@
       <div class="lgn-sub">PT. Rifim International Gemilang</div>
     </div>
     <div class="lgn-err" id="lgn-err"></div>
+    <!-- Trick browser: jangan simpan password -->
+    <input type="text" style="display:none" aria-hidden="true"/>
+    <input type="password" style="display:none" aria-hidden="true"/>
     <div style="margin-bottom:14px;">
       <label class="f-lbl">Login Sebagai</label>
       <select id="lgn-sel" class="f-sel" autocomplete="off"></select>
@@ -37,7 +40,7 @@
     <div style="margin-bottom:14px;">
       <label class="f-lbl">Password</label>
       <div class="pw-row">
-        <input type="password" id="lgn-pw" class="f-inp" placeholder="Masukkan password..." autocomplete="new-password" readonly onfocus="this.removeAttribute('readonly')"/>
+        <input type="password" id="lgn-pw" class="f-inp" placeholder="Masukkan password..." autocomplete="off" data-lpignore="true" data-form-type="other" readonly onfocus="this.removeAttribute('readonly')"/>
         <button class="pw-eye" onclick="const p=$('lgn-pw');p.type=p.type==='password'?'text':'password'">👁</button>
       </div>
     </div>
@@ -119,20 +122,50 @@
         <div class="sec-hdr"><div class="sec-lbl">Input Saldo Cepat</div></div>
         <div class="card">
           <div class="card-body">
+            <!-- Row 1: Login + Nama Driver -->
             <div class="inp-row">
-              <div class="f-group"><label class="lbl">Login ID Driver</label>
-                <input id="saldo-loginid" class="inp" type="text" placeholder="ID Login driver"/>
+              <div class="f-group" style="flex:1.5;">
+                <label class="lbl">Login ID <span style="color:var(--sky);font-size:9px;">(auto-fill nama)</span></label>
+                <input id="saldo-loginid" class="inp" type="text" placeholder="ID Login dari AIST"
+                  oninput="Dashboard.onLoginInput()"/>
               </div>
-              <div class="f-group"><label class="lbl">Nominal Saldo</label>
-                <input id="saldo-nominal" class="inp" type="number" placeholder="Jumlah saldo"/>
+              <div class="f-group" style="flex:2;">
+                <label class="lbl">Nama Driver <span style="color:var(--sky);font-size:9px;">(dari DB)</span></label>
+                <input id="saldo-driver-nama" class="inp" type="text" placeholder="Otomatis dari Login ID"
+                  readonly style="color:var(--sky);cursor:default;"/>
               </div>
-              <div class="f-group"><label class="lbl">Cabang</label>
+              <div class="f-group">
+                <label class="lbl">Cabang</label>
                 <select id="saldo-cab" class="sel"><option value="">— Pilih —</option></select>
               </div>
             </div>
+            <!-- Row 2: Nominal Paste + Nominal +5000 + Waktu AIST + Waktu Live -->
+            <div class="inp-row">
+              <div class="f-group">
+                <label class="lbl">Nominal (paste AIST)</label>
+                <input id="saldo-nominal" class="inp" type="number" placeholder="Nominal dari AIST"
+                  oninput="Dashboard.onNominalInput()"/>
+              </div>
+              <div class="f-group">
+                <label class="lbl">Nominal +Rp 5.000 <span style="color:var(--gold);font-size:9px;">(otomatis)</span></label>
+                <input id="saldo-nominal-plus" class="inp" type="number" placeholder="Otomatis +5000"
+                  readonly style="color:var(--gold);cursor:default;"/>
+              </div>
+              <div class="f-group">
+                <label class="lbl">Waktu Order (paste AIST)</label>
+                <input id="saldo-waktu-aist" class="inp" type="text" placeholder="31.05.2026 13:52:16"/>
+              </div>
+              <div class="f-group">
+                <label class="lbl">Waktu Live</label>
+                <div class="inp" id="saldo-waktu-live"
+                  style="color:var(--gold);font-family:var(--mono);display:flex;align-items:center;cursor:default;">
+                  --:--:--
+                </div>
+              </div>
+            </div>
             <div id="saldo-al" class="alert"></div>
-            <div style="display:flex;gap:8px;margin-top:10px;">
-              <button class="btn btn-blue rh" onclick="Dashboard.addSaldo()">➕ Tambah Saldo</button>
+            <div style="display:flex;gap:8px;margin-top:10px;flex-wrap:wrap;">
+              <button class="btn btn-blue rh btn-lg" onclick="Dashboard.addSaldo()">➕ Tambah Saldo</button>
               <button class="btn btn-ghost rh" onclick="Dashboard.clearSaldoForm()">✕ Clear</button>
             </div>
           </div>
@@ -397,9 +430,21 @@
         </div>
         <!-- Driver -->
         <div id="set-tab-drv" class="tab-content" style="margin:0 22px;">
+          <!-- Sub-tabs untuk Airport & External -->
+          <div style="display:flex;gap:6px;margin-bottom:10px;flex-wrap:wrap;">
+            <button class="btn btn-blue btn-sm rh" onclick="Setting.loadDriversAirport()">✈️ Driver Airport</button>
+            <button class="btn btn-ghost btn-sm rh" onclick="Setting.loadDriversExternal()">🏢 Driver External</button>
+            <button class="btn btn-ghost btn-sm rh" onclick="Setting.loadDriversSAL()">📊 DB_DRIVER SAL</button>
+          </div>
+          <div id="set-drv-label" style="font-size:11px;color:var(--t2);margin-bottom:6px;"></div>
           <div class="card" style="margin:0;">
-            <div class="card-hdr"><span class="card-title">DB_DRIVER — File SAL</span><button class="btn btn-ghost btn-sm rh" onclick="Setting.loadDrivers()">🔄 Reload</button></div>
-            <div class="tbl-wrap"><div class="tbl-scroll"><table class="tbl"><thead id="set-drv-hd"></thead><tbody id="set-drv-tb"><tr><td colspan="5" class="tbl-empty">Loading...</td></tr></tbody></table></div></div>
+            <div class="card-hdr">
+              <span class="card-title" id="set-drv-title">Database Driver</span>
+              <div style="display:flex;gap:6px;">
+                <a id="set-drv-link" href="#" target="_blank" class="btn btn-info btn-sm rh" style="display:none;">🔗 Buka Sheet</a>
+              </div>
+            </div>
+            <div class="tbl-wrap"><div class="tbl-scroll" style="max-height:500px;"><table class="tbl"><thead id="set-drv-hd"></thead><tbody id="set-drv-tb"><tr><td colspan="6" class="tbl-empty">Pilih jenis driver di atas</td></tr></tbody></table></div></div>
           </div>
         </div>
         <!-- Password -->
