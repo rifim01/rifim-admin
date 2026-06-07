@@ -327,7 +327,98 @@
         </div>
       </div>
 
-      <!-- ▌ RIWAYAT ▌ -->
+      <!-- ▌ DATABASE SALDO ▌ -->
+      <div class="page" id="page-saldb">
+        <div class="pg-hdr">
+          <div>
+            <div class="pg-title">Database Saldo</div>
+            <div class="pg-sub">Input Saldo · Auto-detect driver & cabang · Simpan ke SAL</div>
+          </div>
+          <div class="pg-acts">
+            <button class="btn btn-p rh btn-sm" onclick="SaldoDb.saveAll()">💾 Save Semua</button>
+            <button class="btn btn-ghost rh btn-sm" onclick="SaldoDb.exportPDF()">📄 PDF</button>
+            <button class="btn btn-danger rh btn-sm" onclick="SaldoDb.reset()">🔄 Reset</button>
+          </div>
+        </div>
+        <div id="sal-al" class="alert"></div>
+        <div class="sec-hdr"><div class="sec-lbl">INPUT DATA SALDO</div></div>
+        <div class="card">
+          <div class="card-body">
+            <div class="inp-row">
+              <div class="f-group" style="flex:2;">
+                <label class="lbl" style="color:#F7C520;font-weight:600;">LOGIN ID <span style="font-size:9px;font-weight:400;">(PASTE DARI AIST — AUTO-FILL)</span></label>
+                <input id="sal-loginid" class="inp" type="text" placeholder="204910728: Steven Semuel N"
+                  autocomplete="one-time-code" name="sal-login-field"
+                  style="border-color:#F7C520;background:rgba(247,197,32,0.06);"
+                  oninput="SaldoDb.onLoginInput()"/>
+              </div>
+              <div class="f-group">
+                <label class="lbl" style="color:#F7C520;font-weight:600;">NOMINAL <span style="font-size:9px;font-weight:400;">(PASTE AIST)</span></label>
+                <input id="sal-nominal" class="inp" type="number" placeholder="95000"
+                  autocomplete="off"
+                  style="border-color:#F7C520;background:rgba(247,197,32,0.06);"
+                  oninput="SaldoDb.onNominalInput()"/>
+              </div>
+              <div class="f-group" style="flex:2;">
+                <label class="lbl" style="color:#F7C520;font-weight:600;">WAKTU ORDER <span style="font-size:9px;font-weight:400;">(PASTE AIST)</span></label>
+                <input id="sal-waktu-aist" class="inp" type="text" placeholder="07.06.2026 18:07:01"
+                  autocomplete="off"
+                  style="border-color:#F7C520;background:rgba(247,197,32,0.06);"/>
+              </div>
+            </div>
+            <div class="inp-row">
+              <div class="f-group" style="flex:2;">
+                <label class="lbl" style="color:#E59900;font-weight:600;">NAMA DRIVER <span style="font-size:9px;font-weight:400;">(DARI DB DRIVER)</span></label>
+                <input id="sal-driver-nama" class="inp" type="text" placeholder="Otomatis dari Login ID" readonly
+                  style="border-color:#E59900;background:rgba(229,153,0,0.06);"/>
+              </div>
+              <div class="f-group" style="flex:1.5;">
+                <label class="lbl" style="color:#E59900;font-weight:600;">CABANG <span style="font-size:9px;font-weight:400;">(DARI ID LOGIN)</span></label>
+                <select id="sal-cabang" class="sel" style="border-color:#E59900;background:rgba(229,153,0,0.06);">
+                  <option value="">— Pilih Cabang —</option>
+                </select>
+              </div>
+              <div class="f-group">
+                <label class="lbl" style="color:#E59900;font-weight:600;">NOMINAL +RP 5.000 <span style="font-size:9px;color:var(--gold);font-weight:400;">(OTOMATIS)</span></label>
+                <input id="sal-nominal-plus" class="inp" type="text" placeholder="Otomatis +5000" readonly
+                  style="border-color:#E59900;color:#F7C520;font-weight:700;background:rgba(229,153,0,0.06);"/>
+              </div>
+              <div class="f-group">
+                <label class="lbl">WAKTU LIVE</label>
+                <input id="sal-live" class="inp" type="text" readonly style="color:var(--gold);font-weight:700;"/>
+              </div>
+            </div>
+            <div style="display:flex;gap:10px;margin-top:8px;flex-wrap:wrap;">
+              <button class="btn btn-p rh" onclick="SaldoDb.addEntry()">+ Tambah Saldo</button>
+              <button class="btn btn-ghost rh" onclick="SaldoDb.clearForm()">✕ Clear</button>
+            </div>
+          </div>
+        </div>
+        <div class="sec-hdr" style="margin-top:16px;">
+          <div class="sec-lbl">RIWAYAT SALDO SESI INI <span id="sal-cnt" style="color:var(--t3);font-size:11px;font-weight:400;margin-left:8px;"></span></div>
+        </div>
+        <div class="card" id="sal-tbl" style="padding:0;overflow:auto;">
+          <table class="tbl" style="min-width:800px;">
+            <thead>
+              <tr>
+                <th>#</th><th>Tanggal</th>
+                <th style="color:#F7C520">Waktu Order</th>
+                <th style="color:#F7C520">Login ID</th>
+                <th style="color:#E59900">Nama Driver</th>
+                <th style="color:#E59900">Cabang</th>
+                <th style="color:#F7C520">Nominal</th>
+                <th style="color:#E59900">+Rp 5.000</th>
+                <th></th>
+              </tr>
+            </thead>
+            <tbody id="sal-tb">
+              <tr><td colspan="9" class="tbl-empty">Belum ada data — paste dari AIST lalu klik Tambah Saldo</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+    <!-- ▌ RIWAYAT ▌ -->
       <div class="page" id="page-saldo">
         <div class="pg-hdr">
           <div><div class="pg-title">Riwayat</div><div class="pg-sub">Riwayat Input Saldo & Database Potongan</div></div>
@@ -433,7 +524,7 @@
           <div style="display:flex;gap:6px;margin-bottom:10px;flex-wrap:wrap;">
             <button class="btn btn-blue btn-sm rh" onclick="Setting.loadDriversAirport()">✈️ Driver Airport</button>
             <button class="btn btn-ghost btn-sm rh" onclick="Setting.loadDriversExternal()">🏢 Driver External</button>
-            <button class="btn btn-ghost btn-sm rh" onclick="Setting.loadDriversSAL()">📊 DB_DRIVER SAL</button>
+            <button class="btn btn-ghost btn-sm rh" onclick="Setting.loadDriversExternal()">📊 DB_DRIVER SAL</button>
           </div>
           <div id="set-drv-label" style="font-size:11px;color:var(--t2);margin-bottom:6px;"></div>
           <div class="card" style="margin:0;">
@@ -484,6 +575,7 @@
 <script src="saldo.js"></script>
 <script src="invoice.js"></script>
 <script src="setting.js"></script>
+<script src="saldo-db.js"></script>
 <script src="app.js"></script>
 </body>
 </html>
