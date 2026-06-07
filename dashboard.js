@@ -12,8 +12,11 @@ const Dashboard = {
   updateStats(){
     st('d-pot-cnt',   Potongan.data.length);
     st('d-pot-total', rup(Potongan.data.reduce((s,e)=>s+e.pot,0)));
-    st('d-trx-sal',   Saldo.raw.transaksi.length||'—');
-    st('d-drv-sal',   Saldo.raw.driver.length||Potongan.allDrivers.length||'—');
+    // Stats saldo dari Riwayat module (safe fallback)
+    const rwtTrx = (typeof Riwayat!=='undefined' && Riwayat.raw?.transaksi?.length) || '—';
+    const rwtDrv = (typeof Riwayat!=='undefined' && Riwayat.raw?.driver?.length) || Potongan.allDrivers.length || '—';
+    st('d-trx-sal',   rwtTrx);
+    st('d-drv-sal',   rwtDrv);
   },
 
   async loadSaldo(){
