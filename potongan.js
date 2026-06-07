@@ -189,15 +189,36 @@ const Potongan = {
 
     const pot=this.hitung(cabang,price,waktuAIST,maxim,sur,tarif,override);
     const e={
-      id:uid(), tgl:today(), waktuAIST, waktuLive, loginId,
-      drvNama, cabang, price, pot, net:price-pot, maxim, surcharge:sur,
-      ts:new Date().toISOString()
-    };
-    this.sessionPotongan.unshift(entry);
-    this.saveToLS(); this.renderTable();
-    this.clearForm();
-    al('pot-al','✅ Berhasil ditambahkan!','ok');
-    App.updateDashStats();
+  id:uid(),
+  tgl:today(),
+  waktuAIST,
+  waktuLive,
+  loginId,
+  drvNama,
+  cabang,
+  price,
+  pot,
+  net:price-pot,
+  maxim,
+  surcharge:sur,
+  ts:new Date().toISOString()
+};
+
+this.sessionPotongan.unshift(e);
+
+localStorage.setItem(
+  '_pot_riwayat',
+  JSON.stringify(this.sessionPotongan)
+);
+
+this.saveToLS();
+this.renderTable();
+
+this.clearForm();
+
+al('pot-al','✅ Berhasil ditambahkan!','ok');
+
+App.updateDashStats();
   },
 
   clearForm(){
