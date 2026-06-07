@@ -193,7 +193,7 @@ const Potongan = {
       drvNama, cabang, price, pot, net:price-pot, maxim, surcharge:sur,
       ts:new Date().toISOString()
     };
-    this.data.unshift(e);
+    this.sessionPotongan.unshift(entry);
     this.saveToLS(); this.renderTable();
     this.clearForm();
     al('pot-al','✅ Berhasil ditambahkan!','ok');
