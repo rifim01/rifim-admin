@@ -1,41 +1,75 @@
-// ═══════════ RIFIM Admin — Setting ═══════════
+// ═══════════ RIFIM Admin — Pengaturan (CLEANED UP) ═══════════
 const Setting = {
+
   async init(){
+    this.buildSumberData();
     this.buildCabang();
     this.buildPwList();
     this.buildOwnerInfo();
-    // Load driver SAL by default
-    this.loadDriversSAL();
+    // Default: load driver Airport
+    this.loadDriversAirport();
+  },
+
+  // ── Info Sumber Data (HANYA 2 sumber resmi) ──
+  buildSumberData(){
+    const el=$('set-sumber'); if(!el) return;
+    el.innerHTML=`
+      <div class="li rh" style="cursor:pointer"
+        onclick="window.open('https://docs.google.com/spreadsheets/d/${API.DRV_AIRPORT}/edit','_blank')">
+        <div class="li-av">✈️</div>
+        <div class="li-main">
+          <div class="li-title">Database Driver Airport</div>
+          <div class="li-sub">Batam · Jambi · Balikpapan · Manado · Pekanbaru — Sumber ID Login & Cabang</div>
+        </div>
+        <span style="color:var(--ok);font-size:12px">● Aktif ›</span>
+      </div>
+      <div class="li rh" style="cursor:pointer"
+        onclick="window.open('https://docs.google.com/spreadsheets/d/${API.DRV_EXTERNAL}/edit','_blank')">
+        <div class="li-av">🏢</div>
+        <div class="li-main">
+          <div class="li-title">Database Driver External</div>
+          <div class="li-sub">ID Rifim Batam · ID Rifim Jambi Luar — Sumber ID Login & Cabang</div>
+        </div>
+        <span style="color:var(--ok);font-size:12px">● Aktif ›</span>
+      </div>
+      <div style="height:1px;background:var(--border);margin:4px 0;"></div>
+      <div class="li rh" style="cursor:pointer"
+        onclick="window.open('https://docs.google.com/spreadsheets/d/${API.SAL}/edit','_blank')">
+        <div class="li-av">💰</div>
+        <div class="li-main">
+          <div class="li-title">SAL › INPUT DOCK → DB_TRANSAKSI</div>
+          <div class="li-sub">Penyimpanan riwayat Input Saldo Cepat</div>
+        </div>
+        <span style="color:var(--sky);font-size:12px">Simpan ›</span>
+      </div>
+      <div class="li rh" style="cursor:pointer"
+        onclick="window.open('https://docs.google.com/spreadsheets/d/${API.POT}/edit','_blank')">
+        <div class="li-av">📊</div>
+        <div class="li-main">
+          <div class="li-title">POT › INPUT DOCK → DB_Transaksi</div>
+          <div class="li-sub">Penyimpanan riwayat Database Potongan</div>
+        </div>
+        <span style="color:var(--sky);font-size:12px">Simpan ›</span>
+      </div>`;
   },
 
   buildCabang(){
     const el=$('set-cab-list'); if(!el) return;
     el.innerHTML=CABANG.map((c,i)=>`
-      <div class="li rh" style="cursor:pointer;"
-        onclick="window.open('https://docs.google.com/spreadsheets/d/${API.SAL}/edit','_blank')">
-        <div class="li-av">${['✈️','✈️','✈️','✈️','✈️','🏢','🏢'][i]||'🏢'}</div>
+      <div class="li rh" style="cursor:pointer"
+        onclick="window.open('https://docs.google.com/spreadsheets/d/${i<5?API.DRV_AIRPORT:API.DRV_EXTERNAL}/edit','_blank')">
+        <div class="li-av">${i<5?'✈️':'🏢'}</div>
         <div class="li-main">
           <div class="li-title">${c}</div>
-          <div class="li-sub">Cabang aktif RIFIM</div>
+          <div class="li-sub">${i<5?'Database Driver Airport':'Database Driver External'}</div>
         </div>
         <span class="bdg bdg-ok">AKTIF</span>
       </div>`).join('');
   },
 
-  async loadDriversSAL(){
-    this.setDrvHeader('DB_DRIVER — File SAL',
-      `https://docs.google.com/spreadsheets/d/${API.SAL}/edit`);
-    const hd=$('set-drv-hd'),tb=$('set-drv-tb'); if(!tb) return;
-    tb.innerHTML='<tr><td colspan="6" class="tbl-empty">⏳ Memuat...</td></tr>';
-    try{
-      const d=await API.sheet(API.SAL,'DB_DRIVER');
-      this.renderDrvTable(d);
-    }catch(e){if(tb)tb.innerHTML=`<tr><td colspan="6" class="tbl-empty">❌ ${e.message}</td></tr>`;}
-  },
-
   async loadDriversAirport(){
     this.setDrvHeader('Database Driver Airport — Semua Cabang',
-      'https://docs.google.com/spreadsheets/d/1FEZxyHPx_GCQKw92hLSf6QxxkXgZn5R1sRswOYM_Tlc/edit');
+      `https://docs.google.com/spreadsheets/d/${API.DRV_AIRPORT}/edit`);
     const tb=$('set-drv-tb'); if(!tb) return;
     tb.innerHTML='<tr><td colspan="6" class="tbl-empty">⏳ Memuat dari 5 sheet...</td></tr>';
     const sheets=[
@@ -52,12 +86,12 @@ const Setting = {
         d.forEach(r=>{ r['_Cabang_']=sh.label; all.push(r); });
       }catch(e){console.warn('Airport '+sh.s+':',e.message);}
     }
-    this.renderDrvTable(all);
+    this.renderDrvTable(all, ['ID Driver','Nama Driver','Cabang','_Cabang_']);
   },
 
   async loadDriversExternal(){
     this.setDrvHeader('Database Driver External',
-      'https://docs.google.com/spreadsheets/d/1suoDC-RsWOgTHiLq4max6iIsWe39Ou-RMddRXl5DVJc/edit');
+      `https://docs.google.com/spreadsheets/d/${API.DRV_EXTERNAL}/edit`);
     const tb=$('set-drv-tb'); if(!tb) return;
     tb.innerHTML='<tr><td colspan="6" class="tbl-empty">⏳ Memuat...</td></tr>';
     let all=[];
@@ -71,7 +105,7 @@ const Setting = {
         d.forEach(r=>{ r['_Cabang_']=sh.label; all.push(r); });
       }catch(e){console.warn('Ext '+sh.s+':',e.message);}
     }
-    this.renderDrvTable(all);
+    this.renderDrvTable(all, ['ID Driver','Nama','Id Cabang','_Cabang_']);
   },
 
   setDrvHeader(title, url){
@@ -80,16 +114,19 @@ const Setting = {
     if(link){ link.href=url||'#'; link.style.display=url?'inline-flex':'none'; }
   },
 
-  renderDrvTable(data){
+  renderDrvTable(data, preferCols){
     const hd=$('set-drv-hd'), tb=$('set-drv-tb');
     if(!tb) return;
     if(!data||!data.length){
       tb.innerHTML='<tr><td colspan="6" class="tbl-empty">Tidak ada data</td></tr>';
       return;
     }
-    const keys=Object.keys(data[0]).slice(0,6);
-    if(hd) hd.innerHTML='<tr>'+keys.map(k=>`<th>${k}</th>`).join('')+'</tr>';
-    tb.innerHTML=data.slice(0,200).map(r=>'<tr>'+keys.map((k,i)=>`
+    const allKeys=Object.keys(data[0]);
+    const keys=preferCols
+      ? preferCols.filter(k=>allKeys.includes(k))
+      : allKeys.slice(0,6);
+    if(hd) hd.innerHTML='<tr>'+keys.map(k=>`<th>${k==='_Cabang_'?'Cabang':k}</th>`).join('')+'</tr>';
+    tb.innerHTML=data.slice(0,300).map(r=>'<tr>'+keys.map((k,i)=>`
       <td style="${i===0?'font-family:var(--mono);font-size:11px;':'font-size:12px;'}">${r[k]||'—'}</td>`
     ).join('')+'</tr>').join('');
   },
@@ -147,27 +184,15 @@ const Setting = {
         <div class="li-main"><div class="li-title">7 Cabang Aktif</div>
         <div class="li-sub" style="white-space:normal;">${CABANG.join(' · ')}</div></div>
       </div>
-      <div class="li rh" style="cursor:pointer" onclick="window.open('https://drive.google.com/drive/folders/${API.DRIVE}','_blank')">
+      <div class="li rh" style="cursor:pointer"
+        onclick="window.open('https://drive.google.com/drive/folders/${API.DRIVE}','_blank')">
         <div class="li-av">📁</div>
         <div class="li-main"><div class="li-title">Google Drive Root</div>
         <div class="li-sub">Folder penyimpanan utama RIFIM</div></div>
         <span style="color:var(--t3)">›</span>
-      </div>
-      <div class="li rh" style="cursor:pointer"
-        onclick="window.open('https://docs.google.com/spreadsheets/d/${API.DRV_AIRPORT}/edit','_blank')">
-        <div class="li-av">✈️</div>
-        <div class="li-main"><div class="li-title">Database Driver Airport</div>
-        <div class="li-sub">ID: ${API.DRV_AIRPORT}</div></div>
-        <span style="color:var(--t3)">›</span>
-      </div>
-      <div class="li rh" style="cursor:pointer"
-        onclick="window.open('https://docs.google.com/spreadsheets/d/${API.DRV_EXTERNAL}/edit','_blank')">
-        <div class="li-av">🏢</div>
-        <div class="li-main"><div class="li-title">Database Driver External</div>
-        <div class="li-sub">ID: ${API.DRV_EXTERNAL}</div></div>
-        <span style="color:var(--t3)">›</span>
       </div>`;
   },
 
-  loadDrivers(){ this.loadDriversSAL(); }
+  // loadDrivers dipanggil dari App.refresh()
+  loadDrivers(){ this.loadDriversAirport(); }
 };

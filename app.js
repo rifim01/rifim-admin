@@ -1,10 +1,10 @@
 // ═══════════ RIFIM Admin — App Controller ═══════════
 const PAGES = {
-  dashboard:  {title:'Dashboard',       sub:'Monitor & Statistik',                icon:'🏠'},
-  potongan:   {title:'Database Potongan',sub:'Input AIST · Hitung Otomatis',      icon:'📊'},
-  saldo:      {title:'File SAL',         sub:'DB_DRIVER · DB_TRANSAKSI · Harian', icon:'💰'},
-  invoice:    {title:'Generate Invoice', sub:'Invoice penagihan cabang',           icon:'📄'},
-  setting:    {title:'Pengaturan',       sub:'Cabang · Driver · Password · Owner',icon:'⚙️'},
+  dashboard: {title:'Dashboard',        sub:'Monitor koneksi & statistik real-time',     icon:'🏠'},
+  potongan:  {title:'Database Potongan', sub:'Input AIST · Auto-detect driver & cabang · Hitung otomatis', icon:'📊'},
+  saldo:     {title:'Riwayat',          sub:'Riwayat Input Saldo & Database Potongan',   icon:'📋'},
+  invoice:   {title:'Generate Invoice', sub:'Invoice penagihan ke DB_LAPORAN_CABANG',    icon:'📄'},
+  setting:   {title:'Pengaturan',       sub:'Cabang · Driver · Password · Owner',        icon:'⚙️'},
 };
 
 const App = {
@@ -70,16 +70,10 @@ const App = {
     st('tb-title',pg.title); st('tb-sub',pg.sub); st('tb-icon',pg.icon);
     const pages=$('pages'); if(pages) pages.scrollTop=0;
     // Page init
-    if(key==='dashboard')   Dashboard.load();
-    if(key==='potongan')    Potongan.init();
-    if(key==='saldo'){ 
-      // Populate cabang filter
-      const sc=$('sal-cab');
-      if(sc&&sc.options.length<2){ sc.innerHTML='<option value="">Semua Cabang</option>'; CABANG.forEach(c=>{const o=document.createElement('option');o.value=c;o.textContent=cabShort(c);sc.appendChild(o);}); }
-      Saldo.loadAll(); 
-    }
-    if(key==='setting')     Setting.init();
-    // Inv cabang populate
+    if(key==='dashboard')  Dashboard.load();
+    if(key==='potongan')   Potongan.init();
+    if(key==='saldo')      Riwayat.init();
+    if(key==='setting')    Setting.init();
     if(key==='invoice'){
       const ic=$('inv-cab');
       if(ic&&ic.options.length<2){
@@ -90,12 +84,11 @@ const App = {
   },
 
   updateDashStats(){ Dashboard.updateStats(); },
-
   toggleSb(){ const sb=$('sidebar'); if(sb) sb.classList.toggle('collapsed'); },
 
   refresh(){
     Dashboard.load();
-    if(this.cur==='saldo')   Saldo.loadAll();
+    if(this.cur==='saldo')   Riwayat.init();
     if(this.cur==='setting') Setting.loadDrivers();
     Potongan.loadDrivers();
   },
@@ -120,7 +113,6 @@ const App = {
 
 document.addEventListener('DOMContentLoaded',()=>{
   App.init();
-  // Inner tab switching
   document.addEventListener('click',e=>{
     const t=e.target.closest('[data-tab]');
     if(!t) return;
@@ -131,6 +123,5 @@ document.addEventListener('DOMContentLoaded',()=>{
     t.classList.add('active');
     const cnt=$(tabKey); if(cnt) cnt.classList.add('active');
   });
-  // Login on Enter
   $('lgn-pw')?.addEventListener('keydown',e=>{if(e.key==='Enter')App.login();});
 });

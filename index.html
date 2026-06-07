@@ -104,18 +104,18 @@
         </div>
         <!-- Stats -->
         <div class="stat-row">
-          <div class="stat"><div class="stat-ic">📊</div><div class="stat-val" id="d-pot-cnt" style="color:var(--red)">0</div><div class="stat-lbl">Session Potongan</div></div>
+          <div class="stat"><div class="stat-ic">📊</div><div class="stat-val" id="d-pot-cnt" style="color:var(--red)">0</div><div class="stat-lbl">Jumlah Session Potongan</div></div>
           <div class="stat"><div class="stat-ic">💰</div><div class="stat-val" id="d-pot-total" style="color:var(--gold);font-size:18px;">Rp 0</div><div class="stat-lbl">Total Potongan</div></div>
-          <div class="stat"><div class="stat-ic">👤</div><div class="stat-val" id="d-drv-sal" style="color:var(--sky)">—</div><div class="stat-lbl">Driver SAL</div></div>
-          <div class="stat"><div class="stat-ic">🔄</div><div class="stat-val" id="d-trx-sal" style="color:var(--ok)">—</div><div class="stat-lbl">Transaksi SAL</div></div>
+          <div class="stat"><div class="stat-ic">👤</div><div class="stat-val" id="d-drv-sal" style="color:var(--sky)">—</div><div class="stat-lbl">Driver Terpotong</div></div>
+          <div class="stat"><div class="stat-ic">🔄</div><div class="stat-val" id="d-trx-sal" style="color:var(--ok)">—</div><div class="stat-lbl">Total Fee Rp 5.000</div></div>
         </div>
         <!-- Stats SAL tambahan -->
         <div class="sec-hdr"><div class="sec-lbl">Saldo & Transaksi</div><button class="btn btn-ghost btn-sm rh" onclick="Dashboard.loadSaldo()">🔄 Refresh</button></div>
         <div class="stat-row">
-          <div class="stat"><div class="stat-ic">💳</div><div class="stat-val" id="d-sal-harian" style="color:var(--sky)">—</div><div class="stat-lbl">Transaksi Harian</div></div>
-          <div class="stat"><div class="stat-ic">🏆</div><div class="stat-val" id="d-rank-top" style="color:var(--gold);font-size:14px;">—</div><div class="stat-lbl">Driver Teratas</div></div>
-          <div class="stat"><div class="stat-ic">📋</div><div class="stat-val" id="d-laporan" style="color:var(--ok)">—</div><div class="stat-lbl">Laporan Cabang</div></div>
-          <div class="stat"><div class="stat-ic">✈️</div><div class="stat-val" id="d-drv-airport" style="color:var(--red)">—</div><div class="stat-lbl">Driver Airport</div></div>
+          <div class="stat"><div class="stat-ic">💳</div><div class="stat-val" id="d-sal-harian" style="color:var(--sky)">—</div><div class="stat-lbl">Jumlah Session Pengisian</div></div>
+          <div class="stat"><div class="stat-ic">🏆</div><div class="stat-val" id="d-rank-top" style="color:var(--gold);font-size:14px;">—</div><div class="stat-lbl">Driver Isi Saldo Terbanyak</div></div>
+          <div class="stat"><div class="stat-ic">📋</div><div class="stat-val" id="d-laporan" style="color:var(--ok)">—</div><div class="stat-lbl">Total Driver Isi Saldo</div></div>
+          <div class="stat"><div class="stat-ic">✈️</div><div class="stat-val" id="d-drv-airport" style="color:var(--red)">—</div><div class="stat-lbl">Driver Airport Aktif</div></div>
         </div>
 
         <!-- Input Saldo Cepat -->
@@ -127,6 +127,7 @@
               <div class="f-group" style="flex:1.5;">
                 <label class="lbl">Login ID <span style="color:var(--sky);font-size:9px;">(auto-fill nama)</span></label>
                 <input id="saldo-loginid" class="inp" type="text" placeholder="ID Login dari AIST"
+                  autocomplete="off"
                   oninput="Dashboard.onLoginInput()"/>
               </div>
               <div class="f-group" style="flex:2;">
@@ -144,6 +145,7 @@
               <div class="f-group">
                 <label class="lbl">Nominal (paste AIST)</label>
                 <input id="saldo-nominal" class="inp" type="number" placeholder="Nominal dari AIST"
+                  autocomplete="off"
                   oninput="Dashboard.onNominalInput()"/>
               </div>
               <div class="f-group">
@@ -153,7 +155,7 @@
               </div>
               <div class="f-group">
                 <label class="lbl">Waktu Order (paste AIST)</label>
-                <input id="saldo-waktu-aist" class="inp" type="text" placeholder="31.05.2026 13:52:16"/>
+                <input id="saldo-waktu-aist" class="inp" type="text" placeholder="31.05.2026 13:52:16" autocomplete="off"/>
               </div>
               <div class="f-group">
                 <label class="lbl">Waktu Live</label>
@@ -174,7 +176,7 @@
         <!-- Koneksi -->
         <div class="sec-hdr"><div class="sec-lbl">Status Koneksi</div><button class="btn btn-ghost btn-sm rh" onclick="Dashboard.checkConn()">🔍 Cek</button></div>
         <div class="card">
-          <div class="li"><div class="li-av">📊</div><div class="li-main"><div class="li-title">File SAL — Google Sheets</div><div class="li-sub">DB_DRIVER · DB_TRANSAKSI · DASHBOARD_HARIAN · RANK_DRIVER</div></div><span id="conn-sal" style="font-size:12px;white-space:nowrap;"></span></div>
+          <div class="li"><div class="li-av">📊</div><div class="li-main"><div class="li-title">SAL › INPUT DOCK — Google Sheets</div><div class="li-sub">DB_TRANSAKSI (Riwayat Saldo)</div></div><span id="conn-sal" style="font-size:12px;white-space:nowrap;"></span></div>
           <div class="li"><div class="li-av">👥</div><div class="li-main"><div class="li-title">Database Staff</div><div class="li-sub">MASTER DATA STAFF — rifim01@adminrifim.org</div></div><span id="conn-staff" style="font-size:12px;white-space:nowrap;"></span></div>
           <div class="li"><div class="li-av">✈️</div><div class="li-main"><div class="li-title">Database Driver Airport</div><div class="li-sub">Batam · Jambi · Balikpapan · Manado · Pekanbaru</div></div><span id="conn-drvap" style="font-size:12px;white-space:nowrap;"></span></div>
           <div class="li"><div class="li-av">🏢</div><div class="li-main"><div class="li-title">Database Driver External</div><div class="li-sub">ID Rifim Batam · ID Rifim Jambi Luar</div></div><span id="conn-drvex" style="font-size:12px;white-space:nowrap;"></span></div>
@@ -182,7 +184,7 @@
         <!-- Quick links -->
         <div class="sec-hdr"><div class="sec-lbl">Akses Cepat</div></div>
         <div class="card">
-          <div class="li rh" style="cursor:pointer" onclick="window.open('https://docs.google.com/spreadsheets/d/1Qhwg1MB4IWqcWZJliGOlxh6q9AFrGyP7EICvFVOIXoY/edit','_blank')"><div class="li-av">💰</div><div class="li-main"><div class="li-title">File SAL — INPUT DOCK</div><div class="li-sub">DB_DRIVER · DB_TRANSAKSI · DASHBOARD_HARIAN</div></div><span style="color:var(--t3)">›</span></div>
+          <div class="li rh" style="cursor:pointer" onclick="window.open('https://docs.google.com/spreadsheets/d/1Qhwg1MB4IWqcWZJliGOlxh6q9AFrGyP7ElCvFVOIXoY/edit','_blank')"><div class="li-av">💰</div><div class="li-main"><div class="li-title">File SAL — INPUT DOCK</div><div class="li-sub">DB_DRIVER · DB_TRANSAKSI · DASHBOARD_HARIAN</div></div><span style="color:var(--t3)">›</span></div>
           <div class="li rh" style="cursor:pointer" onclick="window.open('https://drive.google.com/drive/folders/1hSeERvZrHQtBP_9tWqw87fqQfy2wiBS4','_blank')"><div class="li-av">📁</div><div class="li-main"><div class="li-title">Google Drive Root</div><div class="li-sub">Folder penyimpanan — sub-folder per cabang</div></div><span style="color:var(--t3)">›</span></div>
           <div class="li rh" style="cursor:pointer" onclick="window.open('https://rifim01.github.io/rifim-attendance/','_blank')"><div class="li-av">📍</div><div class="li-main"><div class="li-title">Sistem Absensi</div><div class="li-sub">rifim01.github.io/rifim-attendance</div></div><span style="color:var(--t3)">›</span></div>
         </div>
@@ -208,19 +210,16 @@
               <div class="f-group" style="flex:1.5;">
                 <label class="lbl">Login ID * <span style="color:var(--sky);font-size:9px;">(auto-fill driver & cabang)</span></label>
                 <input id="pot-loginid" class="inp" type="text" placeholder="ID Login dari AIST"
-                  autocomplete="off"
                   oninput="Potongan.onLoginInput()"/>
               </div>
               <div class="f-group">
                 <label class="lbl">Price *</label>
                 <input id="pot-price" class="inp" type="number" placeholder="Nominal order"
-                  autocomplete="off"
                   oninput="Potongan.preview()"/>
               </div>
               <div class="f-group" style="flex:2;">
                 <label class="lbl">Waktu Order (paste dari AIST)</label>
                 <input id="pot-waktu-aist" class="inp" type="text" placeholder="31.05.2026 13:52:16"
-                  autocomplete="off"
                   oninput="Potongan.preview()"/>
               </div>
             </div>
@@ -328,44 +327,40 @@
         </div>
       </div>
 
-      <!-- ▌ FILE SAL ▌ -->
+      <!-- ▌ RIWAYAT ▌ -->
       <div class="page" id="page-saldo">
         <div class="pg-hdr">
-          <div><div class="pg-title">File SAL</div><div class="pg-sub">DB_DRIVER · DB_TRANSAKSI · DASHBOARD_HARIAN · RANK_DRIVER</div></div>
+          <div><div class="pg-title">Riwayat</div><div class="pg-sub">Riwayat Input Saldo & Database Potongan</div></div>
           <div class="pg-acts">
-            <button class="btn btn-blue rh btn-sm" onclick="Saldo.loadAll()">🔄 Muat Semua</button>
-            <button class="btn btn-info rh btn-sm" onclick="Saldo.exportPDF()">📄 PDF Trx</button>
+            <button class="btn btn-ghost rh btn-sm" onclick="Riwayat.init()">🔄 Muat Ulang</button>
           </div>
         </div>
-        <div id="sal-al" class="alert" style="margin:0 22px 10px;"></div>
-        <!-- Filter -->
-        <div style="padding:0 22px 10px;display:flex;gap:8px;flex-wrap:wrap;">
-          <input type="text" id="sal-srch" class="inp" style="flex:1;min-width:160px;" placeholder="🔍 Cari driver / nominal..." oninput="Saldo.filter()"/>
-          <select id="sal-cab" class="sel" style="flex:1;min-width:160px;" onchange="Saldo.filter()"><option value="">Semua Cabang</option></select>
+        <div id="rwt-al" class="alert"></div>
+        <!-- TABEL 1: Riwayat Input Saldo Cepat -->
+        <div class="sec-hdr">
+          <div class="sec-lbl">💰 Riwayat Input Saldo Cepat <span id="rwt-sal-cnt" style="color:var(--t3);font-size:11px;font-weight:400;margin-left:8px;"></span></div>
+          <button class="btn btn-ghost btn-sm rh" onclick="Riwayat.loadSaldo()">🔄 Refresh</button>
         </div>
-        <!-- Inner Tabs -->
-        <div class="tab-row">
-          <div class="tab active" data-tab="sal-tab-drv"   data-tab-group="sal">DB_DRIVER</div>
-          <div class="tab"       data-tab="sal-tab-trx"   data-tab-group="sal">DB_TRANSAKSI</div>
-          <div class="tab"       data-tab="sal-tab-hr"    data-tab-group="sal">DASHBOARD HARIAN</div>
-          <div class="tab"       data-tab="sal-tab-rank"  data-tab-group="sal">RANK DRIVER</div>
+        <div class="card" style="padding:0;overflow:auto;">
+          <table class="tbl" style="min-width:700px;">
+            <thead><tr id="rwt-sal-hd"></tr></thead>
+            <tbody id="rwt-sal-tb"><tr><td colspan="7" class="tbl-empty">Klik Muat Ulang</td></tr></tbody>
+          </table>
         </div>
-        <!-- Tab Contents -->
-        <div id="sal-tab-drv" class="tab-content active" style="margin:0 22px;">
-          <div class="card" style="margin:0;"><div class="tbl-wrap"><div class="tbl-scroll"><table class="tbl"><thead id="sal-drv-hd"></thead><tbody id="sal-drv-tb"><tr><td colspan="6" class="tbl-empty">Klik Muat Semua</td></tr></tbody></table></div></div></div>
+        <!-- TABEL 2: Riwayat Database Potongan -->
+        <div class="sec-hdr" style="margin-top:20px;">
+          <div class="sec-lbl">📊 Riwayat Database Potongan <span id="rwt-pot-cnt" style="color:var(--t3);font-size:11px;font-weight:400;margin-left:8px;"></span></div>
+          <button class="btn btn-ghost btn-sm rh" onclick="Riwayat.loadPotongan()">🔄 Refresh</button>
         </div>
-        <div id="sal-tab-trx" class="tab-content" style="margin:0 22px;">
-          <div class="card" style="margin:0;"><div class="tbl-wrap"><div class="tbl-scroll"><table class="tbl" id="sal-trx-table"><thead id="sal-trx-hd"></thead><tbody id="sal-trx-tb"><tr><td colspan="8" class="tbl-empty">Klik Muat Semua</td></tr></tbody></table></div></div></div>
-        </div>
-        <div id="sal-tab-hr" class="tab-content" style="margin:0 22px;">
-          <div class="card" style="margin:0;"><div class="tbl-wrap"><div class="tbl-scroll"><table class="tbl"><thead id="sal-hr-hd"></thead><tbody id="sal-hr-tb"><tr><td colspan="8" class="tbl-empty">Klik Muat Semua</td></tr></tbody></table></div></div></div>
-        </div>
-        <div id="sal-tab-rank" class="tab-content" style="margin:0 22px;">
-          <div class="card" style="margin:0;"><div class="tbl-wrap"><div class="tbl-scroll"><table class="tbl"><thead id="sal-rank-hd"></thead><tbody id="sal-rank-tb"><tr><td colspan="6" class="tbl-empty">Klik Muat Semua</td></tr></tbody></table></div></div></div>
+        <div class="card" style="padding:0;overflow:auto;">
+          <table class="tbl" style="min-width:900px;">
+            <thead><tr id="rwt-pot-hd"></tr></thead>
+            <tbody id="rwt-pot-tb"><tr><td colspan="8" class="tbl-empty">Klik Muat Ulang</td></tr></tbody>
+          </table>
         </div>
       </div>
 
-      <!-- ▌ INVOICE ▌ -->
+    <!-- ▌ INVOICE ▌ -->
       <div class="page" id="page-invoice">
         <div class="pg-hdr">
           <div><div class="pg-title">Generate Invoice</div><div class="pg-sub">Invoice penagihan ke DB_LAPORAN_CABANG</div></div>
@@ -376,11 +371,9 @@
             <button class="btn btn-err rh btn-sm" onclick="Invoice.reset()" data-access="editor">🗑 Reset</button>
           </div>
         </div>
-        <div style="padding:0 22px 10px;display:flex;gap:10px;flex-wrap:wrap;">
+        <div style="padding:0 22px 10px;display:flex;gap:10px;flex-wrap:wrap;align-items:flex-end;">
           <div style="flex:2;min-width:160px;"><label class="lbl">Cabang</label><select id="inv-cab" class="sel"><option value="">— Pilih Cabang —</option></select></div>
-          <div style="flex:1;min-width:140px;"><label class="lbl">Periode Bulan</label><input type="month" id="inv-bln" class="inp"/></div>
-          <div style="flex:1;min-width:120px;"><label class="lbl">Dari Tanggal</label><input type="date" id="inv-tgl-start" class="inp"/></div>
-          <div style="flex:1;min-width:120px;"><label class="lbl">Sampai Tanggal</label><input type="date" id="inv-tgl-end" class="inp"/></div>
+          <div style="flex:1;min-width:160px;"><label class="lbl">Tanggal</label><input type="date" id="inv-tgl" class="inp"/></div>
         </div>
         <div id="inv-al" class="alert" style="margin:0 22px 10px;"></div>
         <!-- Empty state -->
@@ -398,7 +391,7 @@
             </div>
             <div class="stat-row" style="padding:0;margin-bottom:14px;">
               <div class="stat" style="flex:1;"><div class="stat-val" id="invTrxPot" style="color:var(--red);font-size:20px;">0</div><div class="stat-lbl">Transaksi POT</div></div>
-              <div class="stat" style="flex:1;"><div class="stat-val" id="invTrxSal" style="color:var(--ok);font-size:20px;">0</div><div class="stat-lbl">Transaksi SAL</div></div>
+              <div class="stat" style="flex:1;"><div class="stat-val" id="invTrxSal" style="color:var(--ok);font-size:20px;">0</div><div class="stat-lbl">Total Fee Rp 5.000</div></div>
               <div class="stat" style="flex:1;"><div class="stat-val" id="invTotalPot" style="color:var(--gold);font-size:18px;">Rp 0</div><div class="stat-lbl">Total Potongan</div></div>
             </div>
             <div class="tbl-wrap">
@@ -427,8 +420,11 @@
           <div class="tab"        data-tab="set-tab-pw"    data-tab-group="set">Password</div>
           <div class="tab"        data-tab="set-tab-owner" data-tab-group="set">Owner</div>
         </div>
-        <!-- Cabang -->
+        <!-- Cabang + Sumber Data -->
         <div id="set-tab-cab" class="tab-content active" style="margin:0 22px;">
+          <div class="sec-lbl" style="padding:12px 0 6px;font-size:11px;color:var(--t2);text-transform:uppercase;letter-spacing:1px;">Sumber Data Aktif</div>
+          <div class="card" style="margin:0 0 12px;"><div id="set-sumber"></div></div>
+          <div class="sec-lbl" style="padding:12px 0 6px;font-size:11px;color:var(--t2);text-transform:uppercase;letter-spacing:1px;">7 Cabang Aktif</div>
           <div class="card" style="margin:0;"><div id="set-cab-list"></div></div>
         </div>
         <!-- Driver -->
