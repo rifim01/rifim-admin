@@ -10,13 +10,17 @@ const Dashboard = {
   },
 
   updateStats(){
-    st('d-pot-cnt',   Potongan.data.length);
-    st('d-pot-total', rup(Potongan.data.reduce((s,e)=>s+e.pot,0)));
-    // Stats saldo dari Riwayat module (safe fallback)
-    const rwtTrx = (typeof Riwayat!=='undefined' && Riwayat.raw?.transaksi?.length) || '—';
-    const rwtDrv = (typeof Riwayat!=='undefined' && Riwayat.raw?.driver?.length) || Potongan.allDrivers.length || '—';
-    st('d-trx-sal',   rwtTrx);
-    st('d-drv-sal',   rwtDrv);
+    // ── Monitor Potongan (dari session Potongan.data) ──
+    const potCnt   = Potongan.data.length;
+    const potTotal = Potongan.data.reduce((s,e)=>s+e.pot,0);
+    const potDrivers = [...new Set(Potongan.data.map(e=>e.loginId))].length;
+    st('d-pot-cnt',   potCnt);
+    st('d-pot-total', rup(potTotal));
+    st('d-drv-sal',   potDrivers || Potongan.allDrivers.length || '—'); // Driver Terpotong = unique driver sesi
+    // ── Monitor Saldo (dari session SaldoDb.data) ──
+    const salCnt  = (typeof SaldoDb!=='undefined') ? SaldoDb.data.length : 0;
+    const salFee  = salCnt * 5000;
+    st('d-trx-sal', salFee > 0 ? rup(salFee) : (salCnt > 0 ? rup(salFee) : '—')); // Total Fee Rp5000
   },
 
   async loadSaldo(){
