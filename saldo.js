@@ -51,9 +51,13 @@ const Riwayat = {
     const tb=$('rwt-pot-tb'), hd=$('rwt-pot-hd'), cnt=$('rwt-pot-cnt');
     if(!tb) return;
     tb.innerHTML='<tr><td colspan="8" class="tbl-empty">⏳ Memuat riwayat potongan...</td></tr>';
-    try{
-      const data = await API.sheet(API.POT,'DB_Transaksi');
-      if(cnt) cnt.textContent = data.length + ' transaksi';
+   try{
+
+  const data = JSON.parse(
+    localStorage.getItem('_pot_riwayat') || '[]'
+  );
+
+  if(cnt) cnt.textContent = data.length + ' transaksi';
       if(!data.length){
         tb.innerHTML='<tr><td colspan="8" class="tbl-empty">Belum ada data potongan</td></tr>';
         return;
