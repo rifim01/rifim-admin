@@ -72,30 +72,26 @@ const Potongan = {
   async loadDrivers(){
     this.allDrivers=[];
     this.driverMap={};
-    const load = async (sheetId, sheetNames)=>{
-      for(const sn of sheetNames){
-        try{
-          const d=await API.sheet(sheetId, sn);
-          d.forEach(r=>{
-            const keys=Object.keys(r);
-            // Cari kolom ID Login, Nama, Cabang berdasarkan nama kolom
-            const loginKey=keys.find(k=>/login|id.?login|id.?driver/i.test(k));
-            const namaKey =keys.find(k=>/^nama/i.test(k));
-            const cabKey  =keys.find(k=>/cabang|id.?cabang|branch/i.test(k));
-            const loginId=(loginKey?r[loginKey]:'').toString().trim();
-            const nama   =(namaKey ?r[namaKey] :'').toString().trim();
-            const cabang =(cabKey  ?r[cabKey]  :'').toString().trim();
-            if(loginId){
-              this.allDrivers.push({loginId,nama,cabang,raw:r});
-              this.driverMap[loginId.toLowerCase()]={nama,cabang};
-            }
-          });
-        }catch(e){console.warn(`Driver ${sn}:`,e.message);}
-      }
-    };
-    await load(API.DRV_AIRPORT,  ['ID Rifim Airport Batam','ID Rifim Airport Jambi','ID Rifim Airport Balikpapan','ID Rifim Airport Manado','ID Rifim Airport Pekanbaru']);
-    await load(API.DRV_EXTERNAL, ['ID Rifim Batam','ID Rifim Jambi Luar']);
-    console.log('Drivers loaded:',this.allDrivers.length);
+    try{
+      // Load semua driver sekaligus dari SAL DB_DRIVER (lebih efisien — 1 request)
+      const data = await API.sheet(API.SAL,'DB_DRIVER');
+      data.forEach(r=>{
+        const keys=Object.keys(r);
+        const loginKey=keys.find(k=>/login.?id/i.test(k.trim())||k.trim()==='Login ID');
+        const namaKey =keys.find(k=>/nama.?driver/i.test(k.trim())||k.trim()==='Nama Driver');
+        const cabKey  =keys.find(k=>/^cabang/i.test(k.trim()));
+        const loginId=(loginKey?r[loginKey]:'').toString().trim();
+        const nama   =(namaKey ?r[namaKey] :'').toString().trim();
+        const cabang =(cabKey  ?r[cabKey]  :'').toString().trim();
+        if(loginId&&nama){
+          this.allDrivers.push({loginId,nama,cabang});
+          this.driverMap[loginId.toLowerCase()]={nama,cabang};
+        }
+      });
+      console.log('Drivers loaded:',this.allDrivers.length,'dari SAL DB_DRIVER');
+    }catch(e){
+      console.warn('loadDrivers error:',e.message);
+    }
     this.buildDriverSel();
   },
 
@@ -114,6 +110,8 @@ const Potongan = {
   onLoginInput(){
     const loginEl=$('pot-loginid'); if(!loginEl) return;
     const raw=loginEl.value.trim();
+    // AUTO-HAPUS browser autofill non-digit (misal "erp")
+    if(raw && !/\d/.test(raw)){ loginEl.value=''; $('pot-driver-nama')&&($('pot-driver-nama').value=''); $('pot-cabang')&&($('pot-cabang').value=''); return; }
     if(!raw){ $('pot-driver-nama')&&($('pot-driver-nama').value=''); $('pot-cabang')&&($('pot-cabang').value=''); return; }
     // Handle format AIST: "173140630: Hendosra" → ambil ID saja
     const loginId = raw.includes(':') ? raw.split(':')[0].trim() : raw.trim();

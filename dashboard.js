@@ -37,6 +37,14 @@ const Dashboard = {
     const sel=$('saldo-cab'); if(!sel||sel.options.length>1) return;
     sel.innerHTML='<option value="">— Pilih Cabang —</option>';
     CABANG.forEach(c=>{const o=document.createElement('option');o.value=c;o.textContent=cabShort(c);sel.appendChild(o);});
+    // Clear autofill non-digit (browser inject "erp" dll)
+    setTimeout(()=>{
+      ['saldo-loginid','saldo-nominal','saldo-waktu-aist'].forEach(id=>{
+        const el=$(id);
+        if(!el) return;
+        if(el.value && !/\d/.test(el.value)) el.value='';
+      });
+    }, 200);
   },
 
   startLiveClock(){
@@ -51,6 +59,8 @@ const Dashboard = {
     const raw=loginEl.value.trim();
     const namaEl=$('saldo-driver-nama');
     const cabEl=$('saldo-cab');
+    // AUTO-HAPUS browser autofill non-digit (misal "erp" dari rifim-erp-admin)
+    if(raw && !/\d/.test(raw)){ loginEl.value=''; if(namaEl)namaEl.value=''; if(cabEl)cabEl.value=''; return; }
     if(!raw){ if(namaEl)namaEl.value=''; if(cabEl)cabEl.value=''; return; }
     // Handle format AIST: "173140630: Hendosra" → pisahkan ID dan Nama
     const loginId = raw.includes(':') ? raw.split(':')[0].trim() : raw.trim();
