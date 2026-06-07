@@ -1,6 +1,7 @@
 // ═══════════ RIFIM Admin — Database Potongan ═══════════
 const Potongan = {
   data: [],
+  sessionPotongan: [],
   allDrivers: [],   // gabungan airport + external
   driverMap: {},    // loginId -> {nama, cabang}
 
