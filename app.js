@@ -4,7 +4,7 @@ const PAGES = {
   potongan:  {title:'Database Potongan', sub:'Input AIST · Auto-detect driver & cabang · Hitung otomatis', icon:'📊'},
   saldb:     {title:'Database Saldo',   sub:'Input Saldo · Auto-detect driver & cabang · Simpan ke SAL',   icon:'💰'},
   saldo:     {title:'Riwayat',          sub:'Riwayat Input Saldo & Database Potongan',   icon:'📋'},
-  invoice:   {title:'Generate Invoice', sub:'Invoice penagihan ke DB_LAPORAN_CABANG',    icon:'📄'},
+  invoice:   {title:'Generate Invoice', sub:'Invoice penagihan ke DB_TRANSAKSI',    icon:'📄'},
   setting:   {title:'Pengaturan',       sub:'Cabang · Driver · Password · Owner',        icon:'⚙️'},
 };
 
