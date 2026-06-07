@@ -92,16 +92,16 @@ const Invoice = {
   async saveToSheet(){
     if(!Auth.canEdit()){alert('Hanya Nabilla & Owner!');return;}
     if(!this.data){al('inv-al','⚠️ Generate dulu!','wn');return;}
-    al('inv-al','⏳ Menyimpan ke DB_LAPORAN_CABANG...','in');
+    al('inv-al','⏳ Menyimpan ke DB_TRANSAKSI...','in');
     try{
       const {cab,tglDisp,potD,totalPot,totalNet}=this.data;
       const rows=[
         [today(),cab,tglDisp,'POT',potD.length,rup(totalPot)],
         [today(),cab,tglDisp,'NET','—',rup(totalNet)],
       ];
-      const r=await API.appendRows(API.SAL,'DB_LAPORAN_CABANG',rows);
+      const r=await API.appendRows(API.SAL,'DB_TRANSAKSI',rows);
       if(r?.error) throw new Error(r.error);
-      al('inv-al','✅ Tersimpan ke DB_LAPORAN_CABANG!','ok');
+      al('inv-al','✅ Tersimpan ke DB_TRANSAKSI!','ok');
     }catch(e){al('inv-al','❌ Gagal: '+e.message,'er');}
   },
 

@@ -29,7 +29,7 @@ const Dashboard = {
       const rk=await API.sheet(API.SAL,'RANK_DRIVER');
       if(rk.length){ const k=Object.keys(rk[0]); st('d-rank-top',rk[0][k[1]]||rk[0][k[0]]||'—'); }
     }catch{}
-    try{ const lp=await API.sheet(API.SAL,'DB_LAPORAN_CABANG'); st('d-laporan',lp.length||'0'); }catch{}
+    try{ const lp=await API.sheet(API.SAL,'DB_TRANSAKSI'); st('d-laporan',lp.length||'0'); }catch{}
     try{
       // Gabungkan semua driver airport
       const sheets=['ID Rifim Airport Batam','ID Rifim Airport Jambi','ID Rifim Airport Balikpapan',
