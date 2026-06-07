@@ -26,12 +26,13 @@ const SaldoDb = {
     sel.innerHTML='<option value="">— Pilih Cabang —</option>';
     CABANG.forEach(c=>{
       const o=document.createElement('option');
-      o.value=c; o.textContent=cabShort(c); sel.appendChild(o);
+      o.value=c; o.textContent=c; sel.appendChild(o); // Full name
     });
   },
 
   startLiveClock(){
-    const update=()=>{ const el=$('sal-live'); if(el) el.value=liveClock(); };
+    const fmt=()=>{const d=new Date();return String(d.getHours()).padStart(2,'0')+'.'+String(d.getMinutes()).padStart(2,'0')+'.'+String(d.getSeconds()).padStart(2,'0');};
+    const update=()=>{ const el=$('sal-live'); if(el) el.value=fmt(); };
     update(); setInterval(update,1000);
   },
 
@@ -101,7 +102,7 @@ const SaldoDb = {
 
   async saveAll(){
     if(!Auth.canEdit()){alert('Hanya Nabilla & Owner!');return;}
-    if(!this.data.length){al('sal-al','⚠️ Tidak ada data!','wn');return;}
+    if(!this.data.length){al('sal-al','⚠️ Tidak ada data sesi ini!','wn');return;}
     al('sal-al','⏳ Menyimpan ke SAL DB_TRANSAKSI...','in');
     try{
       const rows=this.data.map(e=>['', e.tgl, e.loginId, e.nama, e.cabang, 'Saldo Top-Up', e.nomPlus, '', '', '']);
@@ -110,6 +111,20 @@ const SaldoDb = {
       al('sal-al',`✅ ${rows.length} baris tersimpan ke SAL DB_TRANSAKSI!`,'ok');
       ls.set('_sa_last_save',Date.now());
     }catch(e){al('sal-al','❌ Gagal: '+e.message,'er');}
+  },
+
+  // Export ke sheet + clear sesi
+  async exportAndClear(){
+    if(!Auth.canEdit()){alert('Hanya Nabilla & Owner!');return;}
+    if(!this.data.length){al('sal-al','⚠️ Tidak ada data untuk di-export!','wn');return;}
+    await this.saveAll();
+    // Clear sesi setelah export berhasil
+    setTimeout(()=>{
+      this.data=[];
+      ls.remove('_sa_data');
+      this.renderTable();
+      al('sal-al','✅ Data di-export ke SAL DB_TRANSAKSI & sesi di-clear!','ok');
+    }, 1200);
   },
 
   clearForm(){
@@ -141,7 +156,7 @@ const SaldoDb = {
       <td style="font-size:11px;color:var(--t2)">${e.waktuAIST||'—'}</td>
       <td style="font-family:var(--mono);font-size:11px">${e.loginId}</td>
       <td style="font-size:12px">${e.nama||'—'}</td>
-      <td><span class="bdg bdg-ok" style="font-size:10px">${cabShort(e.cabang)}</span></td>
+      <td style="font-size:11px">${e.cabang||'—'}</td>
       <td style="text-align:right;font-size:12px">${rup(e.nominal)}</td>
       <td style="text-align:right;color:var(--gold);font-weight:700">${rup(e.nomPlus)}</td>
       <td style="text-align:center">

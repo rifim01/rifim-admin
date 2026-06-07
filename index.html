@@ -335,7 +335,8 @@
             <div class="pg-sub">Input Saldo · Auto-detect driver & cabang · Simpan ke SAL</div>
           </div>
           <div class="pg-acts">
-            <button class="btn btn-p rh btn-sm" onclick="SaldoDb.saveAll()">💾 Save Semua</button>
+            <button class="btn btn-p rh btn-sm" onclick="SaldoDb.exportAndClear()">📤 Export & Clear</button>
+            <button class="btn btn-ghost rh btn-sm" onclick="SaldoDb.saveAll()">💾 Save Saja</button>
             <button class="btn btn-ghost rh btn-sm" onclick="SaldoDb.exportPDF()">📄 PDF</button>
             <button class="btn btn-danger rh btn-sm" onclick="SaldoDb.reset()">🔄 Reset</button>
           </div>
@@ -424,6 +425,8 @@
           <div><div class="pg-title">Riwayat</div><div class="pg-sub">Riwayat Input Saldo & Database Potongan</div></div>
           <div class="pg-acts">
             <button class="btn btn-ghost rh btn-sm" onclick="Riwayat.init()">🔄 Muat Ulang</button>
+            <button class="btn btn-p rh btn-sm" onclick="Riwayat.exportSaldo()">📤 Export Saldo</button>
+            <button class="btn btn-danger rh btn-sm" onclick="Riwayat.clearRiwayat()">🗑️ Clear Tampilan</button>
           </div>
         </div>
         <div id="rwt-al" class="alert"></div>

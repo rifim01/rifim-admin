@@ -77,6 +77,41 @@ const Riwayat = {
 
   // Backward compat (dipanggil dari Saldo references lama)
   loadAll(){ this.init(); },
+
+  // Export Riwayat Saldo ke SAL DB_TRANSAKSI + Clear
+  async exportSaldo(){
+    if(!Auth.canEdit()){alert('Hanya Nabilla & Owner!');return;}
+    const tb=$('rwt-sal-tb');
+    if(!tb) return;
+    const rows=[];
+    tb.querySelectorAll('tr[data-row]').forEach(tr=>{
+      const cells=[...tr.querySelectorAll('td')];
+      if(cells.length>=6){
+        rows.push(['', cells[0]?.textContent?.trim()||'',
+          cells[1]?.textContent?.trim()||'',
+          cells[2]?.textContent?.trim()||'',
+          cells[3]?.textContent?.trim()||'',
+          cells[4]?.textContent?.trim()||'',
+          cells[5]?.textContent?.trim()||'', '', '', '']);
+      }
+    });
+    if(!rows.length){alert('Tidak ada data untuk di-export!');return;}
+    try{
+      await API.appendRows(API.SAL,'DB_TRANSAKSI',rows,false);
+      alert(`✅ ${rows.length} data Riwayat Saldo di-export ke SAL DB_TRANSAKSI`);
+    }catch(e){alert('❌ Gagal: '+e.message);}
+  },
+
+  // Clear semua cache Riwayat
+  clearRiwayat(){
+    if(!confirm('Hapus semua tampilan riwayat sesi ini?')) return;
+    const tb1=$('rwt-sal-tb'), tb2=$('rwt-pot-tb');
+    if(tb1) tb1.innerHTML='<tr><td colspan="7" class="tbl-empty">Sudah di-clear</td></tr>';
+    if(tb2) tb2.innerHTML='<tr><td colspan="8" class="tbl-empty">Sudah di-clear</td></tr>';
+    const c1=$('rwt-sal-cnt'), c2=$('rwt-pot-cnt');
+    if(c1) c1.textContent='';
+    if(c2) c2.textContent='';
+  },
   raw:{ driver:[], transaksi:[], harian:[], rank:[] },
   filtered:{ transaksi:[], harian:[] }
 };

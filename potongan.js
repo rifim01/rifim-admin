@@ -7,10 +7,11 @@ const Potongan = {
   // ── Rumus potongan LENGKAP per cabang (sesuai Google Sheets formula) ──
   // Parameter: cabang, price, waktuOrder (string), isMaxim, surcharge, jenisTarif, override
   hitung(cabang, price, waktuOrder, isMaxim, surcharge, jenisTarif, override){
-    // Jika ada override manual, pakai itu + surcharge
+    // Jika ada override manual, pakai itu + surcharge + maxim
     if(override && override!=='auto'){
       let pot=Number(override)||0;
       if(surcharge==='Y') pot+=10000;
+      if(isMaxim) pot+=Math.round((Number(price)||0)*0.12); // +12% Maxim tetap dihitung
       return pot;
     }
 
