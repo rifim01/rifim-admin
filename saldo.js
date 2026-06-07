@@ -104,6 +104,57 @@ const Riwayat = {
       await API.appendRows(API.SAL,'DB_TRANSAKSI',rows,false);
       alert(`✅ ${rows.length} data Riwayat Saldo di-export ke SAL DB_TRANSAKSI`);
     }catch(e){alert('❌ Gagal: '+e.message);}
+},
+
+async exportPotongan(){
+
+  if(!Auth.canEdit()){
+    alert('Hanya Nabilla & Owner!');
+    return;
+  }
+
+  const data = JSON.parse(
+    localStorage.getItem('_pot_riwayat') || '[]'
+  );
+
+  if(!data.length){
+    alert('Tidak ada data potongan!');
+    return;
+  }
+
+  try{
+
+    const rows = data.map(e=>[
+      e.cabang || '',
+      e.loginId || '',
+      e.drvNama || '',
+      e.waktuAIST || '',
+      e.price || 0,
+      e.pot || 0,
+      e.net || 0,
+      'DONE'
+    ]);
+
+    await API.appendRows(
+      API.POT,
+      'DB_TRANSAKSI',
+      rows,
+      false
+    );
+
+    alert(`✅ ${rows.length} data potongan berhasil di-export!`);
+
+    localStorage.removeItem('_pot_riwayat');
+
+    this.loadPotongan();
+
+  }catch(err){
+
+    alert('❌ Gagal export: ' + err.message);
+  }
+  },
+// Clear semua cache Riwayat
+clearRiwayat(){
   },
 
   // Clear semua cache Riwayat
