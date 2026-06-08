@@ -428,15 +428,19 @@
           </div>
         </div>
         <div id="rwt-al" class="alert"></div>
-        <!-- TABEL 1: Riwayat Input Saldo Cepat -->
+        <!-- TABEL 1: Riwayat Database Saldo -->
         <div class="sec-hdr">
-          <div class="sec-lbl">💰 Riwayat Input Saldo Cepat <span id="rwt-sal-cnt" style="color:var(--t3);font-size:11px;font-weight:400;margin-left:8px;"></span></div>
-          <button class="btn btn-ghost btn-sm rh" onclick="Riwayat.loadSaldo()">🔄 Refresh</button>
+          <div class="sec-lbl">💰 Riwayat Database Saldo <span id="rwt-sal-cnt" style="color:var(--t3);font-size:11px;font-weight:400;margin-left:8px;"></span></div>
+          <div style="display:flex;gap:6px;">
+            <button class="btn btn-ghost btn-sm rh" onclick="Riwayat.loadSaldoDb()">🔄 Refresh</button>
+            <button class="btn btn-p btn-sm rh" onclick="Riwayat.exportSaldoDb()">📤 Export ke SAL Sheet</button>
+            <button class="btn btn-danger btn-sm rh" onclick="Riwayat.clearSaldoDb()">🗑️ Clear</button>
+          </div>
         </div>
         <div class="card" style="padding:0;overflow:auto;">
-          <table class="tbl" style="min-width:700px;">
+          <table class="tbl" style="min-width:900px;">
             <thead><tr id="rwt-sal-hd"></tr></thead>
-            <tbody id="rwt-sal-tb"><tr><td colspan="7" class="tbl-empty">Klik Muat Ulang</td></tr></tbody>
+            <tbody id="rwt-sal-tb"><tr><td colspan="8" class="tbl-empty">Klik Muat Ulang</td></tr></tbody>
           </table>
         </div>
         <!-- TABEL 2: Riwayat Database Potongan -->

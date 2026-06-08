@@ -88,22 +88,25 @@ const SaldoDb = {
     this.renderTable();
     this.clearForm();
     al('sal-al',`✅ ${nama||loginId} — ${rup(nomPlus)} ditambahkan (${cabShort(cabang)})!`,'ok');
-    // Auto-save background
-    this.saveEntryBg(entry);
+    // Simpan ke localStorage._sal_riwayat (belum ke Google Sheet)
+    this.saveToRiwayat(entry);
     this.saveToLS();
   },
 
-  async saveEntryBg(e){
+  // Simpan ke localStorage (tidak langsung ke Google Sheet)
+  saveToRiwayat(e){
     try{
-      const row=['', e.tgl, e.loginId, e.nama, e.cabang, 'Saldo Top-Up', e.nomPlus, '', '', ''];
-      await API.appendRows(API.SAL,'DB_TRANSAKSI',[row],false);
-    }catch(err){ console.warn('SaldoDb.save:',err.message); }
+      const raw = localStorage.getItem('_sal_riwayat');
+      const existing = raw ? JSON.parse(raw) : [];
+      existing.unshift(e);
+      localStorage.setItem('_sal_riwayat', JSON.stringify(existing.slice(0,500)));
+    }catch(err){ console.warn('SaldoDb.saveToRiwayat:',err.message); }
   },
 
   async saveAll(){
     if(!Auth.canEdit()){alert('Hanya Nabilla & Owner!');return;}
     if(!this.data.length){al('sal-al','⚠️ Tidak ada data sesi ini!','wn');return;}
-    al('sal-al','⏳ Menyimpan ke SAL DB_TRANSAKSI...','in');
+    al('sal-al','⏳ Export ke SAL DB_TRANSAKSI...','in');
     try{
       const rows=this.data.map(e=>['', e.tgl, e.loginId, e.nama, e.cabang, 'Saldo Top-Up', e.nomPlus, '', '', '']);
       const res=await API.appendRows(API.SAL,'DB_TRANSAKSI',rows,false);
