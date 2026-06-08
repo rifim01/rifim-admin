@@ -46,37 +46,78 @@ const Riwayat = {
     }
   },
 
-  // ── Riwayat Potongan (dari POT>INPUT DOCK DB_Transaksi) ──
+  // ── Riwayat Potongan (dari localStorage._pot_riwayat — diisi Database Potongan) ──
   async loadPotongan(){
     const tb=$('rwt-pot-tb'), hd=$('rwt-pot-hd'), cnt=$('rwt-pot-cnt');
     if(!tb) return;
-    tb.innerHTML='<tr><td colspan="8" class="tbl-empty">⏳ Memuat riwayat potongan...</td></tr>';
-   try{
-
-  const data = JSON.parse(
-    localStorage.getItem('_pot_riwayat') || '[]'
-  );
-
-  if(cnt) cnt.textContent = data.length + ' transaksi';
+    try{
+      // Baca dari localStorage yang diisi saat "Tambah ke Riwayat" di Database Potongan
+      const raw = localStorage.getItem('_pot_riwayat');
+      const data = raw ? JSON.parse(raw) : [];
+      if(cnt) cnt.textContent = data.length + ' transaksi';
       if(!data.length){
-        tb.innerHTML='<tr><td colspan="8" class="tbl-empty">Belum ada data potongan</td></tr>';
+        tb.innerHTML='<tr><td colspan="9" class="tbl-empty">Belum ada data — klik "Tambah ke Riwayat" di Tab Database Potongan</td></tr>';
         return;
       }
-      const cols=['ID Cabang','Login ID','Nama Driver','Waktu Order','Price','Potongan Kantor','Hak Driver','Status'];
+      // Field names sesuai potongan.js entry: tgl, waktuAIST, waktuLive, loginId, drvNama, cabang, price, pot, net
+      const cols=['TGL','WAKTU AIST','WAKTU LIVE','LOGIN ID','DRIVER','CABANG','PRICE','POTONGAN','NET'];
       if(hd) hd.innerHTML='<tr>'+cols.map(c=>`<th>${c}</th>`).join('')+'</tr>';
-      tb.innerHTML = data.slice(0,200).map(r=>`<tr>
-        <td><span class="bdg bdg-ok" style="font-size:10px">${cabShort(r['ID Cabang']||'')}</span></td>
-        <td style="font-family:var(--mono);font-size:11px">${r['Login ID']||'—'}</td>
-        <td>${r['Nama Driver']||'—'}</td>
-        <td style="font-size:11px;font-family:var(--mono)">${r['Waktu Order']||'—'}</td>
-        <td style="text-align:right">${r['Price']?rup(Number(r['Price'])||0):'—'}</td>
-        <td style="text-align:right;color:var(--red);font-weight:700">${r['Potongan Kantor']?rup(Number(r['Potongan Kantor'])||0):'—'}</td>
-        <td style="text-align:right;color:var(--ok)">${r['Hak Driver']?rup(Number(r['Hak Driver'])||0):'—'}</td>
-        <td><span class="bdg ${r['Status']==='DONE'?'bdg-ok':'bdg-wn'}" style="font-size:10px">${r['Status']||'—'}</span></td>
+      tb.innerHTML = data.slice(0,300).map(e=>`<tr>
+        <td style="font-size:11px;color:var(--t2)">${e.tgl||'—'}</td>
+        <td style="font-size:11px;font-family:var(--mono)">${e.waktuAIST||'—'}</td>
+        <td style="font-size:11px;color:var(--sky)">${e.waktuLive||'—'}</td>
+        <td style="font-family:var(--mono);font-size:11px">${e.loginId||'—'}</td>
+        <td style="font-size:12px">${e.drvNama||'—'}</td>
+        <td style="font-size:11px">${e.cabang||'—'}</td>
+        <td style="text-align:right;font-size:12px">${rup(Number(e.price)||0)}</td>
+        <td style="text-align:right;color:var(--red);font-weight:700">${rup(Number(e.pot)||0)}</td>
+        <td style="text-align:right;color:var(--ok)">${rup(Number(e.net)||0)}</td>
       </tr>`).join('');
     }catch(e){
-      tb.innerHTML=`<tr><td colspan="8" class="tbl-empty">❌ ${e.message}</td></tr>`;
+      tb.innerHTML=`<tr><td colspan="9" class="tbl-empty">❌ ${e.message}</td></tr>`;
     }
+  },
+
+  // ── Export Riwayat Potongan ke POT DB_Transaksi ──
+  async exportPotongan(){
+    if(!Auth.canEdit()){alert('Hanya Nabilla & Owner!');return;}
+    const raw = localStorage.getItem('_pot_riwayat');
+    const data = raw ? JSON.parse(raw) : [];
+    if(!data.length){al('rwt-al','⚠️ Tidak ada data potongan untuk di-export!','wn');return;}
+    al('rwt-al',`⏳ Menyimpan ${data.length} data ke POT DB_Transaksi...`,'in');
+    try{
+      // Schema POT DB_Transaksi: ID Cabang, Price, Login ID, Waktu Order, Offline?, Kode Opsional, Pembanding PKU, Nama Driver, Potongan Kantor, Hak Driver, Status, Waktu Input Admin
+      const rows = data.map(e=>[
+        e.cabang||'',
+        e.price||0,
+        e.loginId||'',
+        e.waktuAIST||'',
+        'FALSE',
+        e.surcharge||'',
+        '',
+        e.drvNama||'',
+        e.pot||0,
+        e.net||0,
+        'DONE',
+        e.waktuLive||''
+      ]);
+      const res = await API.appendRows(API.POT,'DB_Transaksi',rows,false);
+      if(res?.error) throw new Error(res.error);
+      al('rwt-al',`✅ ${rows.length} data potongan berhasil di-export ke POT DB_Transaksi!`,'ok');
+      // Clear localStorage setelah berhasil export
+      setTimeout(()=>{
+        localStorage.removeItem('_pot_riwayat');
+        this.loadPotongan();
+      }, 1200);
+    }catch(e){al('rwt-al','❌ Gagal: '+e.message,'er');}
+  },
+
+  // ── Clear tampilan Riwayat Potongan ──
+  clearPotongan(){
+    if(!confirm('Hapus riwayat potongan dari tampilan dan localStorage?\n(Data di Google Sheet tidak terhapus)')) return;
+    localStorage.removeItem('_pot_riwayat');
+    this.loadPotongan();
+    al('rwt-al','✅ Riwayat potongan di-clear!','ok');
   },
 
   // Backward compat (dipanggil dari Saldo references lama)

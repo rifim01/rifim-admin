@@ -425,8 +425,6 @@
           <div><div class="pg-title">Riwayat</div><div class="pg-sub">Riwayat Input Saldo & Database Potongan</div></div>
           <div class="pg-acts">
             <button class="btn btn-ghost rh btn-sm" onclick="Riwayat.init()">🔄 Muat Ulang</button>
-            <button class="btn btn-p rh btn-sm" onclick="Riwayat.exportSaldo()">📤 Export Saldo</button>
-            <button class="btn btn-danger rh btn-sm" onclick="Riwayat.clearRiwayat()">🗑️ Clear Tampilan</button>
           </div>
         </div>
         <div id="rwt-al" class="alert"></div>
@@ -444,7 +442,11 @@
         <!-- TABEL 2: Riwayat Database Potongan -->
         <div class="sec-hdr" style="margin-top:20px;">
           <div class="sec-lbl">📊 Riwayat Database Potongan <span id="rwt-pot-cnt" style="color:var(--t3);font-size:11px;font-weight:400;margin-left:8px;"></span></div>
-          <button class="btn btn-ghost btn-sm rh" onclick="Riwayat.loadPotongan()">🔄 Refresh</button>
+          <div style="display:flex;gap:6px;">
+            <button class="btn btn-ghost btn-sm rh" onclick="Riwayat.loadPotongan()">🔄 Refresh</button>
+            <button class="btn btn-p btn-sm rh" onclick="Riwayat.exportPotongan()">📤 Export ke POT Sheet</button>
+            <button class="btn btn-danger btn-sm rh" onclick="Riwayat.clearPotongan()">🗑️ Clear</button>
+          </div>
         </div>
         <div class="card" style="padding:0;overflow:auto;">
           <table class="tbl" style="min-width:900px;">
